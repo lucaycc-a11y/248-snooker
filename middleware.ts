@@ -15,7 +15,7 @@ const intlMiddleware = createMiddleware(routing)
 const LOCALIZED_ROOTS = ['book', 'pricing', 'about', 'faq', 'legal', 'terms', 'privacy', 'blog', 'venue', 'membership', 'value']
 
 // Routes that must never be rewritten by intl middleware.
-const BYPASS_PREFIXES = ['/api', '/auth', '/admin', '/member', '/login', '/reset-password', '/maintenance', '/coming-soon', '/style-guide-preview']
+const BYPASS_PREFIXES = ['/api', '/auth', '/admin', '/member', '/pay', '/login', '/reset-password', '/maintenance', '/coming-soon', '/style-guide-preview']
 
 // Routes the site gate never blocks: admin (needs to reach the toggle even
 // while gated), the API (the gate's own verify/waitlist endpoints live here,

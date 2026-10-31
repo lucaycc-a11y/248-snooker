@@ -20,6 +20,8 @@ import { adminCancelWithCredit } from '@/lib/admin/cancelWithCredit'
 import type { Json } from '@/lib/supabase/database.types'
 import { normalizePromoCodeInput } from '@/lib/admin/promo-code-rules'
 import { SPARK_LIMITS, TIERS, TIER_LABEL, hkDayStartIso, type Tier } from './limits'
+import { createAndNotifyCase, validateCaseInput } from '@/lib/cases/service'
+import { SCENARIOS, isCaseScenario } from '@/lib/cases/scenarios'
 
 export type ActionKind =
   | 'adjust_credit'
@@ -31,6 +33,7 @@ export type ActionKind =
   | 'set_promo_status'
   | 'set_promo_expiry'
   | 'create_promo'
+  | 'create_violation_case'
 
 export type ActionStatus = 'pending' | 'executed' | 'rejected' | 'expired' | 'failed' | 'undone'
 export type Risk = 'normal' | 'high'
@@ -637,6 +640,70 @@ const DEFS: Record<ActionKind, Def> = {
       return null
     },
   },
+  create_violation_case: {
+    label: '開違規個案',
+    undoable: false,
+    async prepare(a) {
+      if (!isCaseScenario(a.scenario)) return { error: '請指明違規情境：smoking／damage／overtime／over_capacity／pet／other' }
+      const preset = SCENARIOS[a.scenario]
+      const detail = toStr(a.detail, 1000)
+      const evidenceNote = toStr(a.evidenceNote, 500)
+      const amountRaw = a.amount === undefined || a.amount === null ? preset.defaultAmount : Number(a.amount)
+      if (amountRaw === null || !Number.isFinite(amountRaw)) return { error: `${preset.label}沒有預設金額，請提供費用（HK$）；僅警告請用 0` }
+      const applyBlacklist = typeof a.applyBlacklist === 'boolean' ? a.applyBlacklist : preset.applyBlacklistByDefault
+      const m = await findMember(toStr(a.memberCode))
+      if (isFail(m)) return m
+
+      let bookingId: string | null = null
+      const bookingCode = toStr(a.bookingCode, 80)
+      if (bookingCode) {
+        const { data: b } = await getLegacyServiceSupabase().from('bookings').select('id, user_id').ilike('human_code', bookingCode).maybeSingle()
+        const br = asRec(b)
+        if (typeof br.id !== 'string' || br.user_id !== m.id) return { error: `找不到 ${m.code} 的預約 ${bookingCode}` }
+        bookingId = br.id
+      }
+
+      const invalid = validateCaseInput({ userId: m.id, scenario: a.scenario, detail, amount: amountRaw, applyBlacklist, bookingId })
+      if (invalid) return { error: invalid }
+
+      const warning = amountRaw === 0
+      return {
+        summary: `開違規個案（${preset.label}）給 ${m.code}${warning ? '，僅警告' : `，費用 ${hkd(amountRaw)}`}`,
+        risk: 'high',
+        preview: [
+          { label: '會員', value: m.code },
+          { label: '情境', value: `${preset.label}（${preset.clause}）` },
+          { label: '費用', value: warning ? '僅警告，毋須繳費' : hkd(amountRaw), tone: warning ? undefined : 'minus' },
+          { label: '事實', value: detail },
+          { label: '通知', value: warning ? 'Email + 收件箱' : `Email + 收件箱 + KPay 付款連結（${preset.dueDays} 日內繳付）` },
+          { label: '黑名單', value: applyBlacklist ? (m.blacklisted ? '已在黑名單' : '會員會被加入黑名單（不能再預約）') : '不加入', tone: applyBlacklist && !m.blacklisted ? 'warn' : undefined },
+          ...(bookingCode ? [{ label: '預約', value: bookingCode }] : []),
+          ...(evidenceNote ? [{ label: '內部證據', value: evidenceNote }] : []),
+        ],
+        params: { userId: m.id, memberCode: m.code, scenario: a.scenario, detail, evidenceNote, amount: amountRaw, applyBlacklist, bookingId, bookingCode },
+      }
+    },
+    async execute(p, ctx) {
+      if (!isCaseScenario(p.scenario)) return { error: '違規情境無效' }
+      const r = await createAndNotifyCase(
+        {
+          userId: String(p.userId),
+          bookingId: typeof p.bookingId === 'string' ? p.bookingId : null,
+          scenario: p.scenario,
+          detail: toStr(p.detail, 1000),
+          evidenceNote: toStr(p.evidenceNote, 500) || undefined,
+          amount: Number(p.amount),
+          applyBlacklist: p.applyBlacklist === true,
+        },
+        { adminId: ctx.adminId, adminEmail: ctx.adminEmail },
+      )
+      if (!r.ok) return { error: r.error }
+      return { result: { caseId: r.value.case.id, caseNo: r.value.case.case_no, blacklisted: r.value.blacklisted }, undo: null }
+    },
+    async undo() {
+      return { error: '個案通知已發出，不能還原。請到後台「違規個案」頁取消或豁免。' }
+    },
+  },
 }
 
 export const ACTION_KINDS = Object.keys(DEFS) as ActionKind[]
@@ -849,6 +916,7 @@ function prepareArgsFromParams(row: SparkActionRow): Args {
     case 'set_promo_status': return { code: p.code, status: p.status }
     case 'set_promo_expiry': return { code: p.code, validUntil: p.validUntil }
     case 'create_promo': return { ...p, redo: true }
+    case 'create_violation_case': return { memberCode: p.memberCode, scenario: p.scenario, detail: p.detail, evidenceNote: p.evidenceNote, amount: p.amount, applyBlacklist: p.applyBlacklist, bookingCode: p.bookingCode }
   }
 }
 

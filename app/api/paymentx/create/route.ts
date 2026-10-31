@@ -66,7 +66,7 @@ async function handlePaymentXCreate(req: Request) {
     if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
     const gate = await requireCompleteProfile(supabase, user.id)
-    if (!gate.ok) return NextResponse.json({ error: gate.error }, { status: gate.status })
+    if (!gate.ok) return NextResponse.json({ error: gate.error, detail: gate.detail }, { status: gate.status })
 
     if (!(await isPaymentXTester(user.id))) {
       return NextResponse.json({ error: 'PaymentX 暫未對你的帳戶開放' }, { status: 403 })

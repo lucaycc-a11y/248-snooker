@@ -109,6 +109,7 @@ const STEP_LABEL: Record<string, string> = {
   propose_cancel_booking: '準備取消預約',
   propose_set_promo_status: '準備更改優惠碼狀態',
   propose_set_promo_expiry: '準備更改優惠碼有效期',
+  propose_create_violation_case: '準備開違規個案',
 }
 
 type Args = Record<string, unknown>
@@ -232,6 +233,12 @@ const SPARK_TOOLS: SparkTool[] = [
     validUntil: { type: 'string', description: 'YYYY-MM-DD' }, audience: { type: 'string', enum: ['all', 'new_users'] },
     maxUses: { type: 'integer' }, perUserLimit: { type: 'integer' }, minCartAmount: { type: 'integer' },
   }, ['code', 'name', 'discountType', 'discountValue', 'validUntil']),
+  propose('create_violation_case', '提議為會員開違規個案（吸煙 smoking $500、損壞 damage 最低 $300、超時 overtime、超人數 over_capacity、寵物 pet、其他 other）。確認後系統會發 email 及收件箱通知，附 KPay 付款連結，繳費後自動結案；可同時加入黑名單。金額 0 = 僅警告。必須有違規事實（時間、地點、經過），管理員沒提供就先問，不要自己編。不會直接執行，要管理員確認。', {
+    memberCode, scenario: { type: 'string', enum: ['smoking', 'damage', 'overtime', 'over_capacity', 'pet', 'other'] },
+    amount: { type: 'number', description: 'HK$；smoking 預設 500；僅警告用 0' }, detail: { type: 'string', description: '違規事實，會寫入給會員的通知' },
+    evidenceNote: { type: 'string', description: '內部證據備註，例如 CCTV 時段，不會發給會員' }, applyBlacklist: { type: 'boolean', description: 'smoking 預設 true，其他預設 false' },
+    bookingCode: { type: 'string', description: '相關預約編號（選填）' },
+  }, ['memberCode', 'scenario', 'detail']),
   propose('set_promo_expiry', '提議更改優惠碼的有效期限（YYYY-MM-DD，當日香港時間 23:59 止）。不會直接執行，要管理員確認。', { code: { type: 'string' }, validUntil: { type: 'string' } }, ['code', 'validUntil']),
 ]
 

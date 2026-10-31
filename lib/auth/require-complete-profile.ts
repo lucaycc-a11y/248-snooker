@@ -19,7 +19,9 @@ import type { SupabaseClient } from '@supabase/supabase-js'
 // Checks onboarding_status (the canonical state for the 2-identity flow) and
 // falls back to the legacy profile_complete boolean for accounts that predate
 // the migration.
-export type ProfileGateResult = { ok: true } | { ok: false; status: number; error: string }
+export type ProfileGateResult =
+  | { ok: true }
+  | { ok: false; status: number; error: string; detail?: string }
 
 export async function requireCompleteProfile(
   supabase: SupabaseClient,
@@ -27,9 +29,13 @@ export async function requireCompleteProfile(
 ): Promise<ProfileGateResult> {
   const { data, error } = await supabase
     .from('users')
-    .select('onboarding_status, profile_complete')
+    .select('onboarding_status, profile_complete, is_blacklisted')
     .eq('id', userId)
-    .maybeSingle<{ onboarding_status: string | null; profile_complete: boolean | null }>()
+    .maybeSingle<{
+      onboarding_status: string | null
+      profile_complete: boolean | null
+      is_blacklisted: boolean | null
+    }>()
 
   if (error) {
     console.error('[auth/require-complete-profile] lookup failed', {
@@ -38,6 +44,18 @@ export async function requireCompleteProfile(
       code: (error as { code?: string }).code,
     })
     return { ok: false, status: 503, error: 'profile_check_unavailable' }
+  }
+
+  // Blacklisted members (venue-rule violations, see content/legal/terms) may not
+  // book or pay. Checked before the profile state so it applies to every account,
+  // and on this single choke point so all four money paths enforce it together.
+  if (data?.is_blacklisted === true) {
+    return {
+      ok: false,
+      status: 403,
+      error: 'account_blacklisted',
+      detail: '你的會員資格已被暫停，暫時未能預約。如有疑問請 WhatsApp 聯絡 Space8。',
+    }
   }
 
   // Primary gate: onboarding_status must be 'complete'

@@ -5,6 +5,7 @@ import { getClientIp } from '@/lib/security/audit-log'
 import { PaymentXClient } from '@/lib/paymentx/client'
 import { logPaymentXEvent } from '@/lib/paymentx/events'
 import { settlePaymentXOrder, type PaymentXOrderRow } from '@/lib/paymentx/settle'
+import { findCasePayment, settleCasePayment } from '@/lib/cases/settle'
 
 export const runtime = 'nodejs'
 
@@ -100,6 +101,21 @@ export async function POST(req: Request) {
   }
 
   if (!order) {
+    // Not a booking order — it may be a violation-case payment (lib/cases).
+    const casePayment = await findCasePayment({
+      managedOrderNo: managedOrderNo || undefined,
+      managedOutTradeNo: managedOutTradeNo || outTradeNo || undefined,
+    })
+    if (casePayment) {
+      try {
+        const outcome = await settleCasePayment(casePayment, hostname)
+        await logPaymentXEvent({ kind: 'notify_case_settled', managedOrderNo: casePayment.managed_order_no, note: outcome })
+      } catch (e) {
+        console.error('[webhook/paymentx] case settle threw', (e as Error).message)
+        return new NextResponse('Settle failed', { status: 500 })
+      }
+      return new NextResponse('OK', { status: 200 })
+    }
     await logPaymentXEvent({ kind: 'notify_unmatched', managedOrderNo: managedOrderNo || null, note: 'no PaymentX order matches this notify' })
     return new NextResponse('OK', { status: 200 })
   }

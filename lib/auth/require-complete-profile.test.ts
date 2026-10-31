@@ -12,7 +12,11 @@ import { describe, expect, it, vi } from 'vitest'
 import { requireCompleteProfile } from './require-complete-profile'
 import type { SupabaseClient } from '@supabase/supabase-js'
 
-type Row = { onboarding_status: string | null; profile_complete: boolean | null }
+type Row = {
+  onboarding_status: string | null
+  profile_complete: boolean | null
+  is_blacklisted?: boolean | null
+}
 
 // Minimal stand-in for the from().select().eq().maybeSingle() chain the guard
 // uses. Returned as SupabaseClient because the guard only touches .from().
@@ -57,6 +61,17 @@ describe('requireCompleteProfile', () => {
     expect(result).toEqual({ ok: false, status: 403, error: 'profile_incomplete' })
   })
 
+  it('blocks a blacklisted member even when onboarding is complete', async () => {
+    const result = await requireCompleteProfile(
+      clientReturning({
+        data: { onboarding_status: 'complete', profile_complete: true, is_blacklisted: true },
+        error: null,
+      }),
+      USER_ID,
+    )
+    expect(result).toMatchObject({ ok: false, status: 403, error: 'account_blacklisted' })
+  })
+
   it('fails CLOSED with 503 when the lookup errors', async () => {
     const result = await requireCompleteProfile(
       clientReturning({ data: null, error: { message: 'connection reset', code: '08006' } }),
@@ -75,7 +90,7 @@ describe('requireCompleteProfile', () => {
     const from = vi.fn(() => ({ select }))
     await requireCompleteProfile({ from } as unknown as SupabaseClient, USER_ID)
     expect(from).toHaveBeenCalledWith('users')
-    expect(select).toHaveBeenCalledWith('onboarding_status, profile_complete')
+    expect(select).toHaveBeenCalledWith('onboarding_status, profile_complete, is_blacklisted')
     expect(eq).toHaveBeenCalledWith('id', USER_ID)
   })
 })

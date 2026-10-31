@@ -93,6 +93,7 @@ export const ADMIN_AREAS: AdminArea[] = [
         hint: '共用裝置與可疑帳戶',
       },
       { href: '/admin/follow-ups', label: '跟進名單', cmsKey: 'admin.nav.follow_ups', hint: '需要聯絡的會員' },
+      { href: '/admin/cases', label: '違規個案', cmsKey: 'admin.nav.cases', hint: '吸煙、損壞、超時等違規：通知、收款、黑名單' },
       { href: '/admin/notifications', label: '通知範本', cmsKey: 'admin.nav.notifications', hint: '訊息與電郵範本' },
     ],
   },

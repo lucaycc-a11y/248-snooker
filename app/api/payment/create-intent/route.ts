@@ -44,7 +44,7 @@ async function handleCreateIntent(req: Request) {
 
     const gate = await requireCompleteProfile(supabase, user.id)
     if (!gate.ok) {
-      return NextResponse.json({ error: gate.error }, { status: gate.status })
+      return NextResponse.json({ error: gate.error, detail: gate.detail }, { status: gate.status })
     }
 
     const allowed = await rateLimit('payment_intent', `user:${user.id}`, 20, 60)
