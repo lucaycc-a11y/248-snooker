@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server'
 import { getAdminData } from '@/lib/data/getAdmin'
 import { getLegacyServiceSupabase } from '@/lib/supabase/legacy'
-import { CASE_COLUMNS, casePayUrl, createAndNotifyCase, toCaseRow } from '@/lib/cases/service'
+import { CASE_COLUMNS, casePayUrl, createCase, toCaseRow } from '@/lib/cases/service'
 import { isCaseScenario, SCENARIO_LIST } from '@/lib/cases/scenarios'
 import { buildCaseWhatsAppDraft, normalizeWhatsAppPhone, whatsAppLink } from '@/lib/cases/whatsapp'
 
@@ -88,7 +88,7 @@ export async function GET(req: Request) {
   }
 }
 
-// POST /api/admin/cases — create a case and send the notice (email + inbox, optional blacklist).
+// POST /api/admin/cases — create a case as a DRAFT. Nothing is sent until the admin picks a channel.
 export async function POST(req: Request) {
   try {
     const admin = await getAdminData()
@@ -104,12 +104,12 @@ export async function POST(req: Request) {
       if (!isRec(me) || typeof me.id !== 'string' || typeof me.email !== 'string') {
         return NextResponse.json({ error: '你的管理員帳號沒有對應的會員資料或 email，未能建立測試個案' }, { status: 400 })
       }
-      const t = await createAndNotifyCase(
+      const t = await createCase(
         { userId: me.id, bookingId: null, scenario: 'other', title: '系統測試個案', detail: '這是系統測試個案，用作測試通知及付款流程，請忽略或按指示繳付 HK$1.5。', amount: 1.5, applyBlacklist: false, incidentAt: null },
         { adminId: admin.userId, adminEmail: admin.email },
       )
       if (!t.ok) return NextResponse.json({ error: t.error }, { status: 400 })
-      return NextResponse.json({ ok: true, caseNo: t.value.case.case_no, blacklisted: false })
+      return NextResponse.json({ ok: true, caseNo: t.value.case_no })
     }
 
     const memberCode = typeof body.memberCode === 'string' ? body.memberCode.trim() : ''
@@ -129,7 +129,7 @@ export async function POST(req: Request) {
     }
 
     const amount = typeof body.amount === 'number' ? body.amount : Number(body.amount)
-    const result = await createAndNotifyCase(
+    const result = await createCase(
       {
         userId: member.id,
         bookingId,
@@ -145,7 +145,7 @@ export async function POST(req: Request) {
       { adminId: admin.userId, adminEmail: admin.email },
     )
     if (!result.ok) return NextResponse.json({ error: result.error }, { status: 400 })
-    return NextResponse.json({ ok: true, caseNo: result.value.case.case_no, blacklisted: result.value.blacklisted })
+    return NextResponse.json({ ok: true, caseNo: result.value.case_no })
   } catch (e) {
     return NextResponse.json({ error: e instanceof Error ? e.message : 'Unexpected error' }, { status: 500 })
   }

@@ -233,7 +233,7 @@ const SPARK_TOOLS: SparkTool[] = [
     validUntil: { type: 'string', description: 'YYYY-MM-DD' }, audience: { type: 'string', enum: ['all', 'new_users'] },
     maxUses: { type: 'integer' }, perUserLimit: { type: 'integer' }, minCartAmount: { type: 'integer' },
   }, ['code', 'name', 'discountType', 'discountValue', 'validUntil']),
-  propose('create_violation_case', '提議為會員開違規個案（吸煙 smoking $500、損壞 damage 最低 $300、超時 overtime、超人數 over_capacity、寵物 pet、其他 other）。確認後系統會發 email 及收件箱通知，附 KPay 付款連結，繳費後自動結案；可同時加入黑名單。金額 0 = 僅警告。必須有違規事實（時間、地點、經過），管理員沒提供就先問，不要自己編。不會直接執行，要管理員確認。', {
+  propose('create_violation_case', '提議為會員開違規個案（吸煙 smoking $500、損壞 damage 最低 $300、超時 overtime、超人數 over_capacity、寵物 pet、其他 other）。確認後只會建立個案草稿，不會自動通知會員；管理員之後要在後台「違規個案」揀 Email 或 WhatsApp 發送（發送時才會加黑名單及開始計繳付期限）。金額 0 = 僅警告。必須有違規事實（時間、地點、經過），管理員沒提供就先問，不要自己編。不會直接執行，要管理員確認。', {
     memberCode, scenario: { type: 'string', enum: ['smoking', 'damage', 'overtime', 'over_capacity', 'pet', 'other'] },
     amount: { type: 'number', description: 'HK$；smoking 預設 500；僅警告用 0' }, detail: { type: 'string', description: '違規事實，會寫入給會員的通知' },
     evidenceNote: { type: 'string', description: '內部證據備註，例如 CCTV 時段，不會發給會員' }, applyBlacklist: { type: 'boolean', description: 'smoking 預設 true，其他預設 false' },

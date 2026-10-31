@@ -1,14 +1,16 @@
 import { NextResponse } from 'next/server'
 import { getAdminData } from '@/lib/data/getAdmin'
-import { closeCase, casePayUrl, loadCase, notifyCase } from '@/lib/cases/service'
+import { closeCase, casePayUrl, loadCase, notifyCase, whatsappForCase } from '@/lib/cases/service'
 import { findTermsAcceptance } from '@/lib/legal/terms-acceptance'
 import { buildDemandLetter } from '@/lib/cases/demand-letter'
 import { getLegacyServiceSupabase } from '@/lib/supabase/legacy'
 
 export const dynamic = 'force-dynamic'
 
-// POST /api/admin/cases/<id>  { action: 'resend' | 'waive' | 'cancel', reason? }
-//   resend — send the notice email again (also nudges an overdue case)
+// POST /api/admin/cases/<id>  { action: 'resend' | 'notify_whatsapp' | 'waive' | 'cancel', reason? }
+//   resend — send the notice email (first send for a draft, or again for an open case)
+//   notify_whatsapp — mark the case notified (starts the clock, applies blacklist) and return the
+//                     WhatsApp text + link; the admin sends the message themselves
 //   cancel — opened by mistake (any admin)
 //   waive  — forgive the fee (super_admin only: it gives money away)
 export async function POST(req: Request, { params }: { params: Promise<{ id: string }> }) {
@@ -27,6 +29,12 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
     if (action === 'resend') {
       const r = await notifyCase(id, actor)
       return r.ok ? NextResponse.json({ ok: true }) : NextResponse.json({ error: r.error }, { status: 400 })
+    }
+    if (action === 'notify_whatsapp') {
+      const r = await notifyCase(id, actor, 'whatsapp')
+      if (!r.ok) return NextResponse.json({ error: r.error }, { status: 400 })
+      const w = await whatsappForCase(id)
+      return w.ok ? NextResponse.json({ ok: true, whatsappDraft: w.value.draft, whatsappLink: w.value.link, hasPhone: w.value.hasPhone }) : NextResponse.json({ ok: true })
     }
     if (action === 'cancel' || action === 'waive') {
       if (action === 'waive' && admin.role !== 'super_admin') {

@@ -20,7 +20,7 @@ import { adminCancelWithCredit } from '@/lib/admin/cancelWithCredit'
 import type { Json } from '@/lib/supabase/database.types'
 import { normalizePromoCodeInput } from '@/lib/admin/promo-code-rules'
 import { SPARK_LIMITS, TIERS, TIER_LABEL, hkDayStartIso, type Tier } from './limits'
-import { createAndNotifyCase, validateCaseInput } from '@/lib/cases/service'
+import { createCase, validateCaseInput } from '@/lib/cases/service'
 import { SCENARIOS, isCaseScenario } from '@/lib/cases/scenarios'
 
 export type ActionKind =
@@ -675,7 +675,7 @@ const DEFS: Record<ActionKind, Def> = {
           { label: '情境', value: `${preset.label}（${preset.clause}）` },
           { label: '費用', value: warning ? '僅警告，毋須繳費' : hkd(amountRaw), tone: warning ? undefined : 'minus' },
           { label: '事實', value: detail },
-          { label: '通知', value: warning ? 'Email + 收件箱' : `Email + 收件箱 + KPay 付款連結（${preset.dueDays} 日內繳付）` },
+          { label: '通知', value: `建立後先不發送；之後在後台「違規個案」揀 Email 或 WhatsApp 發送${warning ? '' : `（${preset.dueDays} 日內繳付）`}` },
           { label: '黑名單', value: applyBlacklist ? (m.blacklisted ? '已在黑名單' : '會員會被加入黑名單（不能再預約）') : '不加入', tone: applyBlacklist && !m.blacklisted ? 'warn' : undefined },
           ...(bookingCode ? [{ label: '預約', value: bookingCode }] : []),
           ...(evidenceNote ? [{ label: '內部證據', value: evidenceNote }] : []),
@@ -685,7 +685,7 @@ const DEFS: Record<ActionKind, Def> = {
     },
     async execute(p, ctx) {
       if (!isCaseScenario(p.scenario)) return { error: '違規情境無效' }
-      const r = await createAndNotifyCase(
+      const r = await createCase(
         {
           userId: String(p.userId),
           bookingId: typeof p.bookingId === 'string' ? p.bookingId : null,
@@ -698,10 +698,10 @@ const DEFS: Record<ActionKind, Def> = {
         { adminId: ctx.adminId, adminEmail: ctx.adminEmail },
       )
       if (!r.ok) return { error: r.error }
-      return { result: { caseId: r.value.case.id, caseNo: r.value.case.case_no, blacklisted: r.value.blacklisted }, undo: null }
+      return { result: { caseId: r.value.id, caseNo: r.value.case_no, status: 'draft' }, undo: null }
     },
     async undo() {
-      return { error: '個案通知已發出，不能還原。請到後台「違規個案」頁取消或豁免。' }
+      return { error: '個案已建立，不能還原。請到後台「違規個案」頁取消。' }
     },
   },
 }

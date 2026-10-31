@@ -3,6 +3,7 @@ import { getLegacyServiceSupabase } from '@/lib/supabase/legacy'
 import { writeAdminAudit } from '@/lib/admin/audit'
 import { isTestBooking } from '@/lib/env/test-booking'
 import { sendCaseEmail, type CaseEmailKind } from './email'
+import { buildCaseWhatsAppDraft, normalizeWhatsAppPhone, whatsAppLink } from './whatsapp'
 import { SCENARIOS, isCaseScenario, type CaseScenario, type CaseStatus } from './scenarios'
 
 // Violation cases (違規個案): create → notify (email + inbox + optional blacklist) → member pays
@@ -157,7 +158,6 @@ export async function createCase(input: CreateCaseInput, actor: CaseActor): Prom
 
   const member = await loadMember(input.userId)
   if (!member) return { ok: false, error: '找不到此會員' }
-  if (!member.email) return { ok: false, error: '此會員沒有 email，無法發送通知' }
 
   if (input.bookingId) {
     const { data: b } = await db.from('bookings').select('id, user_id').eq('id', input.bookingId).maybeSingle()
@@ -230,28 +230,49 @@ async function inboxMessage(userId: string, title: string, message: string): Pro
   if (error) console.error('[cases/inbox] insert failed', error.message)
 }
 
+export type NotifyChannel = 'email' | 'whatsapp'
+
 /**
- * Send the case notice. Email goes first: if it fails nothing else changes (no blacklist, no status),
- * so a member is never suspended without having been told. Safe to call again to re-send.
+ * Send the case notice through one channel the admin picked. A new case is only a draft: nothing
+ * reaches the member (and no blacklist applies) until this runs.
+ *  - email: sent first; if it fails nothing else changes, so a member is never suspended without
+ *    having been told. Safe to call again to re-send.
+ *  - whatsapp: nothing is sent from here (no Business API); this marks the case as notified so the
+ *    pay link works, and the admin sends the prepared WhatsApp text themselves.
+ * The first notice starts the payment clock: the due date is counted from now, not from creation.
  */
-export async function notifyCase(caseId: string, actor: CaseActor): Promise<Outcome<{ emailId: string | null; blacklisted: boolean }>> {
+export async function notifyCase(
+  caseId: string,
+  actor: CaseActor,
+  channel: NotifyChannel = 'email',
+): Promise<Outcome<{ emailId: string | null; blacklisted: boolean }>> {
   const c = await loadCase(caseId)
   if (!c) return { ok: false, error: '找不到個案' }
   if (c.status === 'paid' || c.status === 'waived' || c.status === 'cancelled') return { ok: false, error: `個案已${c.status === 'paid' ? '繳付' : c.status === 'waived' ? '豁免' : '取消'}，不能再發送` }
   const member = await loadMember(c.user_id)
-  if (!member?.email) return { ok: false, error: '會員沒有可用的 email' }
+  if (!member) return { ok: false, error: '找不到此會員' }
 
   const willBlacklist = c.apply_blacklist
-  const sent = await sendCaseEmail('notice', await emailDataFor(c, member, willBlacklist))
-  if (!sent.ok) return { ok: false, error: `Email 發送失敗：${sent.error}` }
+  let emailId: string | null = null
+  if (channel === 'email') {
+    if (!member.email) return { ok: false, error: '會員沒有可用的 email' }
+    const sent = await sendCaseEmail('notice', await emailDataFor(c, member, willBlacklist))
+    if (!sent.ok) return { ok: false, error: `Email 發送失敗：${sent.error}` }
+    emailId = sent.id
+  }
 
   const db = getLegacyServiceSupabase()
+  const now = new Date()
   const isWarning = c.amount === 0
   const nextStatus: CaseStatus = isWarning ? 'waived' : c.status === 'overdue' ? 'overdue' : 'notified'
   const update: Rec = {
-    notified_at: new Date().toISOString(),
-    updated_at: new Date().toISOString(),
+    notified_at: now.toISOString(),
+    updated_at: now.toISOString(),
     status: nextStatus,
+  }
+  if (c.status === 'draft' && c.due_at) {
+    const days = Math.max(1, Math.round((new Date(c.due_at).getTime() - new Date(c.created_at).getTime()) / 86400_000))
+    update.due_at = new Date(now.getTime() + days * 86400_000).toISOString()
   }
   if (isWarning) update.waived_reason = '僅警告，毋須繳費'
   const { error } = await db.from('violation_cases').update(update).eq('id', c.id)
@@ -268,29 +289,34 @@ export async function notifyCase(caseId: string, actor: CaseActor): Promise<Outc
     }
   }
 
+  const via = channel === 'email' ? '你的 email' : 'WhatsApp'
   await inboxMessage(
     c.user_id,
     isWarning ? '違規警告通知' : '違規個案通知',
     isWarning
-      ? `個案 ${c.case_no}：${c.title}。本次為警告，詳情已發送至你的 email。`
-      : `個案 ${c.case_no}：${c.title}，費用 HK$${c.amount}。繳付連結已發送至你的 email。`,
+      ? `個案 ${c.case_no}：${c.title}。本次為警告，詳情已發送至${via}。`
+      : `個案 ${c.case_no}：${c.title}，費用 HK$${c.amount}。繳付連結已發送至${via}。`,
   )
   await writeAdminAudit({
     adminUserId: actor.adminId, adminEmail: actor.adminEmail, action: 'violation_case_notified', targetTable: 'violation_cases', targetId: c.id,
-    beforeValue: { status: c.status }, afterValue: { status: nextStatus, emailId: sent.id },
+    beforeValue: { status: c.status }, afterValue: { status: nextStatus, channel, emailId },
   })
-  return { ok: true, value: { emailId: sent.id, blacklisted: willBlacklist } }
+  return { ok: true, value: { emailId, blacklisted: willBlacklist } }
 }
 
-export async function createAndNotifyCase(input: CreateCaseInput, actor: CaseActor): Promise<Outcome<{ case: CaseRow; blacklisted: boolean }>> {
-  const created = await createCase(input, actor)
-  if (!created.ok) return created
-  const notified = await notifyCase(created.value.id, actor)
-  if (!notified.ok) {
-    // The case exists as a draft; admin can re-send from /admin/cases.
-    return { ok: false, error: `個案 ${created.value.case_no} 已建立但尚未發送：${notified.error}` }
-  }
-  return { ok: true, value: { case: created.value, blacklisted: notified.value.blacklisted } }
+/** Ready-to-send WhatsApp text + wa.me link for a case, built from its current state. */
+export async function whatsappForCase(caseId: string): Promise<Outcome<{ draft: string; link: string; hasPhone: boolean }>> {
+  const c = await loadCase(caseId)
+  if (!c) return { ok: false, error: '找不到個案' }
+  const { data } = await getLegacyServiceSupabase().from('users').select('display_name, phone').eq('id', c.user_id).maybeSingle()
+  const u: Rec = isRec(data) ? data : {}
+  const phone = typeof u.phone === 'string' ? u.phone : null
+  const draft = buildCaseWhatsAppDraft({
+    memberName: typeof u.display_name === 'string' ? u.display_name : '',
+    caseNo: c.case_no, scenario: c.scenario, title: c.title, amount: c.amount, dueAt: c.due_at,
+    payUrl: casePayUrl(c.pay_token), overdue: c.status === 'overdue',
+  })
+  return { ok: true, value: { draft, link: whatsAppLink(phone, draft), hasPhone: normalizeWhatsAppPhone(phone) !== null } }
 }
 
 /** Waive (admin forgives the fee) or cancel (opened by mistake). Never touches the blacklist. */

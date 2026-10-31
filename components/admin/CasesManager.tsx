@@ -247,7 +247,7 @@ export default function CasesManager() {
     const ok = await post(
       '/api/admin/cases',
       { memberCode: memberCode.trim(), scenario: scenarioId, amount: amountNum, detail: detail.trim(), evidenceNote: evidence.trim(), bookingCode: bookingCode.trim(), applyBlacklist: blacklist },
-      amountNum === 0 ? '警告已發送' : blacklist ? '個案已建立並發送，會員已加入黑名單' : '個案已建立並發送付款連結',
+      '個案已建立（未發送）。請在下方個案揀 Email 或 WhatsApp 發送',
     )
     if (ok) {
       setMemberCode('')
@@ -258,6 +258,28 @@ export default function CasesManager() {
       setPicked(null)
       setMemberBookings([])
       setShowForm(false)
+    }
+  }
+
+  async function sendWhatsApp(c: CaseView) {
+    if (!window.confirm('會將個案標記為已通知（開始計繳付期限，如設定會同時加入黑名單），並開啟 WhatsApp 讓你發送。繼續？')) return
+    setBusy(true)
+    setFailure(null)
+    try {
+      const res = await fetch(`/api/admin/cases/${c.id}`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'notify_whatsapp' }) })
+      const j = (await res.json()) as { error?: string; whatsappDraft?: string; whatsappLink?: string; hasPhone?: boolean }
+      if (!res.ok || j.error) {
+        setFailure(j.error ?? '操作失敗')
+        return
+      }
+      if (j.whatsappDraft) void navigator.clipboard.writeText(j.whatsappDraft).catch(() => undefined)
+      if (j.whatsappLink && j.hasPhone) window.open(j.whatsappLink, '_blank', 'noopener,noreferrer')
+      setNotice(j.hasPhone ? '已標記為已通知，並開啟 WhatsApp（文字已複製）' : '已標記為已通知，WhatsApp 文字已複製（此會員未有電話號碼）')
+      await load()
+    } catch (e) {
+      setFailure(e instanceof Error ? e.message : '操作失敗')
+    } finally {
+      setBusy(false)
     }
   }
 
@@ -304,7 +326,7 @@ export default function CasesManager() {
           type="button"
           disabled={busy}
           onClick={() => {
-            if (window.confirm('會向你自己的帳戶 email 發送一個 HK$1.5 測試個案，用來試通知及付款流程。繼續？')) void post('/api/admin/cases', { selfTest: true }, '測試個案已建立，請查收 email')
+            if (window.confirm('會為你自己的帳戶建立一個 HK$1.5 測試個案（先不發送），用來試通知及付款流程。繼續？')) void post('/api/admin/cases', { selfTest: true }, '測試個案已建立（未發送），請在下方揀 Email 或 WhatsApp 發送')
           }}
           className="rounded-xl px-4 py-2 text-sm"
           style={{ border: '1px solid var(--admin-border)', color: 'var(--admin-text-primary)' }}
@@ -384,12 +406,12 @@ export default function CasesManager() {
           </label>
           <label className="flex items-center gap-2 text-sm" style={{ color: 'var(--admin-text-primary)' }}>
             <input type="checkbox" checked={blacklist} onChange={(e) => setBlacklist(e.target.checked)} />
-            同時將會員加入黑名單（不能再預約）
+            同時將會員加入黑名單（不能再預約；發送通知時才生效）
           </label>
 
           <label className="flex items-center gap-2 text-sm" style={{ color: 'var(--admin-text-primary)' }}>
             <input type="checkbox" checked={confirmed} onChange={(e) => setConfirmed(e.target.checked)} />
-            我已核對會員及違規事實，確認發送
+            我已核對會員及違規事實，確認建立
           </label>
           <button
             type="button"
@@ -398,7 +420,7 @@ export default function CasesManager() {
             className="self-start rounded-xl px-4 py-2 text-sm font-medium"
             style={{ border: '1px solid var(--admin-danger)', color: 'var(--admin-danger)', opacity: busy || !formReady ? 0.5 : 1 }}
           >
-            {busy ? '處理中…' : amountNum === 0 ? '發送警告' : '建立並發送付款連結'}
+            {busy ? '處理中…' : '建立個案（先不發送）'}
           </button>
         </section>
       )}
@@ -427,6 +449,11 @@ export default function CasesManager() {
               {c.member?.blacklisted && <span style={{ color: 'var(--admin-danger)' }}>黑名單中</span>}
               {c.waived_reason && <span>原因：{c.waived_reason}</span>}
             </div>
+            {c.status === 'draft' && (
+              <p className="text-xs" style={{ color: 'var(--admin-text-tertiary)' }}>
+                未發送：揀 Email 或 WhatsApp 發送後，會員才會收到通知，繳付期限亦由發送當日起計。
+              </p>
+            )}
             {c.needsReview && (
               <p className="text-xs" style={{ color: 'var(--admin-danger)' }} role="alert">
                 有款項待核對：KPay 已收款但個案未能入帳（重複付款、已豁免或金額不符）。請到 KPay 後台確認，需要時人手退款。
@@ -468,9 +495,14 @@ export default function CasesManager() {
             )}
             {(c.status === 'draft' || c.status === 'notified' || c.status === 'overdue') && (
               <div className="flex flex-wrap gap-2 pt-1">
-                <button type="button" disabled={busy} onClick={() => void post(`/api/admin/cases/${c.id}`, { action: 'resend' }, '已重新發送通知')} className="rounded-xl px-3 py-1.5 text-xs" style={{ border: '1px solid var(--admin-border)', color: 'var(--admin-text-primary)' }}>
-                  重發通知
+                <button type="button" disabled={busy} onClick={() => void post(`/api/admin/cases/${c.id}`, { action: 'resend' }, c.status === 'draft' ? '已發送 Email' : '已重新發送 Email')} className="rounded-xl px-3 py-1.5 text-xs" style={{ border: '1px solid var(--admin-border)', color: 'var(--admin-text-primary)' }}>
+                  {c.status === 'draft' ? 'Email 發送' : '重發 Email'}
                 </button>
+                {c.status === 'draft' && (
+                  <button type="button" disabled={busy} onClick={() => void sendWhatsApp(c)} className="rounded-xl px-3 py-1.5 text-xs" style={{ border: '1px solid var(--admin-border)', color: 'var(--admin-text-primary)' }}>
+                    WhatsApp 發送
+                  </button>
+                )}
                 {c.amount > 0 && (
                   <button
                     type="button"
@@ -481,6 +513,7 @@ export default function CasesManager() {
                     複製付款連結
                   </button>
                 )}
+                {c.status !== 'draft' && (
                 <button
                   type="button"
                   onClick={() => {
@@ -493,6 +526,7 @@ export default function CasesManager() {
                 >
                   WhatsApp 草稿
                 </button>
+                )}
                 {c.amount > 0 && c.status !== 'draft' && (
                   <button
                     type="button"
