@@ -123,3 +123,15 @@ describe('case whatsapp draft', () => {
     expect(whatsAppLink(null, 'a b')).toBe('https://wa.me/?text=a%20b')
   })
 })
+
+import { buildDemandLetter } from './demand-letter'
+
+describe('demand letter', () => {
+  it('states fee, deadline, pay link and tribunal warning', () => {
+    const t = buildDemandLetter({ memberName: '陳大文', memberCode: 'M1', caseNo: 'VC-1', scenario: 'smoking', title: '吸煙', detail: null, incidentAt: null, amount: 500, payUrl: 'https://x.test/pay/case/t', now: new Date('2026-11-01T00:00:00Z') })
+    expect(t).toContain('HK$500')
+    expect(t).toContain('https://x.test/pay/case/t')
+    expect(t).toContain('小額錢債審裁處')
+    expect(t).toContain('2026年11月8日')
+  })
+})

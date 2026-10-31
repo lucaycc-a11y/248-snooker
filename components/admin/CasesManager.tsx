@@ -75,6 +75,7 @@ export default function CasesManager() {
   const [failure, setFailure] = useState<string | null>(null)
   const [busy, setBusy] = useState(false)
   const [showForm, setShowForm] = useState(false)
+  const [letter, setLetter] = useState<{ id: string; text: string } | null>(null)
 
   const [memberCode, setMemberCode] = useState('')
   const [scenarioId, setScenarioId] = useState('smoking')
@@ -293,6 +294,29 @@ export default function CasesManager() {
                 有款項待核對：KPay 已收款但個案未能入帳（重複付款、已豁免或金額不符）。請到 KPay 後台確認，需要時人手退款。
               </p>
             )}
+            {letter?.id === c.id && (
+              <div className="space-y-2 pt-1">
+                <textarea
+                  value={letter.text}
+                  onChange={(e) => setLetter({ id: c.id, text: e.target.value })}
+                  rows={14}
+                  className={`${field} w-full`}
+                  style={fieldStyle}
+                  aria-label="追討信草稿"
+                />
+                <p className="text-xs" style={{ color: 'var(--admin-text-tertiary)' }}>
+                  草稿不會自動發送。請填寫【】內資料，建議先由律師審閱一次範本；之後自行以電郵、WhatsApp 或掛號信寄出。
+                </p>
+                <div className="flex gap-2">
+                  <button type="button" onClick={() => void navigator.clipboard.writeText(letter.text).then(() => setNotice('已複製追討信'))} className="rounded-xl px-3 py-1.5 text-xs" style={{ border: '1px solid var(--admin-border)', color: 'var(--admin-text-primary)' }}>
+                    複製全文
+                  </button>
+                  <button type="button" onClick={() => setLetter(null)} className="rounded-xl px-3 py-1.5 text-xs" style={{ border: '1px solid var(--admin-border)', color: 'var(--admin-text-tertiary)' }}>
+                    關閉
+                  </button>
+                </div>
+              </div>
+            )}
             {(c.status === 'draft' || c.status === 'notified' || c.status === 'overdue') && (
               <div className="flex flex-wrap gap-2 pt-1">
                 <button type="button" disabled={busy} onClick={() => void post(`/api/admin/cases/${c.id}`, { action: 'resend' }, '已重新發送通知')} className="rounded-xl px-3 py-1.5 text-xs" style={{ border: '1px solid var(--admin-border)', color: 'var(--admin-text-primary)' }}>
@@ -320,6 +344,24 @@ export default function CasesManager() {
                 >
                   WhatsApp 草稿
                 </button>
+                {c.amount > 0 && c.status !== 'draft' && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      void fetch(`/api/admin/cases/${c.id}`)
+                        .then((r) => r.json() as Promise<{ letter?: string; error?: string }>)
+                        .then((j) => {
+                          if (j.letter) setLetter({ id: c.id, text: j.letter })
+                          else setFailure(j.error ?? '未能草擬追討信')
+                        })
+                        .catch(() => setFailure('未能草擬追討信'))
+                    }}
+                    className="rounded-xl px-3 py-1.5 text-xs"
+                    style={{ border: '1px solid var(--admin-border)', color: 'var(--admin-text-primary)' }}
+                  >
+                    追討信草稿
+                  </button>
+                )}
                 {canWaive && (
                   <button
                     type="button"
