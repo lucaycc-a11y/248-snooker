@@ -39,6 +39,9 @@ type CaseView = {
   member: { code: string | null; name: string | null; blacklisted: boolean } | null
 }
 
+type MemberHit = { code: string | null; name: string | null; phone: string | null; email: string | null; blacklisted: boolean }
+type BookingHit = { code: string | null; date: string | null; start: string | null; end: string | null; status: string | null }
+
 type Filter = 'open' | 'paid' | 'all'
 
 const STATUS_LABEL: Record<CaseView['status'], string> = {
@@ -64,32 +67,57 @@ const hkDate = (iso: string | null): string =>
 
 const escapeHtml = (v: string): string => v.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;')
 
-// Opens a print-ready A4 page with the Space8 logo as a header and a faint watermark on every page.
+// Print-ready A4 letter page: Space8 logo header + a faint logo watermark on every page.
 // The text is the (edited) textarea content, escaped; nothing is sent anywhere.
-function printLetter(text: string, caseNo: string): boolean {
-  const w = window.open('', '_blank')
-  if (!w) return false
-  const origin = window.location.origin
+function letterHtml(text: string, caseNo: string, headerLogo: string, watermarkLogo: string, autoPrint: boolean): string {
   const body = text
     .split('\n\n')
     .map((p) => `<p>${escapeHtml(p).replace(/\n/g, '<br />')}</p>`)
     .join('')
-  w.document.write(`<!doctype html><html lang="zh-HK"><head><meta charset="utf-8" /><title>追討信 ${escapeHtml(caseNo)}</title>
+  return `<!doctype html><html lang="zh-HK"><head><meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" /><title>追討信 ${escapeHtml(caseNo)}</title>
 <style>
   @page { size: A4; margin: 22mm 20mm; }
   html, body { margin: 0; padding: 0; background: #fff; color: #212630; font-family: -apple-system, 'Noto Sans HK', 'PingFang HK', 'Microsoft JhengHei', sans-serif; font-size: 11.5pt; line-height: 1.75; }
+  body { max-width: 170mm; margin: 0 auto; padding: 8mm 4mm; }
   .wm { position: fixed; top: 50%; left: 50%; width: 120mm; height: 120mm; margin: -60mm 0 0 -60mm; opacity: 0.06; z-index: 0; }
   .page { position: relative; z-index: 1; }
   .head { padding-bottom: 8mm; margin-bottom: 8mm; border-bottom: 1px solid #d5d8de; }
   .head img { height: 12mm; }
-  p { margin: 0 0 4.5mm; white-space: normal; word-break: break-word; }
+  p { margin: 0 0 4.5mm; word-break: break-word; }
+  @media print { body { max-width: none; padding: 0; } }
 </style></head><body>
-<img class="wm" src="${origin}/logos/logo-black-square.svg" alt="" />
-<div class="page"><div class="head"><img src="${origin}/logos/logo-black-horizontal.svg" alt="Space8" /></div>${body}</div>
-<script>window.addEventListener('load', function () { setTimeout(function () { window.print() }, 300) })</script>
-</body></html>`)
+<img class="wm" src="${watermarkLogo}" alt="" />
+<div class="page"><div class="head"><img src="${headerLogo}" alt="Space8" /></div>${body}</div>
+${autoPrint ? `<script>window.addEventListener('load', function () { setTimeout(function () { window.print() }, 300) })</script>` : ''}
+</body></html>`
+}
+
+function printLetter(text: string, caseNo: string): boolean {
+  const w = window.open('', '_blank')
+  if (!w) return false
+  const origin = window.location.origin
+  w.document.write(letterHtml(text, caseNo, `${origin}/logos/logo-black-horizontal.svg`, `${origin}/logos/logo-black-square.svg`, true))
   w.document.close()
   return true
+}
+
+async function toDataUri(path: string): Promise<string> {
+  const svg = await (await fetch(path)).text()
+  return `data:image/svg+xml;base64,${btoa(unescape(encodeURIComponent(svg)))}`
+}
+
+// A self-contained .html file (logos inlined): opens anywhere and prints to PDF from any browser.
+async function downloadLetter(text: string, caseNo: string): Promise<void> {
+  const [header, mark] = await Promise.all([toDataUri('/logos/logo-black-horizontal.svg'), toDataUri('/logos/logo-black-square.svg')])
+  const blob = new Blob([letterHtml(text, caseNo, header, mark, false)], { type: 'text/html;charset=utf-8' })
+  const url = URL.createObjectURL(blob)
+  const a = document.createElement('a')
+  a.href = url
+  a.download = `追討信-${caseNo}.html`
+  document.body.appendChild(a)
+  a.click()
+  a.remove()
+  setTimeout(() => URL.revokeObjectURL(url), 10_000)
 }
 
 const field = 'rounded-xl px-3 py-2 text-sm outline-none'
@@ -114,7 +142,11 @@ export default function CasesManager() {
   const [evidence, setEvidence] = useState('')
   const [bookingCode, setBookingCode] = useState('')
   const [blacklist, setBlacklist] = useState(true)
-  const [confirmText, setConfirmText] = useState('')
+  const [confirmed, setConfirmed] = useState(false)
+  const [memberQuery, setMemberQuery] = useState('')
+  const [memberHits, setMemberHits] = useState<MemberHit[]>([])
+  const [picked, setPicked] = useState<MemberHit | null>(null)
+  const [memberBookings, setMemberBookings] = useState<BookingHit[]>([])
 
   const scenario = scenarios.find((s) => s.id === scenarioId)
 
@@ -140,6 +172,36 @@ export default function CasesManager() {
   useEffect(() => {
     void load()
   }, [load])
+
+  useEffect(() => {
+    const q = memberQuery.trim()
+    if (picked || q.length < 2) {
+      setMemberHits([])
+      return
+    }
+    const t = setTimeout(() => {
+      void fetch(`/api/admin/cases/lookup?q=${encodeURIComponent(q)}`, { cache: 'no-store' })
+        .then((r) => r.json() as Promise<{ members?: MemberHit[] }>)
+        .then((j) => setMemberHits(j.members ?? []))
+        .catch(() => setMemberHits([]))
+    }, 250)
+    return () => clearTimeout(t)
+  }, [memberQuery, picked])
+
+  function pickMember(m: MemberHit) {
+    setPicked(m)
+    setMemberCode(m.code ?? '')
+    setMemberQuery('')
+    setMemberHits([])
+    setBookingCode('')
+    setMemberBookings([])
+    if (m.code) {
+      void fetch(`/api/admin/cases/lookup?code=${encodeURIComponent(m.code)}`, { cache: 'no-store' })
+        .then((r) => r.json() as Promise<{ bookings?: BookingHit[] }>)
+        .then((j) => setMemberBookings(j.bookings ?? []))
+        .catch(() => setMemberBookings([]))
+    }
+  }
 
   useEffect(() => {
     if (!notice) return
@@ -179,7 +241,7 @@ export default function CasesManager() {
 
   const amountNum = Number(amount)
   const formReady =
-    memberCode.trim().length >= 3 && detail.trim().length >= 5 && amount !== '' && Number.isFinite(amountNum) && amountNum >= 0 && confirmText.trim().toUpperCase() === memberCode.trim().toUpperCase()
+    memberCode.trim().length >= 3 && detail.trim().length >= 5 && amount !== '' && Number.isFinite(amountNum) && amountNum >= 0 && confirmed
 
   async function submit() {
     const ok = await post(
@@ -192,7 +254,9 @@ export default function CasesManager() {
       setDetail('')
       setEvidence('')
       setBookingCode('')
-      setConfirmText('')
+      setConfirmed(false)
+      setPicked(null)
+      setMemberBookings([])
       setShowForm(false)
     }
   }
@@ -236,18 +300,62 @@ export default function CasesManager() {
         >
           {showForm ? '收起' : '新增個案'}
         </button>
+        <button
+          type="button"
+          disabled={busy}
+          onClick={() => {
+            if (window.confirm('會向你自己的帳戶 email 發送一個 HK$1.5 測試個案，用來試通知及付款流程。繼續？')) void post('/api/admin/cases', { selfTest: true }, '測試個案已建立，請查收 email')
+          }}
+          className="rounded-xl px-4 py-2 text-sm"
+          style={{ border: '1px solid var(--admin-border)', color: 'var(--admin-text-primary)' }}
+        >
+          建立測試個案
+        </button>
       </div>
 
       {showForm && (
         <section className="flex flex-col gap-3 rounded-2xl p-4" style={{ border: '1px solid var(--admin-border)' }}>
           <div className="grid gap-3 sm:grid-cols-2">
+            <div className="flex flex-col gap-1 text-xs" style={{ color: 'var(--admin-text-tertiary)' }}>
+              會員（搜尋姓名、電話、email 或會員編號）
+              {picked ? (
+                <div className="flex items-center justify-between gap-2 rounded-xl px-3 py-2 text-sm" style={{ border: '1px solid var(--admin-brand)', color: 'var(--admin-text-primary)' }}>
+                  <span>
+                    {picked.code}
+                    {picked.name ? `（${picked.name}）` : ''}
+                    {picked.blacklisted ? ' · 黑名單中' : ''}
+                  </span>
+                  <button type="button" onClick={() => { setPicked(null); setMemberCode(''); setMemberBookings([]); setBookingCode('') }} className="text-xs" style={{ color: 'var(--admin-text-tertiary)' }}>
+                    更換
+                  </button>
+                </div>
+              ) : (
+                <div className="relative">
+                  <input value={memberQuery} onChange={(e) => setMemberQuery(e.target.value)} placeholder="例如 陳大文 / 9123 / S8-0001" className={`${field} w-full`} style={fieldStyle} />
+                  {memberHits.length > 0 && (
+                    <ul className="absolute left-0 right-0 top-full z-10 mt-1 overflow-hidden rounded-xl text-sm" style={{ border: '1px solid var(--admin-border)', background: 'var(--admin-surface, #fff)' }}>
+                      {memberHits.map((m) => (
+                        <li key={m.code ?? m.email ?? m.phone}>
+                          <button type="button" onClick={() => pickMember(m)} className="block w-full px-3 py-2 text-left" style={{ color: 'var(--admin-text-primary)' }}>
+                            {m.code} {m.name ?? ''} <span className="text-xs" style={{ color: 'var(--admin-text-tertiary)' }}>{m.phone ?? m.email ?? ''}</span>
+                          </button>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                </div>
+              )}
+            </div>
             <label className="flex flex-col gap-1 text-xs" style={{ color: 'var(--admin-text-tertiary)' }}>
-              會員編號
-              <input value={memberCode} onChange={(e) => setMemberCode(e.target.value)} placeholder="例如 S8-0001" className={field} style={fieldStyle} />
-            </label>
-            <label className="flex flex-col gap-1 text-xs" style={{ color: 'var(--admin-text-tertiary)' }}>
-              預約編號（選填）
-              <input value={bookingCode} onChange={(e) => setBookingCode(e.target.value)} placeholder="該會員的預約碼" className={field} style={fieldStyle} />
+              相關預約（選填）
+              <select value={bookingCode} onChange={(e) => setBookingCode(e.target.value)} disabled={memberBookings.length === 0} className={field} style={fieldStyle}>
+                <option value="">{picked ? (memberBookings.length ? '不指定' : '此會員沒有預約') : '先選擇會員'}</option>
+                {memberBookings.map((b) => (
+                  <option key={b.code} value={b.code ?? ''}>
+                    {b.code} · {b.date ?? ''} {b.start?.slice(0, 5) ?? ''}
+                  </option>
+                ))}
+              </select>
             </label>
             <label className="flex flex-col gap-1 text-xs" style={{ color: 'var(--admin-text-tertiary)' }}>
               違規情境
@@ -279,9 +387,9 @@ export default function CasesManager() {
             同時將會員加入黑名單（不能再預約）
           </label>
 
-          <label className="flex flex-col gap-1 text-xs" style={{ color: 'var(--admin-text-tertiary)' }}>
-            再次輸入會員編號確認發送
-            <input value={confirmText} onChange={(e) => setConfirmText(e.target.value)} className={field} style={fieldStyle} />
+          <label className="flex items-center gap-2 text-sm" style={{ color: 'var(--admin-text-primary)' }}>
+            <input type="checkbox" checked={confirmed} onChange={(e) => setConfirmed(e.target.checked)} />
+            我已核對會員及違規事實，確認發送
           </label>
           <button
             type="button"
@@ -348,6 +456,9 @@ export default function CasesManager() {
                   </button>
                   <button type="button" onClick={() => printLetter(letter.text, c.case_no)} className="rounded-xl px-3 py-1.5 text-xs" style={{ border: '1px solid var(--admin-border)', color: 'var(--admin-text-primary)' }}>
                     列印／存為 PDF
+                  </button>
+                  <button type="button" onClick={() => void downloadLetter(letter.text, c.case_no).then(() => setNotice('已下載追討信'))} className="rounded-xl px-3 py-1.5 text-xs" style={{ border: '1px solid var(--admin-border)', color: 'var(--admin-text-primary)' }}>
+                    下載
                   </button>
                   <button type="button" onClick={() => setLetter(null)} className="rounded-xl px-3 py-1.5 text-xs" style={{ border: '1px solid var(--admin-border)', color: 'var(--admin-text-tertiary)' }}>
                     關閉

@@ -97,6 +97,21 @@ export async function POST(req: Request) {
     const body: unknown = await req.json().catch(() => null)
     if (!isRec(body)) return NextResponse.json({ error: '資料格式不正確' }, { status: 400 })
 
+    // selfTest: a $1.5 case addressed to the admin's own member account, for trying the whole flow.
+    if (body.selfTest === true) {
+      const db0 = getLegacyServiceSupabase()
+      const { data: me } = await db0.from('users').select('id, email').eq('id', admin.userId).maybeSingle()
+      if (!isRec(me) || typeof me.id !== 'string' || typeof me.email !== 'string') {
+        return NextResponse.json({ error: '你的管理員帳號沒有對應的會員資料或 email，未能建立測試個案' }, { status: 400 })
+      }
+      const t = await createAndNotifyCase(
+        { userId: me.id, bookingId: null, scenario: 'other', title: '系統測試個案', detail: '這是系統測試個案，用作測試通知及付款流程，請忽略或按指示繳付 HK$1.5。', amount: 1.5, applyBlacklist: false, incidentAt: null },
+        { adminId: admin.userId, adminEmail: admin.email },
+      )
+      if (!t.ok) return NextResponse.json({ error: t.error }, { status: 400 })
+      return NextResponse.json({ ok: true, caseNo: t.value.case.case_no, blacklisted: false })
+    }
+
     const memberCode = typeof body.memberCode === 'string' ? body.memberCode.trim() : ''
     if (!memberCode) return NextResponse.json({ error: '請輸入會員編號' }, { status: 400 })
     if (!isCaseScenario(body.scenario)) return NextResponse.json({ error: '請選擇違規情境' }, { status: 400 })
