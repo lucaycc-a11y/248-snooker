@@ -62,6 +62,36 @@ const STATUS_COLOR: Record<CaseView['status'], string> = {
 const hkDate = (iso: string | null): string =>
   iso ? new Intl.DateTimeFormat('zh-HK', { timeZone: 'Asia/Hong_Kong', month: 'numeric', day: 'numeric' }).format(new Date(iso)) : '—'
 
+const escapeHtml = (v: string): string => v.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;')
+
+// Opens a print-ready A4 page with the Space8 logo as a header and a faint watermark on every page.
+// The text is the (edited) textarea content, escaped; nothing is sent anywhere.
+function printLetter(text: string, caseNo: string): boolean {
+  const w = window.open('', '_blank')
+  if (!w) return false
+  const origin = window.location.origin
+  const body = text
+    .split('\n\n')
+    .map((p) => `<p>${escapeHtml(p).replace(/\n/g, '<br />')}</p>`)
+    .join('')
+  w.document.write(`<!doctype html><html lang="zh-HK"><head><meta charset="utf-8" /><title>追討信 ${escapeHtml(caseNo)}</title>
+<style>
+  @page { size: A4; margin: 22mm 20mm; }
+  html, body { margin: 0; padding: 0; background: #fff; color: #212630; font-family: -apple-system, 'Noto Sans HK', 'PingFang HK', 'Microsoft JhengHei', sans-serif; font-size: 11.5pt; line-height: 1.75; }
+  .wm { position: fixed; top: 50%; left: 50%; width: 120mm; height: 120mm; margin: -60mm 0 0 -60mm; opacity: 0.06; z-index: 0; }
+  .page { position: relative; z-index: 1; }
+  .head { padding-bottom: 8mm; margin-bottom: 8mm; border-bottom: 1px solid #d5d8de; }
+  .head img { height: 12mm; }
+  p { margin: 0 0 4.5mm; white-space: normal; word-break: break-word; }
+</style></head><body>
+<img class="wm" src="${origin}/logos/logo-black-square.svg" alt="" />
+<div class="page"><div class="head"><img src="${origin}/logos/logo-black-horizontal.svg" alt="Space8" /></div>${body}</div>
+<script>window.addEventListener('load', function () { setTimeout(function () { window.print() }, 300) })</script>
+</body></html>`)
+  w.document.close()
+  return true
+}
+
 const field = 'rounded-xl px-3 py-2 text-sm outline-none'
 const fieldStyle = { border: '1px solid var(--admin-border)', background: 'transparent', color: 'var(--admin-text-primary)' } as const
 
@@ -75,7 +105,7 @@ export default function CasesManager() {
   const [failure, setFailure] = useState<string | null>(null)
   const [busy, setBusy] = useState(false)
   const [showForm, setShowForm] = useState(false)
-  const [letter, setLetter] = useState<{ id: string; text: string } | null>(null)
+  const [letter, setLetter] = useState<{ id: string; text: string; termsOnRecord: boolean } | null>(null)
 
   const [memberCode, setMemberCode] = useState('')
   const [scenarioId, setScenarioId] = useState('smoking')
@@ -298,18 +328,26 @@ export default function CasesManager() {
               <div className="space-y-2 pt-1">
                 <textarea
                   value={letter.text}
-                  onChange={(e) => setLetter({ id: c.id, text: e.target.value })}
+                  onChange={(e) => setLetter({ ...letter, text: e.target.value })}
                   rows={14}
                   className={`${field} w-full`}
                   style={fieldStyle}
                   aria-label="追討信草稿"
                 />
+                {!letter.termsOnRecord && (
+                  <p className="text-xs" style={{ color: 'var(--admin-danger)' }} role="alert">
+                    此會員未有「同意條款」記錄（記錄功能啟用前的預約），信內未有同意時間。如有舊的付款或預約紀錄，建議補充說明。
+                  </p>
+                )}
                 <p className="text-xs" style={{ color: 'var(--admin-text-tertiary)' }}>
                   草稿不會自動發送。請填寫【】內資料，建議先由律師審閱一次範本；之後自行以電郵、WhatsApp 或掛號信寄出。
                 </p>
                 <div className="flex gap-2">
                   <button type="button" onClick={() => void navigator.clipboard.writeText(letter.text).then(() => setNotice('已複製追討信'))} className="rounded-xl px-3 py-1.5 text-xs" style={{ border: '1px solid var(--admin-border)', color: 'var(--admin-text-primary)' }}>
                     複製全文
+                  </button>
+                  <button type="button" onClick={() => printLetter(letter.text, c.case_no)} className="rounded-xl px-3 py-1.5 text-xs" style={{ border: '1px solid var(--admin-border)', color: 'var(--admin-text-primary)' }}>
+                    列印／存為 PDF
                   </button>
                   <button type="button" onClick={() => setLetter(null)} className="rounded-xl px-3 py-1.5 text-xs" style={{ border: '1px solid var(--admin-border)', color: 'var(--admin-text-tertiary)' }}>
                     關閉
@@ -349,9 +387,9 @@ export default function CasesManager() {
                     type="button"
                     onClick={() => {
                       void fetch(`/api/admin/cases/${c.id}`)
-                        .then((r) => r.json() as Promise<{ letter?: string; error?: string }>)
+                        .then((r) => r.json() as Promise<{ letter?: string; termsOnRecord?: boolean; error?: string }>)
                         .then((j) => {
-                          if (j.letter) setLetter({ id: c.id, text: j.letter })
+                          if (j.letter) setLetter({ id: c.id, text: j.letter, termsOnRecord: j.termsOnRecord === true })
                           else setFailure(j.error ?? '未能草擬追討信')
                         })
                         .catch(() => setFailure('未能草擬追討信'))

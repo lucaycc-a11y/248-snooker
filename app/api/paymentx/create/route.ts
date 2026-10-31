@@ -13,6 +13,7 @@ import {
   periodForStart,
 } from '@/lib/booking/server'
 import { logSiteError } from '@/lib/errors/log'
+import { recordTermsAcceptance } from '@/lib/legal/terms-acceptance'
 import { requireCompleteProfile } from '@/lib/auth/require-complete-profile'
 import { prepareCheckout, prepareFailureStatus, releaseCheckoutHolds } from '@/lib/checkout/prepare'
 import { isSlotStillBookable, isValidSlotStart, slotStartInHongKong } from '@/lib/booking/slot-cutoff'
@@ -76,6 +77,7 @@ async function handlePaymentXCreate(req: Request) {
     if (!body?.agreedToTerms) {
       return NextResponse.json({ error: '請先同意條款與細則' }, { status: 400 })
     }
+    await recordTermsAcceptance({ userId: user.id, req, source: 'paymentx' })
     const mode: 'qr' | 'h5' = body?.mode === 'h5' ? 'h5' : 'qr'
     const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://space8.com.hk'
     if (typeof body?.returnUrl === 'string' && !body.returnUrl.startsWith(siteUrl)) {

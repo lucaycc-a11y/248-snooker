@@ -14,6 +14,7 @@ import {
 } from '@/lib/booking/server'
 import { rateLimit } from '@/lib/rate-limit'
 import { logSiteError } from '@/lib/errors/log'
+import { recordTermsAcceptance } from '@/lib/legal/terms-acceptance'
 import { requireCompleteProfile } from '@/lib/auth/require-complete-profile'
 import { getAccountCheckoutLock, releaseSameSlotPending } from '@/lib/checkout/supersede'
 import { prepareCheckout, prepareFailureStatus, releaseCheckoutHolds } from '@/lib/checkout/prepare'
@@ -89,6 +90,7 @@ async function handleCheckoutCreate(req: Request) {
         { status: 400 },
       )
     }
+    await recordTermsAcceptance({ userId: user.id, req, source: 'checkout' })
     const method = body?.method as string | undefined
     const mode: 'qr' | 'h5' = body?.mode === 'h5' ? 'h5' : 'qr'
     // Restrict returnUrl to NEXT_PUBLIC_SITE_URL only (no open redirects)

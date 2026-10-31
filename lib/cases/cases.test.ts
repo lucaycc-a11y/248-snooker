@@ -135,3 +135,17 @@ describe('demand letter', () => {
     expect(t).toContain('2026年11月8日')
   })
 })
+
+describe('demand letter evidence', () => {
+  it('includes terms acceptance time, clause text and booking code', () => {
+    const t = buildDemandLetter({ memberName: '陳大文', memberCode: 'M1', caseNo: 'VC-1', scenario: 'smoking', title: '吸煙', detail: '洗手間有煙味', incidentAt: '2026-10-30T10:00:00Z', amount: 500, payUrl: 'https://x.test/p', bookingCode: 'B123', termsAcceptedAt: '2026-10-29T05:30:00Z', termsVersion: '2026-10-31', notifiedAt: '2026-10-31T01:00:00Z', now: new Date('2026-11-10T00:00:00Z') })
+    expect(t).toContain('勾選同意')
+    expect(t).toContain('2026-10-31')
+    expect(t).toContain('預定損害賠償')
+    expect(t).toContain('B123')
+  })
+  it('omits acceptance sentence when none on record', () => {
+    const t = buildDemandLetter({ memberName: 'a', memberCode: null, caseNo: 'VC-1', scenario: 'other', title: 'x', detail: null, incidentAt: null, amount: 100, payUrl: 'u' })
+    expect(t).not.toContain('勾選同意')
+  })
+})

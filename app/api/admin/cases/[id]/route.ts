@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import { getAdminData } from '@/lib/data/getAdmin'
 import { closeCase, casePayUrl, loadCase, notifyCase } from '@/lib/cases/service'
+import { findTermsAcceptance } from '@/lib/legal/terms-acceptance'
 import { buildDemandLetter } from '@/lib/cases/demand-letter'
 import { getLegacyServiceSupabase } from '@/lib/supabase/legacy'
 
@@ -54,7 +55,18 @@ export async function GET(_req: Request, { params }: { params: Promise<{ id: str
     }
     const { data: u } = await getLegacyServiceSupabase().from('users').select('member_code, display_name').eq('id', c.user_id).maybeSingle()
     const m = typeof u === 'object' && u !== null ? (u as Record<string, unknown>) : {}
+    let bookingCode: string | null = null
+    if (c.booking_id) {
+      const { data: b } = await getLegacyServiceSupabase().from('bookings').select('human_code').eq('id', c.booking_id).maybeSingle()
+      const br = typeof b === 'object' && b !== null ? (b as Record<string, unknown>) : {}
+      bookingCode = typeof br.human_code === 'string' ? br.human_code : null
+    }
+    const acceptance = await findTermsAcceptance(c.user_id, c.incident_at ?? c.created_at)
     const letter = buildDemandLetter({
+      bookingCode,
+      notifiedAt: c.notified_at,
+      termsAcceptedAt: acceptance?.acceptedAt ?? null,
+      termsVersion: acceptance?.version ?? null,
       memberName: typeof m.display_name === 'string' ? m.display_name : '',
       memberCode: typeof m.member_code === 'string' ? m.member_code : null,
       caseNo: c.case_no,
@@ -65,7 +77,7 @@ export async function GET(_req: Request, { params }: { params: Promise<{ id: str
       amount: c.amount,
       payUrl: casePayUrl(c.pay_token),
     })
-    return NextResponse.json({ letter })
+    return NextResponse.json({ letter, termsOnRecord: acceptance !== null })
   } catch (e) {
     return NextResponse.json({ error: e instanceof Error ? e.message : 'Unexpected error' }, { status: 500 })
   }
