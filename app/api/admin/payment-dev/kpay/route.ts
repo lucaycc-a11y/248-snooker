@@ -1,3 +1,4 @@
+import { mintReturnTokenFor } from '@/lib/payments/return-token'
 import { NextResponse } from 'next/server'
 import { randomUUID } from 'node:crypto'
 import type { Json } from '@/lib/supabase/database.types'
@@ -801,6 +802,8 @@ async function handleAdminKpayCreate(req: Request) {
     const baseOutTradeNo = humanReadableCode(primaryBookingId)
     const outTradeNo = `${baseOutTradeNo}-A${Date.now().toString(36).toUpperCase()}`
     const idempotencyKey = `${primaryBookingId}:${Date.now()}`
+    // v4.2.0 (test): same no-login return token as the public checkout (flag + secret gated).
+    const returnToken = await mintReturnTokenFor(adminUserId, primaryBookingId)
 
     const { data: claimData, error: claimErr } = await service.rpc('claim_payment_attempt', {
       p_booking_id: primaryBookingId,
@@ -837,6 +840,7 @@ async function handleAdminKpayCreate(req: Request) {
         method: paymentMethod as PaymentMethod,
         mode,
         baseUrl: new URL(req.url).origin,
+        ...(returnToken ? { returnToken } : {}),
       })
     } catch (err) {
       const e = err as Error
