@@ -9,7 +9,7 @@
  * (and docs/PAYMENT_CHANGELOG.md) in the same commit as the change.
  */
 
-export const PAYMENT_VERSION = '4.1.3'
+export const PAYMENT_VERSION = '4.2.0'
 
 export type PaymentChangelogEntry = {
   version: string
@@ -20,6 +20,18 @@ export type PaymentChangelogEntry = {
 }
 
 export const PAYMENT_CHANGELOG: PaymentChangelogEntry[] = [
+  {
+    version: '4.2.0',
+    date: '2026-11-02',
+    title: '免登入付款返回頁（測試，只限管理員）',
+    features: [
+      '付款返回網址帶簽名連結（2 小時有效、只限該張訂單）：返回的瀏覽器沒有登入（例如 AlipayHK 內置瀏覽器）時，仍可查到「已確認／處理中」，已確認會顯示「付款成功」並提供登入按鈕；後台「系統 → 支付系統」可開關（關閉／只限管理員），預設只限管理員',
+      '沒有登入的付款狀態查詢會記入付款時間線（status_unauthorized），方便追查',
+    ],
+    fixes: [
+      '返回頁在沒有登入時不再誤報「未收到付款」，改為提示登入',
+    ],
+  },
   {
     version: '4.1.3',
     date: '2026-10-28',

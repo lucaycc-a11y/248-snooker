@@ -1,3 +1,4 @@
+import { mintReturnTokenFor } from '@/lib/payments/return-token'
 import { NextResponse } from 'next/server'
 import { randomUUID } from 'node:crypto'
 import { createClient } from '@/lib/supabase/server'
@@ -741,6 +742,10 @@ async function createAndStamp(args: CreateAndStampArgs): Promise<Response> {
     uatPaymeSimulation,
   } = args
 
+  // v4.2.0 (test): admin accounts get a signed no-login return token (flag + secret gated;
+  // null for everyone else, so their return URL is unchanged).
+  const returnToken = await mintReturnTokenFor(userId, primaryBookingId)
+
   // ── 1. Claim payment attempt ───────────────────────────────────────────────
   // This is the cross-instance lock: the unique active-booking index prevents
   // two concurrent requests from both creating external orders.
@@ -801,6 +806,7 @@ async function createAndStamp(args: CreateAndStampArgs): Promise<Response> {
       method: paymentMethod,
       mode,
       baseUrl: origin,
+      ...(returnToken ? { returnToken } : {}),
       ...(returnUrl ? { returnUrl } : {}),
       ...(uatPaymeSimulation ? { uatPaymeSimulation } : {}),
     })

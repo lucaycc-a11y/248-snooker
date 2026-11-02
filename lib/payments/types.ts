@@ -78,6 +78,8 @@ export interface CreateOrderParams {
   baseUrl: string
   /** Browser URL to return to after a redirect-based payment. */
   returnUrl?: string
+  /** Signed no-login return token (v4.2.0 test); appended as `&t=` to the default return URLs. */
+  returnToken?: string
   /**
    * UAT-ONLY: when set on a PayMe order, overrides the payAmount sent to KPay
    * with the corresponding test constant (8.81 = success, 8.82 = fail).

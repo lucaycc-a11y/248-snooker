@@ -4,6 +4,15 @@ Payment version is tracked separately from the app version (`package.json`). Sou
 
 Bump rules: MAJOR = payment flow / money-handling behaviour, MINOR = new features or admin tooling, PATCH = bug and copy fixes.
 
+## v4.2.0 — 2026-11-02 — 免登入付款返回頁（測試，只限管理員）
+
+### Features
+- 付款返回網址帶簽名連結（2 小時有效、只限該張訂單）：返回的瀏覽器沒有登入（例如 AlipayHK 內置瀏覽器）時，仍可查到「已確認／處理中」，已確認會顯示「付款成功」並提供登入按鈕；後台「系統 → 支付系統」可開關（關閉／只限管理員），預設只限管理員。需要環境變數 `RETURN_TOKEN_SECRET`
+- 沒有登入的付款狀態查詢會記入付款時間線（status_unauthorized），方便追查
+
+### Bug fixes
+- 返回頁在沒有登入時不再誤報「未收到付款」，改為提示登入
+
 ## v4.1.3 — 2026-10-28 — 付款後退出再入、金額更新由伺服器處理
 
 ### Features

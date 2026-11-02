@@ -7,9 +7,10 @@ import { isUatEnv } from '@/lib/env/uat'
 import { humanReadableCode } from '@/lib/qr/jwt'
 import { checkAmountMatch, logAmountMismatch } from '@/lib/payments/reconciliation'
 import { getLiveKPayState } from '@/lib/payments/live-order'
-import { isPaymentFreezeActive } from '@/lib/payments/freeze-flag'
+import { isPaymentFreezeActive, isPaymentFreezePublic } from '@/lib/payments/freeze-flag'
 import { parkPaidBookingForReview } from '@/lib/payments/park-for-review'
 import { logSiteError } from '@/lib/errors/log'
+import { verifyReturnToken, isReturnTokenAllowedFor } from '@/lib/payments/return-token'
 import { logPaymentEvent } from '@/lib/payments/payment-events'
 import { getLegacyServiceSupabase } from '@/lib/supabase/legacy'
 
@@ -31,6 +32,34 @@ export async function GET(req: Request) {
       data: { user },
     } = await supabase.auth.getUser()
     if (!user) {
+      const url = new URL(req.url)
+      const token = url.searchParams.get('t')
+      const tokenBookingId = url.searchParams.get('bookingId') ?? ''
+      if (token && /^[0-9a-f-]{36}$/i.test(tokenBookingId) && verifyReturnToken(token, tokenBookingId)) {
+        // Signed return token (v4.2.0 test): coarse status only, no personal data.
+        const { data: row } = await getServiceSupabase()
+          .from('bookings')
+          .select('id, status, human_code, user_id')
+          .eq('id', tokenBookingId)
+          .maybeSingle()
+        if (row && (await isReturnTokenAllowedFor(String(row.user_id)))) {
+          const st = String(row.status)
+          const coarse = st === 'confirmed' ? 'confirmed'
+            : st === 'cancelled' ? 'cancelled'
+            : st === 'expired' ? 'expired'
+            : st === 'payment_review' ? 'payment_review'
+            : st === 'failed' ? 'failed'
+            : 'pending'
+          return NextResponse.json({
+            bookingId: row.id,
+            status: coarse,
+            providerStatus: coarse === 'confirmed' ? 'success' : coarse,
+            limited: true,
+            freeze: isPaymentFreezePublic(),
+            code: typeof row.human_code === 'string' ? row.human_code : null,
+          })
+        }
+      }
       // Leave a trace on the booking's payment timeline (once per 10 min) so support
       // can see that the customer returned to a browser without a session.
       const rawId = new URL(req.url).searchParams.get('bookingId') ?? ''

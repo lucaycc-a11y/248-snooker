@@ -21,6 +21,8 @@ type CheckoutStatusResponse = {
   ref?: PaymentReference | null
   stateCode?: string
   freeze?: boolean
+  limited?: boolean
+  code?: string | null
 }
 
 /** Short, non-secret reference shown to the customer and quoted to support. */
@@ -55,6 +57,26 @@ export type OrderConfirmationResult = {
   freeze: boolean
   /** True when the status API answered 401: this browser has no session (e.g. a payment app's in-app browser). */
   authRequired: boolean
+  /** True when answered via a signed return token (no session): coarse status only. */
+  limited: boolean
+  /** Booking code from the limited answer. */
+  code: string | null
+}
+
+/** Signed no-login return token from the return URL (`t`), remembered for reloads. */
+function readReturnToken(bookingId: string): string | null {
+  if (typeof window === "undefined") return null
+  const key = `returnToken:${bookingId}`
+  try {
+    const fromUrl = new URLSearchParams(window.location.search).get("t")
+    if (fromUrl) {
+      sessionStorage.setItem(key, fromUrl)
+      return fromUrl
+    }
+    return sessionStorage.getItem(key)
+  } catch {
+    return null
+  }
 }
 
 // Fast phase: poll every 2s for the first 30s (KPay webhooks are near-instant).
@@ -105,6 +127,8 @@ function parseStatusResponse(value: unknown): CheckoutStatusResponse {
     ref: parseRef(record.ref),
     stateCode: typeof record.stateCode === "string" ? record.stateCode : undefined,
     freeze: record.freeze === true,
+    limited: record.limited === true,
+    code: typeof record.code === "string" ? record.code : null,
   }
 }
 
@@ -125,6 +149,8 @@ export function useOrderConfirmationPolling(
   const [stateCode, setStateCode] = useState<string | null>(null)
   const [freeze, setFreeze] = useState(false)
   const [authRequired, setAuthRequired] = useState(false)
+  const [limited, setLimited] = useState(false)
+  const [code, setCode] = useState<string | null>(null)
 
   useEffect(() => {
     if (!enabled || !bookingId) {
@@ -141,6 +167,7 @@ export function useOrderConfirmationPolling(
     let activeController: AbortController | null = null
 
     const elapsedMs = () => Date.now() - startedAt
+    const token = readReturnToken(bookingId)
 
     // Smooth per-second "已等待 XX 秒" counter, independent of poll cadence.
     elapsedTimer = setInterval(() => {
@@ -160,7 +187,7 @@ export function useOrderConfirmationPolling(
 
       try {
         const response = await fetch(
-          `/api/checkout/status?bookingId=${encodeURIComponent(bookingId)}`,
+          `/api/checkout/status?bookingId=${encodeURIComponent(bookingId)}${token ? `&t=${encodeURIComponent(token)}` : ""}`,
           { cache: "no-store", signal: controller.signal },
         )
         if (!cancelled) setAuthRequired(response.status === 401)
@@ -182,6 +209,10 @@ export function useOrderConfirmationPolling(
 
         if (!cancelled && result.totalPrice !== undefined) {
           setTotalPrice(result.totalPrice)
+        }
+        if (!cancelled) {
+          setLimited(result.limited === true)
+          setCode(result.code ?? null)
         }
         if (!cancelled && result.ref) setRef(result.ref)
         if (!cancelled && result.stateCode) setStateCode(result.stateCode)
@@ -257,5 +288,5 @@ export function useOrderConfirmationPolling(
     }
   }, [bookingId, enabled])
 
-  return { status, hold, elapsedSec, totalPrice, ref, stateCode, freeze, authRequired }
+  return { status, hold, elapsedSec, totalPrice, ref, stateCode, freeze, authRequired, limited, code }
 }

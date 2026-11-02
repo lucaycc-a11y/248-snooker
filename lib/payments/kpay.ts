@@ -93,7 +93,8 @@ export class KPayProvider implements PaymentProvider {
   // ── createOrder ──────────────────────────────────────────────
 
   async createOrder(params: CreateOrderParams): Promise<CreateOrderResult> {
-    const { outTradeNo, bookingId, amount, method, remark, baseUrl, returnUrl } = params
+    const { outTradeNo, bookingId, amount, method, remark, baseUrl, returnUrl, returnToken } = params
+    const tokenQ = returnToken ? `&t=${encodeURIComponent(returnToken)}` : ''
     // WeChat H5 (/v1/qr/sales/h5/wxpay) is switched off: it needs KPay to
     // register our H5 domain in WeChat's backend first. WeChat always uses the
     // QR scan endpoint until that is done (remove this line to re-enable H5).
@@ -114,7 +115,7 @@ export class KPayProvider implements PaymentProvider {
     // 3DS. We create the order with CNP_SALES_GATEWAY, then build a signed
     // H5 URL that redirects the user to KPay's hosted checkout.
     if (method === 'card') {
-      return this.createCnpHostedOrder(outTradeNo, bookingId, amount, remark, baseUrl, returnUrl)
+      return this.createCnpHostedOrder(outTradeNo, bookingId, amount, remark, baseUrl, returnUrl, returnToken)
     }
 
     // ── Direct-connect methods (FPS / PayMe / Octopus / wallets) ──────────
@@ -125,7 +126,7 @@ export class KPayProvider implements PaymentProvider {
     // Do NOT call /v1/order/add first: that registers outTradeNo with KPay, and
     // the QR call then collides with it and fails "商戶訂單號已存在". That was a
     // self-collision inside one request, not a concurrent double-submit.
-    const directReturnUrl = returnUrl ?? `${baseUrl}/book?bookingId=${encodeURIComponent(bookingId)}&redirect_status=returned`
+    const directReturnUrl = returnUrl ?? `${baseUrl}/book?bookingId=${encodeURIComponent(bookingId)}&redirect_status=returned${tokenQ}`
     const institution = this.getPaymentInstitution(method)
     const qrEndpoint = this.getQrEndpoint(method, mode)
 
@@ -194,7 +195,9 @@ export class KPayProvider implements PaymentProvider {
     remark: string | undefined,
     baseUrl: string,
     returnUrl?: string,
+    returnToken?: string,
   ): Promise<CreateOrderResult> {
+    const tokenQ = returnToken ? `&t=${encodeURIComponent(returnToken)}` : ''
     // Step 1: create order with CNP_SALES_GATEWAY type
     const orderBody = {
       outTradeNo,
@@ -202,7 +205,7 @@ export class KPayProvider implements PaymentProvider {
       payAmount: amount.toFixed(2),
       payCurrency: 'HKD',
       notifyUrl: `${baseUrl}/api/webhooks/kpay`,
-      returnUrl: `${baseUrl}/book?bookingId=${encodeURIComponent(bookingId)}&redirect_status=returned`,
+      returnUrl: `${baseUrl}/book?bookingId=${encodeURIComponent(bookingId)}&redirect_status=returned${tokenQ}`,
       pageFeatureControls: ['HIDE_EMAIL_ADDRESS', 'HIDE_BILL_INFORMATION'],
       ...(remark ? { orderRemark: remark } : {}),
     }
@@ -255,7 +258,7 @@ export class KPayProvider implements PaymentProvider {
     // Step 2: build signed H5 redirect URL for KPay's hosted card page
     const timestamp = Date.now().toString()
     const nonceStr = generateNonce()
-    const returnUrlValue = returnUrl ?? `${baseUrl}/book?bookingId=${encodeURIComponent(bookingId)}&redirect_status=returned`
+    const returnUrlValue = returnUrl ?? `${baseUrl}/book?bookingId=${encodeURIComponent(bookingId)}&redirect_status=returned${tokenQ}`
     const h5Path = `/v1/h5?orderNo=${encodeURIComponent(orderNo)}&language=zh_HK&returnUrl=${encodeURIComponent(returnUrlValue)}&K-Merchant-Code=${encodeURIComponent(this.merchantCode)}&K-Nonce-Str=${encodeURIComponent(nonceStr)}&K-Timestamp=${encodeURIComponent(timestamp)}`
 
     const signText = buildSignText('GET', h5Path, timestamp, nonceStr, this.merchantCode, '')
