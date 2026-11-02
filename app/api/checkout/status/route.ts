@@ -11,6 +11,7 @@ import { isPaymentFreezeActive } from '@/lib/payments/freeze-flag'
 import { parkPaidBookingForReview } from '@/lib/payments/park-for-review'
 import { logSiteError } from '@/lib/errors/log'
 import { logPaymentEvent } from '@/lib/payments/payment-events'
+import { getLegacyServiceSupabase } from '@/lib/supabase/legacy'
 
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
@@ -30,6 +31,31 @@ export async function GET(req: Request) {
       data: { user },
     } = await supabase.auth.getUser()
     if (!user) {
+      // Leave a trace on the booking's payment timeline (once per 10 min) so support
+      // can see that the customer returned to a browser without a session.
+      const rawId = new URL(req.url).searchParams.get('bookingId') ?? ''
+      if (/^[0-9a-f-]{36}$/i.test(rawId)) {
+        try {
+          const svc = getLegacyServiceSupabase()
+          const since = new Date(Date.now() - 10 * 60_000).toISOString()
+          const { data: recent } = await svc
+            .from('payment_events')
+            .select('id')
+            .eq('booking_id', rawId)
+            .eq('event', 'status_unauthorized')
+            .gte('created_at', since)
+            .limit(1)
+          if (!recent || recent.length === 0) {
+            await logPaymentEvent({
+              bookingId: rawId,
+              event: 'status_unauthorized',
+              source: 'status_poll',
+              reason: 'no session on return page',
+              meta: { userAgent: (req.headers.get('user-agent') ?? '').slice(0, 200) },
+            })
+          }
+        } catch {}
+      }
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
