@@ -134,8 +134,25 @@ export default function ConfirmPageClient({ bookingId, summary = [] }: Props) {
   }, [bookingId, retrying, t])
 
   // Rollout customers never see "not received" just because they came back; others keep it.
-  const shownReason: PaymentRecoveryReason | null =
-    reason ?? (!result.freeze && showEscape && result.status !== "success" ? "not_received" : null)
+  // No session in this browser (401): we cannot know the payment state, so never claim
+  // "not received" — ask the customer to sign in instead.
+  const shownReason: PaymentRecoveryReason | null = result.authRequired
+    ? null
+    : reason ?? (!result.freeze && showEscape && result.status !== "success" ? "not_received" : null)
+
+  if (result.authRequired) {
+    return (
+      <main style={styles.wrap}>
+        <section style={styles.card} role="status" aria-live="polite">
+          <h1 style={styles.title}>{t("confirm_login_title")}</h1>
+          <p style={styles.text}>{t("confirm_login_desc")}</p>
+          <a href={`/login?returnUrl=${encodeURIComponent(`/book?bookingId=${bookingId}&redirect_status=returned`)}`} style={styles.memberLink}>
+            {t("confirm_login_cta")}
+          </a>
+        </section>
+      </main>
+    )
+  }
 
   if (shownReason) {
     return (

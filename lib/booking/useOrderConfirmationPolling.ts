@@ -53,6 +53,8 @@ export type OrderConfirmationResult = {
   stateCode: string | null
   /** True when the payment-freeze rollout applies to this customer (admins until public). */
   freeze: boolean
+  /** True when the status API answered 401: this browser has no session (e.g. a payment app's in-app browser). */
+  authRequired: boolean
 }
 
 // Fast phase: poll every 2s for the first 30s (KPay webhooks are near-instant).
@@ -122,6 +124,7 @@ export function useOrderConfirmationPolling(
   const [ref, setRef] = useState<PaymentReference | null>(null)
   const [stateCode, setStateCode] = useState<string | null>(null)
   const [freeze, setFreeze] = useState(false)
+  const [authRequired, setAuthRequired] = useState(false)
 
   useEffect(() => {
     if (!enabled || !bookingId) {
@@ -160,6 +163,7 @@ export function useOrderConfirmationPolling(
           `/api/checkout/status?bookingId=${encodeURIComponent(bookingId)}`,
           { cache: "no-store", signal: controller.signal },
         )
+        if (!cancelled) setAuthRequired(response.status === 401)
         const data: unknown = await response.json()
         const result = parseStatusResponse(data)
         const statusValue = result.status
@@ -253,5 +257,5 @@ export function useOrderConfirmationPolling(
     }
   }, [bookingId, enabled])
 
-  return { status, hold, elapsedSec, totalPrice, ref, stateCode, freeze }
+  return { status, hold, elapsedSec, totalPrice, ref, stateCode, freeze, authRequired }
 }

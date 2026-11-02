@@ -3850,8 +3850,11 @@ function ConfirmingPayment({
   review,
   reference,
   stateCode,
+  authRequired,
 }: {
   bookingId: string
+  /** Status API answered 401: no session in this browser, so the payment state is unknown. */
+  authRequired: boolean
   /** Payment-freeze rollout applies (admins until PAYMENT_FREEZE_PUBLIC=true). */
   freeze: boolean
   /** Paid, but the booking needs a person (slot taken). */
@@ -3886,7 +3889,22 @@ function ConfirmingPayment({
   // KPay gives no cancel signal on return, so a still-pending order after 3 s is
   // shown as "payment not received". Polling continues underneath: if the payment
   // lands, the parent swaps this screen for the ticket.
-  const shownReason: PaymentRecoveryReason | null = reason ?? (!freeze && showEscape ? "not_received" : null)
+  const shownReason: PaymentRecoveryReason | null = authRequired ? null : reason ?? (!freeze && showEscape ? "not_received" : null)
+
+  if (authRequired) {
+    return (
+      <div className="screen-content" style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", minHeight: "calc(100dvh - 80px)", textAlign: "center", gap: 12, padding: "24px 20px" }}>
+        <p style={{ fontSize: 18, fontWeight: 700, color: tokens.colors.text }}>{t("confirm_login_title")}</p>
+        <p style={{ fontSize: 14, color: tokens.colors.textMuted, maxWidth: 360 }}>{t("confirm_login_desc")}</p>
+        <a
+          href={`/login?returnUrl=${encodeURIComponent(`/book?bookingId=${bookingId}&redirect_status=returned`)}`}
+          style={{ marginTop: 8, minHeight: 44, display: "inline-flex", alignItems: "center", padding: "0 20px", borderRadius: 12, background: tokens.colors.brand, color: "#000", fontSize: 15, fontWeight: 700, textDecoration: "none" }}
+        >
+          {t("confirm_login_cta")}
+        </a>
+      </div>
+    )
+  }
 
   if (review) {
     return (
@@ -4022,8 +4040,10 @@ function ConfirmingPaymentContainer({
   review,
   reference,
   stateCode,
+  authRequired,
 }: {
   bookingId: string
+  authRequired: boolean
   reason: PaymentRecoveryReason | null
   hold: OrderHoldState
   onBackToSlots: () => void
@@ -4118,6 +4138,7 @@ function ConfirmingPaymentContainer({
       review={review}
       reference={reference}
       stateCode={stateCode}
+      authRequired={authRequired}
     />
   )
 }
@@ -4862,6 +4883,7 @@ export default function BookPage() {
                     review={confirmResult.status === "payment_review"}
                     reference={confirmResult.ref}
                     stateCode={confirmResult.stateCode}
+                    authRequired={confirmResult.authRequired}
                     onBackToSlots={() => {
                       clearKPayPersistedState()
                       setKpayResumeData(null)
