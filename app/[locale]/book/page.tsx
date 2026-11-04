@@ -28,6 +28,7 @@ import StripeCheckoutPayment from "@/components/checkout/StripeCheckoutPayment"
 import StripeElementsWrapper from "@/components/checkout/StripeElementsWrapper"
 import KPayPayment from "@/components/checkout/KPayPayment"
 import { readKPayPersistedState, clearKPayPersistedState } from "@/components/checkout/KPayPayment"
+import InAppBrowserNotice from "@/components/checkout/InAppBrowserNotice"
 import PaymentMethodList from "@/components/checkout/PaymentMethodList"
 import AdminGatewayPanel from "@/components/checkout/AdminGatewayPanel"
 import AdminKPayErrorBoundary from "@/components/checkout/AdminKPayErrorBoundary"
@@ -4785,6 +4786,11 @@ export default function BookPage() {
         {/* Screen content — overflow-x:clip hides the horizontal wizard slide
             without creating a scroll container (which would trap position:sticky). */}
         <div style={{ position: "relative", overflowX: "clip", flex: 1 }}>
+          {screen <= 2 && !confirmBookingId ? (
+            <div style={{ padding: "0 16px" }}>
+              <InAppBrowserNotice />
+            </div>
+          ) : null}
           <AnimatePresence mode="wait" custom={direction.current} initial={false}>
             {screen === 0 && (
               <motion.div

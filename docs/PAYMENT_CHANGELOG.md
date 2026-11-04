@@ -9,6 +9,7 @@ Bump rules: MAJOR = payment flow / money-handling behaviour, MINOR = new feature
 ### Features
 - 付款返回網址帶簽名連結（2 小時有效、只限該張訂單）：返回的瀏覽器沒有登入（例如 AlipayHK 內置瀏覽器）時，仍可查到「已確認／處理中」，已確認會顯示「付款成功」並提供登入按鈕；後台「系統 → 支付系統」可開關（關閉／只限管理員），預設只限管理員。需要環境變數 `RETURN_TOKEN_SECRET`
 - 沒有登入的付款狀態查詢會記入付款時間線（status_unauthorized），方便追查
+- 在微信、QQ、微博、Facebook、Instagram、Line、TikTok 內置瀏覽器開啟預約頁時，頂部提示改用 Safari／Chrome（AlipayHK 等付款頁在內置瀏覽器可能打不開），並提供複製連結按鈕
 
 ### Bug fixes
 - 返回頁在沒有登入時不再誤報「未收到付款」，改為提示登入
