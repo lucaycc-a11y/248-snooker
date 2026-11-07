@@ -80,7 +80,7 @@ export function MemberPageClient({ initialData }: Props) {
           {/* RIGHT — Actions + bookings */}
           <div className="mt-6 space-y-6 md:mx-auto md:max-w-[480px] lg:mx-0 lg:mt-0 lg:max-w-none">
             {/* Action tiles — no section heading */}
-            <section>
+            <section className="px-4">
               <HorizontalActionTiles />
             </section>
 
