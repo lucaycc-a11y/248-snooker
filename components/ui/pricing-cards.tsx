@@ -49,6 +49,7 @@ export type PricingCardsProps = {
   slots: PricingSlot[]
   featuredId?: string
   badge?: string
+  footnote?: string
   className?: string
 }
 
@@ -129,6 +130,7 @@ export default function PricingCards({
   slots,
   featuredId,
   badge,
+  footnote,
   className = "",
 }: PricingCardsProps) {
   const secRef = useRef<HTMLElement>(null)
@@ -199,6 +201,13 @@ export default function PricingCards({
             />
           ))}
         </div>
+
+        {/* ── Fine print under the cards ── */}
+        {footnote && (
+          <p className="pricing-footnote" data-cms-key="combo.footnote" style={{ color: colors.subtitle }}>
+            {footnote}
+          </p>
+        )}
       </div>
 
       {/* ── Section layout styles ───────────────────────────────── */}
@@ -253,6 +262,16 @@ export default function PricingCards({
             grid-template-columns: 1fr;
             gap: 20px;
           }
+        }
+
+        /* ── Fine print ── */
+        .pricing-footnote {
+          font-family: ${FONT_FAMILY};
+          font-size: 13px;
+          line-height: 1.7;
+          text-align: center;
+          margin: 20px auto 0;
+          max-width: 640px;
         }
       `}</style>
 

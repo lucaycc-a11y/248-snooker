@@ -11,7 +11,6 @@ import { AmbientGlow } from "@/components/shared/AmbientGlow";
 import { getFaqJsonLd, HOMEPAGE_FAQ_IDS } from "@/components/landing/faqData";
 import { buildSportsClubJsonLd, safeJsonLd } from "@/lib/seo/jsonLd";
 import { periodsToSlots } from "@/lib/ui/pricing-adapter";
-import ComboPricingNote from "@/components/pricing/ComboPricingNote";
 import { applyPricingV2 } from "@/lib/pricing-v2";
 import { MAP_QUERY } from "@/lib/site/nap";
 
@@ -154,6 +153,9 @@ export default async function Home({
     (key: string) => t(key),
     (key: string, values?: Record<string, string | number>) => tCombo(key, values),
   );
+  // Same gate for the 連訂 copy (title swap, tagline, footnote): before go-live
+  // the public keeps the plain pricing heading with no combo mention.
+  const hasCombo = slots.some((s) => s.comboLabel != null);
   const sportsClubJsonLd = buildSportsClubJsonLd(locale, locale === "zh-HK" ? "/" : `/${locale}`, {
     periods: config.periods,
     openHour: config.openHour,
@@ -191,11 +193,11 @@ export default async function Home({
 
       <PricingCards
         theme="light"
-        heading={t("periods_title")}
-        subheading={t("periods_subtitle")}
+        heading={hasCombo ? tCombo("title") : t("periods_title")}
+        subheading={hasCombo ? tCombo("note_tagline") : t("periods_subtitle")}
         slots={slots}
+        footnote={hasCombo ? tCombo("footnote") : undefined}
       />
-      <ComboPricingNote variant="light" />
 
       {/* Learn More scroll target - zero-height anchor, sections flow directly */}
       <div id="social-proof" aria-hidden="true" />
