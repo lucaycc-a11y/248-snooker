@@ -1479,10 +1479,10 @@ function SummaryCard({
           {ready && <BookingPrice amount={total} />}
         </div>
         {ready && totalSaved > 0 && (
-          <div style={{ textAlign: "center", marginBottom: 26 }}>
+          <div style={{ textAlign: "center", marginBottom: 24 }}>
             <s
               style={{
-                fontSize: 14,
+                fontSize: 22,
                 color: tokens.colors.textFaint,
                 fontVariantNumeric: "tabular-nums",
               }}
@@ -2625,8 +2625,8 @@ function Screen3({
             </div>
             {/* Pre-連訂 total struck through under the hero when combo applies. */}
             {totalSaved > 0 && (
-              <div style={{ textAlign: "right", marginTop: 2 }}>
-                <s style={{ fontSize: 13, color: tokens.colors.textFaint, fontVariantNumeric: "tabular-nums" }}>
+              <div style={{ textAlign: "right", marginTop: 4 }}>
+                <s style={{ fontSize: 16, color: tokens.colors.textFaint, fontVariantNumeric: "tabular-nums" }}>
                   <BookingPrice amount={total + totalSaved} />
                 </s>
               </div>
