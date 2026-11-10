@@ -34,6 +34,7 @@ export type PricingSlot = {
   timeLabel: string // e.g. "每日 HH:MM–HH:MM"
   price: number
   unit: string // e.g. "/ 小時"
+  comboLabel?: string // e.g. "連訂 HK$75 / 小時（2 小時起）" — shown under the price
   icon: React.ReactNode
   accent: string // hex color for this slot
   ctaLabel: string
@@ -68,6 +69,7 @@ const THEME = {
     priceCurrency: "#1d1d1f",
     priceDigits: "#1d1d1f",
     priceUnit: "#86868b",
+    combo: "#16a34a",
     ctaText: "#ffffff",
   },
   dark: {
@@ -84,6 +86,7 @@ const THEME = {
     priceCurrency: "#f5f5f7",
     priceDigits: "#f5f5f7",
     priceUnit: "#a1a1a6",
+    combo: "#4ade80",
     ctaText: "#ffffff",
   },
 }
@@ -378,10 +381,19 @@ export default function PricingCards({
           margin-bottom: 4px;
         }
 
-        /* ── Spacer for consistent card layout ── */
+        /* ── Spacer / combo rate line slot ── */
         .pricing-spacer {
-          height: 37px;
+          min-height: 37px;
           margin-bottom: 24px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+        }
+        .pricing-combo {
+          font-family: ${FONT_FAMILY};
+          font-size: 14px;
+          font-weight: 600;
+          line-height: 1.3;
         }
 
         /* ── Mobile adjustments ── */
@@ -492,8 +504,14 @@ function PricingCard({
       {/* Price with Good Times font for digits */}
       <PriceDisplay value={slot.price} unit={slot.unit} theme={theme} />
 
-      {/* Spacer for consistent card layout */}
-      <div className="pricing-spacer" />
+      {/* Combo (連訂) rate line — fills the spacer so cards stay aligned */}
+      <div className="pricing-spacer">
+        {slot.comboLabel && (
+          <span className="pricing-combo" data-cms-key="combo.rate_line" style={{ color: colors.combo }}>
+            {slot.comboLabel}
+          </span>
+        )}
+      </div>
 
       {/* CTA button — slot accent color */}
       <AppleButton

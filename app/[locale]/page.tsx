@@ -12,6 +12,7 @@ import { getFaqJsonLd, HOMEPAGE_FAQ_IDS } from "@/components/landing/faqData";
 import { buildSportsClubJsonLd, safeJsonLd } from "@/lib/seo/jsonLd";
 import { periodsToSlots } from "@/lib/ui/pricing-adapter";
 import ComboPricingNote from "@/components/pricing/ComboPricingNote";
+import { applyPricingV2 } from "@/lib/pricing-v2";
 import { MAP_QUERY } from "@/lib/site/nap";
 
 // ── Critical above-the-fold components (eager load) ─────────────────────────
@@ -146,7 +147,13 @@ export default async function Home({
     .map(id => config.periods.find(p => p.id === id))
     .filter((p): p is NonNullable<typeof p> => p !== undefined);
 
-  const slots = periodsToSlots(orderedPeriods, (key: string) => t(key));
+  // 連訂 rates attach only when pricing v2 applies to the caller (see getActivePricingV2).
+  const tCombo = await getTranslations("combo");
+  const slots = periodsToSlots(
+    await applyPricingV2(orderedPeriods),
+    (key: string) => t(key),
+    (key: string, values?: Record<string, string | number>) => tCombo(key, values),
+  );
   const sportsClubJsonLd = buildSportsClubJsonLd(locale, locale === "zh-HK" ? "/" : `/${locale}`, {
     periods: config.periods,
     openHour: config.openHour,

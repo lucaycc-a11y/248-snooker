@@ -100,15 +100,18 @@ function getTierConfig(id: string): (typeof TIER_CONFIG)[TierId] {
 
 /* ── Adapter function ───────────────────────────────────────────── */
 
-type TranslationFn = (key: string) => string
+type TranslationFn = (key: string, values?: Record<string, string | number>) => string
 
 /**
  * Convert PricingPeriod[] from the config table into PricingSlot[] for the UI.
  * Uses i18n for names, time labels, and CTA text. No taglines per spec.
+ * Pass `tCombo` (combo namespace) to render the 連訂 rate line under the price;
+ * periods carry comboRate/comboMinHours only when pricing v2 applies to the caller.
  */
 export function periodsToSlots(
   periods: PricingPeriod[],
   t: TranslationFn,
+  tCombo?: TranslationFn,
 ): PricingSlot[] {
   return periods.map((period) => {
     const tier = getTierConfig(period.id)
@@ -118,6 +121,10 @@ export function periodsToSlots(
       timeLabel: t(`period_${period.id}_time`),
       price: period.rate,
       unit: t("per_hour"),
+      comboLabel:
+        tCombo && typeof period.comboRate === "number" && period.comboMinHours != null
+          ? tCombo("rate_line", { rate: period.comboRate, hours: period.comboMinHours })
+          : undefined,
       icon: getIcon(period.id, tier.accent),
       accent: tier.accent,
       ctaLabel: t("cta_book"),
