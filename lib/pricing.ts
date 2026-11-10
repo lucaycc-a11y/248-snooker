@@ -111,7 +111,7 @@ export function calculatePrice(
     // 連訂: a single same-day block of comboMinHours+ hours bills every hour at
     // that period's comboRate (only set when pricing v2 is active for this caller).
     const rate = period
-      ? period.comboRate != null && durationHours >= (period.comboMinHours ?? 2)
+      ? period.comboRate != null && period.comboMinHours != null && durationHours >= period.comboMinHours
         ? period.comboRate
         : period.rate
       : Math.min(...periods.map((p) => p.rate))

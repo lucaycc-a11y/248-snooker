@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest'
 import { calculatePrice, quoteBlockTotal } from './pricing'
-import { DEFAULT_PERIODS } from './data/pricing'
+import { DEFAULT_PERIODS, type PricingPeriod } from './data/pricing'
 
 describe('calculatePrice', () => {
   it('11:00-13:00 = 186 (1h morning 88 + 1h afternoon 98)', () => {
@@ -63,7 +63,7 @@ describe('calculatePrice', () => {
 
 describe('calculatePrice — 連訂 (pricing v2)', () => {
   const tier = { discount: 1, multiplier: 1 }
-  const v2 = DEFAULT_PERIODS.map((p) => ({
+  const v2: PricingPeriod[] = DEFAULT_PERIODS.map((p) => ({
     ...p,
     comboRate: { morning: 75, afternoon: 85, evening: 95 }[p.id as 'morning' | 'afternoon' | 'evening'],
     comboMinHours: 2,

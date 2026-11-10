@@ -1,7 +1,5 @@
 const HONG_KONG_OFFSET_MINUTES = 8 * 60
 export const SLOT_BOOKING_CUTOFF_MINUTES = 15
-/** Cutoff once pricing v2 is active (admin before go-live, everyone after). */
-export const SLOT_BOOKING_CUTOFF_MINUTES_V2 = 20
 
 // Browser-side default. The /book page sets this from /api/pricing/periods once
 // it knows whether v2 applies to the viewer. Server routes never rely on it:

@@ -1,21 +1,22 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useTranslations } from "next-intl";
 
 const FONT =
   "-apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Noto Sans TC', 'Helvetica Neue', Helvetica, Arial, sans-serif";
 
-export const COMBO_FOOTNOTE =
-  "跨時段預訂會按各時段的連訂價計算，連訂優惠僅適用於同一天的預訂。";
-
 /** Small "了解連訂" button + modal explaining how 連訂 is calculated. */
 export default function ComboInfoPopup({
-  label = "了解連訂",
+  label,
   dark = false,
+  minHours,
 }: {
   label?: string;
   dark?: boolean;
+  minHours: number;
 }) {
+  const tCombo = useTranslations("combo");
   const [open, setOpen] = useState(false);
 
   useEffect(() => {
@@ -34,6 +35,7 @@ export default function ComboInfoPopup({
       <button
         type="button"
         onClick={() => setOpen(true)}
+        data-cms-key="combo.popup_label"
         style={{
           minHeight: 44,
           padding: "0 18px",
@@ -47,13 +49,14 @@ export default function ComboInfoPopup({
           cursor: "pointer",
         }}
       >
-        {label}
+        {label ?? tCombo("popup_label")}
       </button>
       {open && (
         <div
           role="dialog"
           aria-modal="true"
-          aria-label="連訂說明"
+          aria-label={tCombo("popup_dialog_label")}
+          data-cms-key="combo.popup_dialog_label"
           onClick={() => setOpen(false)}
           style={{
             position: "fixed",
@@ -80,13 +83,20 @@ export default function ComboInfoPopup({
               animation: "combo-pop .45s cubic-bezier(.34,1.56,.64,1)",
             }}
           >
-            <h3 style={{ fontSize: 20, fontWeight: 700, margin: "0 0 6px" }}>連訂更抵</h3>
-            <p style={{ fontSize: 13.5, opacity: 0.6, margin: "0 0 16px" }}>Play more, pay less.</p>
-            <p style={{ fontSize: 15, lineHeight: 1.7, margin: "0 0 12px" }}>
-              同一天連續預訂 2 小時或以上，每個小時均按該時段的連訂價計算。
+            <h3 data-cms-key="combo.popup_title" style={{ fontSize: 20, fontWeight: 700, margin: "0 0 6px" }}>
+              {tCombo("popup_title")}
+            </h3>
+            <p data-cms-key="combo.tagline" style={{ fontSize: 13.5, opacity: 0.6, margin: "0 0 16px" }}>
+              {tCombo("tagline")}
             </p>
-            <p style={{ fontSize: 15, lineHeight: 1.7, margin: "0 0 12px" }}>{COMBO_FOOTNOTE}</p>
+            <p data-cms-key="combo.popup_rule" style={{ fontSize: 15, lineHeight: 1.7, margin: "0 0 12px" }}>
+              {tCombo("popup_rule", { hours: minHours })}
+            </p>
+            <p data-cms-key="combo.footnote" style={{ fontSize: 15, lineHeight: 1.7, margin: "0 0 12px" }}>
+              {tCombo("footnote")}
+            </p>
             <p
+              data-cms-key="combo.popup_example"
               style={{
                 fontSize: 14,
                 lineHeight: 1.7,
@@ -96,11 +106,12 @@ export default function ComboInfoPopup({
                 borderRadius: 12,
               }}
             >
-              例如預訂 16:00–20:00：下午連訂價 × 2 + 黃金連訂價 × 2。
+              {tCombo("popup_example")}
             </p>
             <button
               type="button"
               onClick={() => setOpen(false)}
+              data-cms-key="combo.popup_close"
               style={{
                 width: "100%",
                 minHeight: 48,
@@ -114,7 +125,7 @@ export default function ComboInfoPopup({
                 cursor: "pointer",
               }}
             >
-              明白
+              {tCombo("popup_close")}
             </button>
           </div>
           <style>{`@keyframes combo-pop{from{opacity:0;transform:scale(.92) translateY(10px)}to{opacity:1;transform:none}}

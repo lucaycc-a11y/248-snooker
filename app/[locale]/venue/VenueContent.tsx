@@ -14,13 +14,24 @@ import { tokens } from "@/app/styles/tokens";
 const EASE = [0.16, 1, 0.3, 1] as const;
 const VIEWPORT = { once: true, amount: 0.25 } as const;
 
+type DisplayPeriod = {
+  id: string;
+  name: string;
+  time_label: string;
+  hourly_rate: number;
+  combo_rate: number | null;
+  combo_min_hours: number | null;
+  accent_color: string;
+};
+
 export default function VenueContent() {
   const t = useTranslations("venuePage");
   const tVenue = useTranslations("venue");
   const tButton = useTranslations("ui.button");
   const tPricing = useTranslations("pricingPage");
+  const tCombo = useTranslations("combo");
 
-  const [periods, setPeriods] = useState<any[]>([]);
+  const [periods, setPeriods] = useState<DisplayPeriod[]>([]);
 
   // Fetch pricing from config
   useEffect(() => {
@@ -28,16 +39,19 @@ export default function VenueContent() {
       try {
         const res = await fetch("/api/pricing");
         if (res.ok) {
-          const data = await res.json();
+          const data = (await res.json()) as {
+            periods: { id: string; rate: number; comboRate: number | null }[];
+            comboMinHours: number | null;
+          };
 
           // Transform API response to match component expectations
-          const transformed = data.periods.map((period: any) => ({
+          const transformed = data.periods.map((period) => ({
             id: period.id,
             name: tPricing(`period_${period.id}_title`),
             time_label: tPricing(`period_${period.id}_time`),
             hourly_rate: period.rate,
             combo_rate: typeof period.comboRate === "number" ? period.comboRate : null,
-            combo_min_hours: data.comboMinHours ?? 2,
+            combo_min_hours: data.comboMinHours,
             accent_color: tokens.colors.green[600],
           }));
 
@@ -362,7 +376,7 @@ export default function VenueContent() {
             >
               {t("pricing_subheading")}
             </motion.p>
-            {periods.some((p: any) => p.combo_rate != null) && (
+            {periods.some((p) => p.combo_rate != null) && (
               <p
                 style={{
                   fontFamily: "'Noto Sans TC', sans-serif",
@@ -372,7 +386,7 @@ export default function VenueContent() {
                   margin: "0 0 28px",
                 }}
               >
-                透明定價，連訂更抵 / Play more, pay less.　跨時段預訂會按各時段的連訂價計算，連訂優惠僅適用於同一天的預訂。
+                <span data-cms-key="combo.title">{tCombo("title")}</span> / <span data-cms-key="combo.tagline">{tCombo("tagline")}</span>　<span data-cms-key="combo.footnote">{tCombo("footnote")}</span>
               </p>
             )}
 
@@ -383,7 +397,7 @@ export default function VenueContent() {
                 gap: 24,
               }}
             >
-              {periods.map((period: any, index: number) => (
+              {periods.map((period, index) => (
                 <motion.div
                   key={period.id}
                   initial={{ opacity: 0, y: 30 }}
@@ -444,8 +458,9 @@ export default function VenueContent() {
                     >
                       / 小時
                     </span>
-                    {period.combo_rate != null && (
+                    {period.combo_rate != null && period.combo_min_hours != null && (
                       <div
+                        data-cms-key="combo.rate_line"
                         style={{
                           fontFamily: "'Noto Sans TC', sans-serif",
                           fontSize: 14,
@@ -454,7 +469,7 @@ export default function VenueContent() {
                           marginTop: 6,
                         }}
                       >
-                        連訂 HK${period.combo_rate} / 小時（{period.combo_min_hours} 小時起）
+                        {tCombo("rate_line", { rate: period.combo_rate, hours: period.combo_min_hours })}
                       </div>
                     )}
                   </div>

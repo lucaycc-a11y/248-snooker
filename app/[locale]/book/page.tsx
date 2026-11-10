@@ -1363,6 +1363,7 @@ function SummaryCard({
 }) {
   const dash = "—"
   const t = useTranslations("book")
+  const tCombo = useTranslations("combo")
   const totalHours = runs.reduce((sum, r) => sum + r.duration, 0)
   const single = runs.length === 1 ? runs[0] : null
   const endHour = single ? single.startHour + single.duration : 0
@@ -1370,6 +1371,7 @@ function SummaryCard({
 
   // Multi-hour discount removed — no savings calculation
   const totalSaved = 0
+  const comboMinHours = periods.find((p) => p.comboMinHours != null)?.comboMinHours
 
   return (
     <Card
@@ -1494,7 +1496,7 @@ function SummaryCard({
             {t("total_saved", { saved: totalSaved })}
           </div>
         )}
-        {ready && periods.some((p) => p.comboRate != null) && (
+        {ready && comboMinHours != null && (
           <p
             style={{
               textAlign: "center",
@@ -1504,7 +1506,8 @@ function SummaryCard({
               margin: "0 0 18px",
             }}
           >
-            連訂：同一天預訂 2 小時或以上按連訂價計算。跨時段預訂會按各時段的連訂價計算，連訂優惠僅適用於同一天的預訂。
+            <span data-cms-key="book.combo_note">{t("combo_note", { hours: comboMinHours })}</span>
+            <span data-cms-key="combo.footnote">{tCombo("footnote")}</span>
           </p>
         )}
         <Button

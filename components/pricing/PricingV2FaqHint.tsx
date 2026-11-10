@@ -1,9 +1,12 @@
 import { getActivePricingV2 } from "@/lib/pricing-v2";
-import ComboInfoPopup, { COMBO_FOOTNOTE } from "./ComboInfoPopup";
+import { getTranslations } from "next-intl/server";
+import ComboInfoPopup from "./ComboInfoPopup";
 
 /** Short pricing hint + pop-up for the FAQ page. Hidden unless v2 applies. */
 export default async function PricingV2FaqHint() {
-  if (!(await getActivePricingV2())) return null;
+  const v2 = await getActivePricingV2();
+  if (!v2) return null;
+  const tCombo = await getTranslations("combo");
   return (
     <div
       style={{
@@ -27,9 +30,11 @@ export default async function PricingV2FaqHint() {
         }}
       >
         <p style={{ margin: 0, fontSize: 14, lineHeight: 1.6, color: "#111110", flex: "1 1 240px" }}>
-          <b>價錢提示：</b>同一天預訂 2 小時或以上可享連訂價。{COMBO_FOOTNOTE}
+          <b data-cms-key="combo.faq_label">{tCombo("faq_label")}</b>
+          <span data-cms-key="combo.faq_text">{tCombo("faq_text", { hours: v2.comboMinHours })}</span>
+          <span data-cms-key="combo.footnote">{tCombo("footnote")}</span>
         </p>
-        <ComboInfoPopup />
+        <ComboInfoPopup minHours={v2.comboMinHours} />
       </div>
     </div>
   );

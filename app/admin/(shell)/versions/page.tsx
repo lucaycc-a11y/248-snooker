@@ -1,10 +1,11 @@
+import type { ReactNode } from 'react'
 import AdminPageHead from '@/components/admin/AdminPageHead'
 import { getAppVersions, type AppVersionRow } from '@/lib/data/getAppVersion'
 
 // Auth is enforced by app/admin/(shell)/layout.tsx.
 export const dynamic = 'force-dynamic'
 
-function List({ title, items }: { title: string; items: string[] }) {
+function List({ title, items }: { title: ReactNode; items: string[] }) {
   if (items.length === 0) return null
   return (
     <div style={{ marginTop: 12 }}>
@@ -34,12 +35,16 @@ function VersionCard({ v }: { v: AppVersionRow }) {
       <div style={{ display: 'flex', alignItems: 'baseline', gap: 10, flexWrap: 'wrap' }}>
         <h2 style={{ margin: 0, fontSize: 20, fontWeight: 700 }}>{v.label}</h2>
         <span style={{ fontSize: 13, opacity: 0.65 }}>
-          {v.isTest ? `測試中，預計 ${fmt(v.releasedAt)} 正式發佈` : `${fmt(v.releasedAt)} 正式發佈`}
+          {v.isTest ? (
+            <span data-cms-key="admin.versions.status_test">測試中，預計 {fmt(v.releasedAt)} 正式發佈</span>
+          ) : (
+            <span data-cms-key="admin.versions.status_released">{fmt(v.releasedAt)} 正式發佈</span>
+          )}
         </span>
       </div>
-      <List title="新增" items={v.adds} />
-      <List title="更改" items={v.changes} />
-      <List title="移除" items={v.removes} />
+      <List title={<span data-cms-key="admin.versions.adds">新增</span>} items={v.adds} />
+      <List title={<span data-cms-key="admin.versions.changes">更改</span>} items={v.changes} />
+      <List title={<span data-cms-key="admin.versions.removes">移除</span>} items={v.removes} />
     </section>
   )
 }
@@ -48,9 +53,11 @@ export default async function AdminVersionsPage() {
   const versions = await getAppVersions()
   return (
     <div className="admin-stack">
-      <AdminPageHead sub="每個版本新增、更改及移除的內容。測試版本只有 admin 見到，到發佈時間自動轉為正式版。" />
+      <AdminPageHead
+        sub={<span data-cms-key="admin.versions.sub">每個版本新增、更改及移除的內容。測試版本只有 admin 見到，到發佈時間自動轉為正式版。</span>}
+      />
       {versions.length === 0 ? (
-        <p style={{ fontSize: 14, opacity: 0.7 }}>暫時沒有版本記錄。</p>
+        <p style={{ fontSize: 14, opacity: 0.7 }} data-cms-key="admin.versions.empty">暫時沒有版本記錄。</p>
       ) : (
         versions.map((v) => <VersionCard key={v.version} v={v} />)
       )}
