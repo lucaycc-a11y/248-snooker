@@ -248,6 +248,7 @@
     "faq_label": "Price tip: ",
     "faq_text": "Same-day bookings of {hours}+ hours enjoy combo rates.",
     "min_hours_badge": "Discount from {hours}h",
+    "extend_prompt": "You can book {hours}h — add one more hour?",
     "rate_line": "Combo HK${rate} / hour ({hours}h min)",
     "period_morning_short": "Morning",
     "period_afternoon_short": "Afternoon",

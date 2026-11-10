@@ -67,10 +67,19 @@ import { getLegalDocument } from "@/content/legal"
 // @ts-ignore
 import confetti from "canvas-confetti"
 
-function BookingPrice({ amount }: { amount: number }) {
+function BookingPrice({ amount, struck }: { amount: number; struck?: boolean }) {
+  // `struck` keeps the wrapper a plain inline box and draws the line on it
+  // directly: an inline-flex atom blocks ancestor text-decoration (the <s>
+  // line) from reaching the text in some engines (Safari / mobile WebKit).
   return (
-    <span style={{ display: "inline-flex", alignItems: "baseline", gap: "0.12em", whiteSpace: "nowrap", fontVariantNumeric: "tabular-nums" }}>
-      <span style={{ fontFamily: tokens.font.sans }}>HK$</span>
+    <span
+      style={
+        struck
+          ? { whiteSpace: "nowrap", fontVariantNumeric: "tabular-nums", textDecorationLine: "line-through" }
+          : { display: "inline-flex", alignItems: "baseline", gap: "0.12em", whiteSpace: "nowrap", fontVariantNumeric: "tabular-nums" }
+      }
+    >
+      <span style={{ fontFamily: tokens.font.sans, ...(struck ? { marginRight: "0.12em" } : {}) }}>HK$</span>
       <span style={{ fontFamily: tokens.font.display }}>{amount}</span>
     </span>
   )
@@ -1487,7 +1496,7 @@ function SummaryCard({
                 fontVariantNumeric: "tabular-nums",
               }}
             >
-              <BookingPrice amount={total + totalSaved} />
+              <BookingPrice amount={total + totalSaved} struck />
             </s>
           </div>
         )}
@@ -1893,6 +1902,7 @@ function Screen3({
   pricingReady: boolean
 }) {
   const t = useTranslations("book")
+  const tCombo = useTranslations("combo")
   const locale = useLocale()
 
   // Part 5: Slot removal confirmation dialog
@@ -2184,6 +2194,7 @@ function Screen3({
     0,
     blocks.reduce((sum, b) => sum + quoteBlockTotal(b.date, b.startHour, b.duration, withoutComboRates(periods)), 0) - subtotal,
   )
+  const comboMinHours = periods.find((p) => p.comboMinHours != null)?.comboMinHours
   // Recompute the promo discount from the current subtotal: the amount stored at apply
   // time goes stale when slots are added/removed. Same rule as the server (percentage
   // rounded, capped by max_discount; fixed capped by subtotal).
@@ -2458,7 +2469,53 @@ function Screen3({
             })}
           </div>
 
-          <ComboNudge periods={periods} />
+          {/* 連訂 upsell — only when a block missed the combo threshold: ask,
+              don't price. Back to slot picking to extend it. */}
+          {comboMinHours != null && blocks.some((b) => b.duration < comboMinHours) && (
+            <div
+              style={{
+                display: "flex",
+                flexWrap: "wrap",
+                alignItems: "center",
+                justifyContent: "space-between",
+                gap: "10px 14px",
+                padding: "12px 14px",
+                marginBottom: 14,
+                border: `1px solid ${tokens.colors.border}`,
+                borderRadius: tokens.radius.input,
+                background: tokens.colors.brandDim,
+              }}
+            >
+              <span style={{ display: "inline-flex", alignItems: "center", gap: 8, fontSize: 13, color: tokens.colors.text }}>
+                <Clock size={15} style={{ color: tokens.colors.link, flexShrink: 0 }} />
+                <span data-cms-key="combo.extend_prompt">{tCombo("extend_prompt", { hours: comboMinHours })}</span>
+              </span>
+              {onBackToSlots && (
+                <button
+                  type="button"
+                  onClick={onBackToSlots}
+                  style={{
+                    display: "inline-flex",
+                    alignItems: "center",
+                    gap: 4,
+                    minHeight: 44,
+                    padding: "0 14px",
+                    borderRadius: tokens.radius.pill,
+                    border: `1px solid ${tokens.colors.border}`,
+                    background: "none",
+                    color: tokens.colors.link,
+                    fontSize: 13,
+                    fontWeight: 600,
+                    cursor: "pointer",
+                    whiteSpace: "nowrap",
+                  }}
+                >
+                  <ChevronLeft size={15} />
+                  <span data-cms-key="book.back_to_slots">{t("back_to_slots")}</span>
+                </button>
+              )}
+            </div>
+          )}
 
           {/* Contact info */}
           {profile && (profile.name || profile.email || profile.phone) && (
@@ -2627,7 +2684,7 @@ function Screen3({
             {totalSaved > 0 && (
               <div style={{ textAlign: "right", marginTop: 4 }}>
                 <s style={{ fontSize: 16, color: tokens.colors.textFaint, fontVariantNumeric: "tabular-nums" }}>
-                  <BookingPrice amount={total + totalSaved} />
+                  <BookingPrice amount={total + totalSaved} struck />
                 </s>
               </div>
             )}

@@ -248,6 +248,7 @@
     "faq_label": "价格提示：",
     "faq_text": "同一天预订 {hours} 小时或以上可享连订价。",
     "min_hours_badge": "{hours} 小时起有优惠",
+    "extend_prompt": "{hours} 小时可以预订，要再订一个小时吗？",
     "rate_line": "连订 HK${rate} / 小时（{hours} 小时起）",
     "period_morning_short": "上午",
     "period_afternoon_short": "下午",
