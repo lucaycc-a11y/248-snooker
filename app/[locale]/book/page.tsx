@@ -1731,7 +1731,7 @@ function Screen1({
             >
               {t("multi_slot_hint")}
             </div>
-            <ComboNudge periods={periods} blocks={runs} />
+            <ComboNudge periods={periods} />
             <DualTableGrid
               selectedDate={selectedDate}
               daySlots={daySlots}
@@ -2474,7 +2474,7 @@ function Screen3({
             })}
           </div>
 
-          <ComboNudge periods={periods} blocks={blocks} />
+          <ComboNudge periods={periods} />
 
           {/* Contact info */}
           {profile && (profile.name || profile.email || profile.phone) && (
