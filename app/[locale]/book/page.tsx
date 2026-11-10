@@ -1340,6 +1340,12 @@ function Calendar({
 }
 
 /* ─────────────────────────  Drum Roll Wheel (iOS)  ───────────────────────── */
+/** The same periods with the 連訂 combo fields stripped — prices a block at the
+ *  pre-combo rate so the total can show the struck-through "original". */
+function withoutComboRates(periods: PricingPeriod[]): PricingPeriod[] {
+  return periods.map((p) => ({ id: p.id, rate: p.rate, start: p.start, end: p.end, days: p.days }))
+}
+
 /* ─────────────────────────  Summary Card (Desktop)  ───────────────────────── */
 function SummaryCard({
   selectedDate,
@@ -1364,15 +1370,17 @@ function SummaryCard({
 }) {
   const dash = "—"
   const t = useTranslations("book")
-  const tCombo = useTranslations("combo")
   const totalHours = runs.reduce((sum, r) => sum + r.duration, 0)
   const single = runs.length === 1 ? runs[0] : null
   const endHour = single ? single.startHour + single.duration : 0
   const crossDay = endHour >= 24
 
-  // Multi-hour discount removed — no savings calculation
-  const totalSaved = 0
-  const comboMinHours = periods.find((p) => p.comboMinHours != null)?.comboMinHours
+  // 連訂 saving: what these runs cost at the pre-combo rates — shown as a
+  // struck-through "original" under the hero total.
+  const totalSaved = Math.max(
+    0,
+    runs.reduce((sum, r) => sum + quoteBlockTotal(r.date, r.startHour, r.duration, withoutComboRates(periods)), 0) - total,
+  )
 
   return (
     <Card
@@ -1457,13 +1465,24 @@ function SummaryCard({
             marginBottom: 24,
           }}
         />
-        {/* Apple-style "was / now / you save": strike the pre-discount total
-            above the hero price whenever the 2h+ rate kicked in. */}
+        {/* Apple-style "was / now": the pre-連訂 total struck through beneath
+            the hero price whenever the combo rate kicked in. */}
+        <div
+          style={{
+            fontFamily: tokens.font.sans,
+            fontSize: 48,
+            textAlign: "center",
+            marginBottom: ready && totalSaved > 0 ? 2 : 28,
+            color: tokens.colors.link,
+          }}
+        >
+          {ready && <BookingPrice amount={total} />}
+        </div>
         {ready && totalSaved > 0 && (
-          <div style={{ textAlign: "center", marginBottom: 6 }}>
+          <div style={{ textAlign: "center", marginBottom: 26 }}>
             <s
               style={{
-                fontSize: 22,
+                fontSize: 14,
                 color: tokens.colors.textFaint,
                 fontVariantNumeric: "tabular-nums",
               }}
@@ -1471,45 +1490,6 @@ function SummaryCard({
               <BookingPrice amount={total + totalSaved} />
             </s>
           </div>
-        )}
-        <div
-          style={{
-            fontFamily: tokens.font.sans,
-            fontSize: 48,
-            textAlign: "center",
-            marginBottom: ready && totalSaved > 0 ? 10 : 28,
-            color: tokens.colors.link,
-          }}
-        >
-          {ready && <BookingPrice amount={total} />}
-        </div>
-        {ready && totalSaved > 0 && (
-          <div
-            data-cms-key="book.total_saved"
-            style={{
-              textAlign: "center",
-              fontSize: 12,
-              fontWeight: 600,
-              color: tokens.colors.textFaint,
-              marginBottom: 22,
-            }}
-          >
-            {t("total_saved", { saved: totalSaved })}
-          </div>
-        )}
-        {ready && comboMinHours != null && (
-          <p
-            style={{
-              textAlign: "center",
-              fontSize: 12,
-              lineHeight: 1.6,
-              color: tokens.colors.textFaint,
-              margin: "0 0 18px",
-            }}
-          >
-            <span data-cms-key="book.combo_note">{t("combo_note", { hours: comboMinHours })}</span>
-            <span data-cms-key="combo.footnote">{tCombo("footnote")}</span>
-          </p>
         )}
         <Button
           variant="default"
@@ -2199,7 +2179,11 @@ function Screen3({
 
   // Client-side pricing calculation that includes wallet
   const subtotal = blocks.reduce((sum, b) => sum + quoteBlockTotal(b.date, b.startHour, b.duration, periods), 0)
-  const totalSaved = 0
+  // 連訂 saving vs the pre-combo rates — struck through beneath the total.
+  const totalSaved = Math.max(
+    0,
+    blocks.reduce((sum, b) => sum + quoteBlockTotal(b.date, b.startHour, b.duration, withoutComboRates(periods)), 0) - subtotal,
+  )
   // Recompute the promo discount from the current subtotal: the amount stored at apply
   // time goes stale when slots are added/removed. Same rule as the server (percentage
   // rounded, capped by max_discount; fixed capped by subtotal).
@@ -2526,16 +2510,10 @@ function Screen3({
                 {!pricingReady ? (
                   <span style={{ background: '#333', height: 20, width: 60, display: 'inline-block', borderRadius: 4 }} />
                 ) : (
-                  <BookingPrice amount={subtotal + totalSaved} />
+                  <BookingPrice amount={subtotal} />
                 )}
               </span>
             </div>
-            {totalSaved > 0 && (
-              <div style={{ display: "flex", justifyContent: "space-between", fontSize: 14, color: tokens.colors.textMuted, marginBottom: 12 }}>
-                <span data-cms-key="book.pay.discount">{t("discount_label")}</span>
-                <span style={{ color: "#fff", fontWeight: 600, fontVariantNumeric: "tabular-nums" }}>−<BookingPrice amount={totalSaved} /></span>
-              </div>
-            )}
 
             {/* Once a payment has been requested, the amount is fixed: the KPay
                 order was created for this total. Gray out promo + wallet so
@@ -2645,6 +2623,14 @@ function Screen3({
                 </span>
               </span>
             </div>
+            {/* Pre-連訂 total struck through under the hero when combo applies. */}
+            {totalSaved > 0 && (
+              <div style={{ textAlign: "right", marginTop: 2 }}>
+                <s style={{ fontSize: 13, color: tokens.colors.textFaint, fontVariantNumeric: "tabular-nums" }}>
+                  <BookingPrice amount={total + totalSaved} />
+                </s>
+              </div>
+            )}
           </div>
 
           {/* Trust strip — names the provider that will actually handle the
