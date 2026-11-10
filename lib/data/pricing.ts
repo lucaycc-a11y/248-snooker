@@ -13,6 +13,11 @@ export type PricingPeriod = {
   start: string // 'HH:MM'
   end: string // 'HH:MM'
   days: 'weekday' | 'weekend' | 'all'
+  /** 連訂 per-hour rate. Only present when pricing v2 is active for the caller
+   * (admin before go-live, everyone after) — see lib/pricing-v2.ts. */
+  comboRate?: number
+  /** Minimum hours of ONE same-day booking block for comboRate to apply. */
+  comboMinHours?: number
 }
 
 /** Shape of the `pricing_rates` config key — the single source of truth for

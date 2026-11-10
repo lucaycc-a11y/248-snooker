@@ -3,6 +3,7 @@ import { getTranslations } from 'next-intl/server'
 import { pageAlternates, SITE_URL } from '@/lib/seo/site'
 import { indexingMeta } from '@/lib/env/app-env'
 import FAQClient from './FAQClient'
+import PricingV2FaqHint from '@/components/pricing/PricingV2FaqHint'
 
 type Props = {
   params: { locale: string }
@@ -36,6 +37,13 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   }
 }
 
-export default function FaqPage() {
-  return <FAQClient />
+export default async function FaqPage() {
+  return (
+    <>
+      <div style={{ background: '#e8e8e8' }}>
+        <PricingV2FaqHint />
+      </div>
+      <FAQClient />
+    </>
+  )
 }

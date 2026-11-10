@@ -1,5 +1,15 @@
 const HONG_KONG_OFFSET_MINUTES = 8 * 60
 export const SLOT_BOOKING_CUTOFF_MINUTES = 15
+/** Cutoff once pricing v2 is active (admin before go-live, everyone after). */
+export const SLOT_BOOKING_CUTOFF_MINUTES_V2 = 20
+
+// Browser-side default. The /book page sets this from /api/pricing/periods once
+// it knows whether v2 applies to the viewer. Server routes never rely on it:
+// they always pass the cutoff explicitly (see getBookingCutoffMinutes()).
+let clientCutoffMinutes = SLOT_BOOKING_CUTOFF_MINUTES
+export function setClientSlotCutoffMinutes(minutes: number): void {
+  if (Number.isFinite(minutes) && minutes >= 0) clientCutoffMinutes = minutes
+}
 
 function isValidCalendarDate(date: string): boolean {
   if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) return false
@@ -33,8 +43,9 @@ export function slotStartInHongKong(date: string, startHour: number): Date {
 export function isSlotStillBookable(
   slotStartTime: Date,
   now: Date = new Date(),
+  cutoffMinutes: number = clientCutoffMinutes,
 ): boolean {
   if (Number.isNaN(slotStartTime.getTime()) || Number.isNaN(now.getTime())) return false
-  const cutoff = slotStartTime.getTime() + SLOT_BOOKING_CUTOFF_MINUTES * 60 * 1000
+  const cutoff = slotStartTime.getTime() + cutoffMinutes * 60 * 1000
   return now.getTime() < cutoff
 }

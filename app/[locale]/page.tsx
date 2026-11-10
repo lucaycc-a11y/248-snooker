@@ -11,6 +11,7 @@ import { AmbientGlow } from "@/components/shared/AmbientGlow";
 import { getFaqJsonLd, HOMEPAGE_FAQ_IDS } from "@/components/landing/faqData";
 import { buildSportsClubJsonLd, safeJsonLd } from "@/lib/seo/jsonLd";
 import { periodsToSlots } from "@/lib/ui/pricing-adapter";
+import ComboPricingNote from "@/components/pricing/ComboPricingNote";
 import { MAP_QUERY } from "@/lib/site/nap";
 
 // ── Critical above-the-fold components (eager load) ─────────────────────────
@@ -187,6 +188,7 @@ export default async function Home({
         subheading={t("periods_subtitle")}
         slots={slots}
       />
+      <ComboPricingNote variant="light" />
 
       {/* Learn More scroll target - zero-height anchor, sections flow directly */}
       <div id="social-proof" aria-hidden="true" />

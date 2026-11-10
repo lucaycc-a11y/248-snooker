@@ -108,8 +108,12 @@ export function calculatePrice(
     const period = periodForHour(hourOfDay, weekend, periods)
     // Fall back to the cheapest configured rate if no period matches (e.g. the
     // 06:00–12:00 morning gap) so we never bill HK$0 by accident.
+    // 連訂: a single same-day block of comboMinHours+ hours bills every hour at
+    // that period's comboRate (only set when pricing v2 is active for this caller).
     const rate = period
-      ? period.rate
+      ? period.comboRate != null && durationHours >= (period.comboMinHours ?? 2)
+        ? period.comboRate
+        : period.rate
       : Math.min(...periods.map((p) => p.rate))
     subtotal += rate
     breakdown.push({

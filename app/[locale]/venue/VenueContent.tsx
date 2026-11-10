@@ -36,6 +36,8 @@ export default function VenueContent() {
             name: tPricing(`period_${period.id}_title`),
             time_label: tPricing(`period_${period.id}_time`),
             hourly_rate: period.rate,
+            combo_rate: typeof period.comboRate === "number" ? period.comboRate : null,
+            combo_min_hours: data.comboMinHours ?? 2,
             accent_color: tokens.colors.green[600],
           }));
 
@@ -360,6 +362,19 @@ export default function VenueContent() {
             >
               {t("pricing_subheading")}
             </motion.p>
+            {periods.some((p: any) => p.combo_rate != null) && (
+              <p
+                style={{
+                  fontFamily: "'Noto Sans TC', sans-serif",
+                  fontSize: 14,
+                  lineHeight: 1.7,
+                  color: tokens.colors.textMuted,
+                  margin: "0 0 28px",
+                }}
+              >
+                透明定價，連訂更抵 / Play more, pay less.　跨時段預訂會按各時段的連訂價計算，連訂優惠僅適用於同一天的預訂。
+              </p>
+            )}
 
             <div
               style={{
@@ -429,6 +444,19 @@ export default function VenueContent() {
                     >
                       / 小時
                     </span>
+                    {period.combo_rate != null && (
+                      <div
+                        style={{
+                          fontFamily: "'Noto Sans TC', sans-serif",
+                          fontSize: 14,
+                          fontWeight: 600,
+                          color: tokens.colors.green[600],
+                          marginTop: 6,
+                        }}
+                      >
+                        連訂 HK${period.combo_rate} / 小時（{period.combo_min_hours} 小時起）
+                      </div>
+                    )}
                   </div>
                   <AppleButton
                     variant="primary"

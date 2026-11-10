@@ -21,6 +21,7 @@ import { getAccountCheckoutLock, releaseSameSlotPending } from '@/lib/checkout/s
 import { prepareCheckout, prepareFailureStatus, releaseCheckoutHolds } from '@/lib/checkout/prepare'
 import type { PaymentMethod } from '@/lib/payments/types'
 import { isSlotStillBookable, isValidSlotStart, slotStartInHongKong } from '@/lib/booking/slot-cutoff'
+import { getBookingCutoffMinutes } from '@/lib/pricing-v2'
 import { getHostname } from '@/lib/env/hostname'
 import { getKPayEnv } from '@/lib/env/uat'
 import { isTestBooking } from '@/lib/env/test-booking'
@@ -179,7 +180,8 @@ async function handleCheckoutCreate(req: Request) {
       if (blocks.some((b) => !isValidSlotStart(b.date, b.startHour))) {
         return NextResponse.json({ error: 'Invalid blocks' }, { status: 400 })
       }
-      if (blocks.some((b) => !isSlotStillBookable(slotStartInHongKong(b.date, b.startHour)))) {
+      const cutoffMin1 = await getBookingCutoffMinutes()
+      if (blocks.some((b) => !isSlotStillBookable(slotStartInHongKong(b.date, b.startHour), new Date(), cutoffMin1))) {
         return NextResponse.json({ error: 'Slot unavailable', reason: 'booking_cutoff' }, { status: 409 })
       }
 

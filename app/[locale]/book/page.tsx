@@ -13,7 +13,7 @@ import {
   Clock,
 } from "lucide-react"
 import { tokens } from "@/app/styles/tokens"
-import { isSlotStillBookable, slotStartInHongKong } from "@/lib/booking/slot-cutoff"
+import { isSlotStillBookable, slotStartInHongKong, setClientSlotCutoffMinutes } from "@/lib/booking/slot-cutoff"
 import { formatHkd } from "@/lib/member-format"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
@@ -1493,6 +1493,19 @@ function SummaryCard({
           >
             {t("total_saved", { saved: totalSaved })}
           </div>
+        )}
+        {ready && periods.some((p) => p.comboRate != null) && (
+          <p
+            style={{
+              textAlign: "center",
+              fontSize: 12,
+              lineHeight: 1.6,
+              color: tokens.colors.textFaint,
+              margin: "0 0 18px",
+            }}
+          >
+            連訂：同一天預訂 2 小時或以上按連訂價計算。跨時段預訂會按各時段的連訂價計算，連訂優惠僅適用於同一天的預訂。
+          </p>
         )}
         <Button
           variant="default"
@@ -4651,6 +4664,23 @@ export default function BookPage() {
   useEffect(() => {
     let cancelled = false
     ;(async () => {
+      // Session-aware: periods include 連訂 rates (and the 20-min cutoff) only
+      // when pricing v2 applies to this viewer. Falls back to the public
+      // pricing_rates row, then DEFAULT_PERIODS, exactly as before.
+      try {
+        const res = await fetch("/api/pricing/periods", { cache: "no-store" })
+        if (res.ok) {
+          const json = (await res.json()) as { periods?: PricingPeriod[]; cutoffMinutes?: number }
+          if (!cancelled && Array.isArray(json.periods) && json.periods.length > 0) {
+            setPeriods(json.periods)
+            if (typeof json.cutoffMinutes === "number") setClientSlotCutoffMinutes(json.cutoffMinutes)
+            setPricingReady(true)
+            return
+          }
+        }
+      } catch {
+        // fall through to the public config row
+      }
       const supabase = createClient()
       const { data, error } = await supabase
         .from("config")
@@ -4662,7 +4692,6 @@ export default function BookPage() {
         setPeriods(pricingRatesToPeriods(rates))
         setPricingReady(true)
       } else if (!cancelled) {
-        // Fallback is being used
         if (!pricingFallbackWarningLogged.current) {
           console.warn('[booking] pricing_rates not found or invalid, using DEFAULT_PERIODS')
           pricingFallbackWarningLogged.current = true

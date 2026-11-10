@@ -7,6 +7,7 @@ import { loadPeriods, resolveTierForUser, slotBounds } from '@/lib/booking/serve
 import { rateLimit } from '@/lib/rate-limit'
 import { logSiteError } from '@/lib/errors/log'
 import { isSlotStillBookable, isValidSlotStart, slotStartInHongKong } from '@/lib/booking/slot-cutoff'
+import { getBookingCutoffMinutes } from '@/lib/pricing-v2'
 import { withSecurity } from '@/lib/security/api-wrapper'
 import { parseRpc, isLockSlotResult, isLockSlotsResult } from '@/lib/supabase/rpc-parse'
 
@@ -70,7 +71,8 @@ async function handleBookingLock(req: Request) {
       if (validBlocks.some((b) => !isValidSlotStart(b.date, b.startHour))) {
         return NextResponse.json({ error: 'Invalid input' }, { status: 400 })
       }
-      if (validBlocks.some((b) => !isSlotStillBookable(slotStartInHongKong(b.date, b.startHour)))) {
+      const cutoffMin1 = await getBookingCutoffMinutes()
+      if (validBlocks.some((b) => !isSlotStillBookable(slotStartInHongKong(b.date, b.startHour), new Date(), cutoffMin1))) {
         return NextResponse.json({ error: 'Slot unavailable', reason: 'booking_cutoff' }, { status: 409 })
       }
       // Re-derive each block's price server-side; build the jsonb payload the RPC
@@ -157,7 +159,7 @@ async function handleBookingLock(req: Request) {
     if (!isValidSlotStart(date, startHour)) {
       return NextResponse.json({ error: 'Invalid input' }, { status: 400 })
     }
-    if (!isSlotStillBookable(slotStartInHongKong(date, startHour))) {
+    if (!isSlotStillBookable(slotStartInHongKong(date, startHour), new Date(), await getBookingCutoffMinutes())) {
       return NextResponse.json({ error: 'Slot unavailable', reason: 'booking_cutoff' }, { status: 409 })
     }
 

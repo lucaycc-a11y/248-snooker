@@ -1,4 +1,5 @@
 import { getPublicSupabase } from '@/lib/supabase/public'
+import { applyPricingV2 } from '@/lib/pricing-v2'
 import { getLegacyServiceSupabase } from '@/lib/supabase/legacy'
 import {
   DEFAULT_PERIODS,
@@ -55,6 +56,11 @@ async function failedHoldSlotIds(
 
 /** Load live pricing periods from the `config` table (`pricing_rates` key); fall back to bundled defaults. */
 export async function loadPeriods(): Promise<PricingPeriod[]> {
+  // Pricing v2 (連訂) is layered on per caller: admin before go-live, everyone after.
+  return applyPricingV2(await loadBasePeriods())
+}
+
+async function loadBasePeriods(): Promise<PricingPeriod[]> {
   const supabase = getPublicSupabase()
   if (!supabase) return DEFAULT_PERIODS
   const { data, error } = await supabase

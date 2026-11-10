@@ -69,6 +69,8 @@ type AdminShellProps = {
    * resolve an area from its own pathname. Production always omits this.
    */
   areaOverride?: AdminAreaId
+  /** Current app version for the header, e.g. "v8.0.1 (test)". */
+  versionLabel?: string
 }
 
 export function AdminShell({
@@ -76,6 +78,7 @@ export function AdminShell({
   admin,
   isSuperAdmin = false,
   areaOverride,
+  versionLabel,
 }: AdminShellProps) {
   const pathname = usePathname()
   const router = useRouter()
@@ -250,6 +253,23 @@ export function AdminShell({
               <h1 className="admin-ptitle ad-title" data-cms-key="admin.page.title">
                 {title}
               </h1>
+              {versionLabel ? (
+                <span
+                  data-cms-key="admin.page.version"
+                  style={{
+                    marginLeft: 10,
+                    fontSize: 12,
+                    fontWeight: 600,
+                    padding: '2px 10px',
+                    borderRadius: 999,
+                    border: '1px solid var(--admin-border, rgba(128,128,128,0.35))',
+                    opacity: 0.8,
+                    whiteSpace: 'nowrap',
+                  }}
+                >
+                  {versionLabel}
+                </span>
+              ) : null}
             </div>
 
             <main className="admin-page">{children}</main>

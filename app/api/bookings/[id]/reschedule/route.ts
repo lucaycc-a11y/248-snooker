@@ -53,7 +53,7 @@ export async function POST(req: Request, { params }: { params: { id: string } })
 
     const service = getServiceSupabase()
 
-    if (!isSlotStillBookable(slotStartInHongKong(date, startHour))) {
+    if (!isSlotStillBookable(slotStartInHongKong(date, startHour), new Date(), await getBookingCutoffMinutes())) {
       return NextResponse.json({ error: 'Slot unavailable', reason: 'booking_cutoff' }, { status: 409 })
     }
 

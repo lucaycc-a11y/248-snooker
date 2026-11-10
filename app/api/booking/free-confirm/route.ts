@@ -11,6 +11,7 @@ import {
   periodForStart,
 } from '@/lib/booking/server'
 import { isSlotStillBookable, isValidSlotStart, slotStartInHongKong } from '@/lib/booking/slot-cutoff'
+import { getBookingCutoffMinutes } from '@/lib/pricing-v2'
 import { rateLimit } from '@/lib/rate-limit'
 import { requireCompleteProfile } from '@/lib/auth/require-complete-profile'
 import { prepareCheckout, prepareFailureStatus, releaseCheckoutHolds } from '@/lib/checkout/prepare'
@@ -92,7 +93,7 @@ export async function POST(req: Request) {
       if (!isValidSlotStart(block.date, block.startHour)) {
         return NextResponse.json({ error: 'Invalid slot' }, { status: 400 })
       }
-      if (!isSlotStillBookable(slotStartInHongKong(block.date, block.startHour))) {
+      if (!isSlotStillBookable(slotStartInHongKong(block.date, block.startHour), new Date(), await getBookingCutoffMinutes())) {
         return NextResponse.json({ error: 'Slot unavailable', reason: 'booking_cutoff' }, { status: 409 })
       }
 

@@ -166,6 +166,7 @@ export const ADMIN_AREAS: AdminArea[] = [
       { href: '/admin/team', label: '管理員', cmsKey: 'admin.nav.team', superAdminOnly: true, hint: '邀請與角色' },
       { href: '/admin/payment-system', label: '支付系統', cmsKey: 'admin.nav.payment_system', hint: 'KPay / Stripe / PaymentX 切換與測試' },
       { href: '/admin/hidden-users', label: '隱藏帳戶', cmsKey: 'admin.nav.hidden_users', superAdminOnly: true, hint: '不計入統計的帳戶' },
+      { href: '/admin/versions', label: '版本記錄', cmsKey: 'admin.nav.versions', hint: '各版本新增、更改與移除' },
       { href: '/admin/audit', label: '審計記錄', cmsKey: 'admin.nav.audit', hint: '後台操作記錄', menu: false },
       { href: '/admin/errors', label: '錯誤記錄', cmsKey: 'admin.nav.errors', hint: '系統錯誤與排查', menu: false },
     ],

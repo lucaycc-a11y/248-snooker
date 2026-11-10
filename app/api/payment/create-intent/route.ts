@@ -17,6 +17,7 @@ import { logSiteError } from '@/lib/errors/log'
 import { requireCompleteProfile } from '@/lib/auth/require-complete-profile'
 import { prepareCheckout, prepareFailureStatus } from '@/lib/checkout/prepare'
 import { isSlotStillBookable, isValidSlotStart, slotStartInHongKong } from '@/lib/booking/slot-cutoff'
+import { getBookingCutoffMinutes } from '@/lib/pricing-v2'
 import { checkAmountMatch, logAmountMismatch } from '@/lib/payments/reconciliation'
 import { getHostname } from '@/lib/env/hostname'
 import { isTestBooking } from '@/lib/env/test-booking'
@@ -154,7 +155,7 @@ async function handleCreateIntent(req: Request) {
       if (!isValidSlotStart(slot.date, startHour)) {
         return NextResponse.json({ error: 'Invalid slot' }, { status: 400 })
       }
-      if (!isSlotStillBookable(slotStartInHongKong(slot.date, startHour))) {
+      if (!isSlotStillBookable(slotStartInHongKong(slot.date, startHour), new Date(), await getBookingCutoffMinutes())) {
         return NextResponse.json({ error: 'Slot unavailable', reason: 'booking_cutoff' }, { status: 409 })
       }
       const { slotStart, slotEnd } = slotBounds(slot.date, startHour, slot.duration_hours)

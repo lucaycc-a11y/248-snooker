@@ -5,6 +5,7 @@ import { AdminShell } from '@/components/admin/AdminShell'
 import { getAdminData } from '@/lib/data/getAdmin'
 import AdminTabBar from '@/components/admin/AdminTabBar'
 import { TestModeBanner } from '@/components/admin/TestModePanel'
+import { getCurrentAppVersion } from '@/lib/data/getAppVersion'
 
 /**
  * Guarded admin shell.
@@ -61,8 +62,10 @@ export default async function AdminShellLayout({
 
   const isSuperAdmin = admin.role === 'super_admin'
 
+  const appVersion = await getCurrentAppVersion()
+
   return (
-    <AdminShell admin={admin} isSuperAdmin={isSuperAdmin}>
+    <AdminShell admin={admin} isSuperAdmin={isSuperAdmin} versionLabel={appVersion?.label}>
       <TestModeBanner />
       <AdminTabBar />
       {children}

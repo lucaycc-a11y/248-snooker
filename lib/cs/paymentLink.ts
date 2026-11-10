@@ -17,6 +17,7 @@ import { calculatePrice } from '@/lib/pricing'
 import { humanReadableCode } from '@/lib/qr/jwt'
 import { loadPeriods, resolveTierForUser, validateSlotLock, slotBounds, periodForStart } from '@/lib/booking/server'
 import { isSlotStillBookable, isValidSlotStart, slotStartInHongKong } from '@/lib/booking/slot-cutoff'
+import { getBookingCutoffMinutes } from '@/lib/pricing-v2'
 import { isTestBooking } from '@/lib/env/test-booking'
 import { prepareCheckout, releaseCheckoutHolds } from '@/lib/checkout/prepare'
 import { parseRpc, isLockSlotResult } from '@/lib/supabase/rpc-parse'
@@ -67,7 +68,7 @@ export async function createCsPaymentLink(input: {
     return { ok: false, error: '日期、開始時間或時數不正確' }
   }
   if (!isValidSlotStart(date, startHour)) return { ok: false, error: '開始時間不正確' }
-  if (!isSlotStillBookable(slotStartInHongKong(date, startHour))) return { ok: false, error: '呢個時段已過截止時間，不能再預約' }
+  if (!isSlotStillBookable(slotStartInHongKong(date, startHour), new Date(), await getBookingCutoffMinutes())) return { ok: false, error: '呢個時段已過截止時間，不能再預約' }
   const customer = await getCustomer(userId)
   if (!customer) return { ok: false, error: '找不到這位會員' }
 
@@ -370,5 +371,5 @@ export async function checkCsAvailability(input: { userId: string; date: string;
       }
     }
   }
-  return { ok: true, rooms, pastCutoff: !isSlotStillBookable(slotStartInHongKong(date, startHour)) }
+  return { ok: true, rooms, pastCutoff: !isSlotStillBookable(slotStartInHongKong(date, startHour), new Date(), await getBookingCutoffMinutes()) }
 }

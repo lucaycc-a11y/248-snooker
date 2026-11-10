@@ -60,3 +60,34 @@ describe('calculatePrice', () => {
   })
 })
 
+
+describe('calculatePrice — 連訂 (pricing v2)', () => {
+  const tier = { discount: 1, multiplier: 1 }
+  const v2 = DEFAULT_PERIODS.map((p) => ({
+    ...p,
+    comboRate: { morning: 75, afternoon: 85, evening: 95 }[p.id as 'morning' | 'afternoon' | 'evening'],
+    comboMinHours: 2,
+  }))
+  const q = (a: string, b: string, periods = v2) =>
+    calculatePrice(new Date(`2026-01-15T${a}:00`), new Date(`2026-01-15T${b}:00`), tier, periods).total
+
+  it('1h stays at the normal rate (no 連訂)', () => {
+    expect(q('09:00', '10:00')).toBe(88)
+    expect(q('14:00', '15:00')).toBe(98)
+    expect(q('20:00', '21:00')).toBe(108)
+  })
+  it('2h+ in one period uses the 連訂 rate', () => {
+    expect(q('09:00', '11:00')).toBe(150)
+    expect(q('14:00', '16:00')).toBe(170)
+    expect(q('19:00', '21:00')).toBe(190)
+  })
+  it('16:00–20:00 = 下午連訂 x2 + 黃金連訂 x2 = 360 (Luca example)', () => {
+    expect(q('16:00', '20:00')).toBe(360)
+  })
+  it('1h afternoon + 1h evening (17–19) is a 2h block → both at 連訂', () => {
+    expect(q('17:00', '19:00')).toBe(85 + 95)
+  })
+  it('without comboRate (pre-go-live, non-admin) prices are unchanged', () => {
+    expect(q('16:00', '20:00', DEFAULT_PERIODS)).toBe(98 * 2 + 108 * 2)
+  })
+})
