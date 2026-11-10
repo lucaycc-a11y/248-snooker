@@ -23,6 +23,8 @@ export type PricingV2Config = {
   cutoffMinutes: number
   comboMinHours: number
   comboRates: Record<string, number>
+  /** Kill switch (admin settings): false reverts everyone to pre-v2 pricing. */
+  enabled: boolean
 }
 
 export async function loadPricingV2Config(): Promise<PricingV2Config | null> {
@@ -30,7 +32,7 @@ export async function loadPricingV2Config(): Promise<PricingV2Config | null> {
   try {
     const { data, error } = await db()
       .from('pricing_v2_config')
-      .select('public_from, cutoff_minutes, combo_min_hours, combo_rates')
+      .select('public_from, cutoff_minutes, combo_min_hours, combo_rates, enabled')
       .eq('id', true)
       .maybeSingle()
     if (error || !data) return null
@@ -41,6 +43,7 @@ export async function loadPricingV2Config(): Promise<PricingV2Config | null> {
       cutoffMinutes: data.cutoff_minutes as number,
       comboMinHours: data.combo_min_hours as number,
       comboRates: (data.combo_rates ?? {}) as Record<string, number>,
+      enabled: data.enabled !== false,
     }
   } catch {
     return null
@@ -58,7 +61,7 @@ async function callerIsAdmin(): Promise<boolean> {
 /** The v2 config if it applies to the current caller, otherwise null. */
 export async function getActivePricingV2(now: Date = new Date()): Promise<PricingV2Config | null> {
   const cfg = await loadPricingV2Config()
-  if (!cfg) return null
+  if (!cfg || !cfg.enabled) return null // kill switch: old pricing for everyone
   if (now.getTime() >= cfg.publicFrom.getTime()) return cfg
   return (await callerIsAdmin()) ? cfg : null
 }

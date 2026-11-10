@@ -2,6 +2,7 @@ import { getConfig, getConfigValue } from '@/lib/data/getConfig'
 import SettingsForm from '@/components/admin/SettingsForm'
 import AdminInviteManager from '@/components/admin/AdminInviteManager'
 import PaymentMethodToggles from '@/components/admin/PaymentMethodToggles'
+import PricingV2Toggle from '@/components/admin/PricingV2Toggle'
 import { pricingRatesToPeriods, type PricingRates } from '@/lib/data/pricing'
 
 // Auth already enforced by app/admin/layout.tsx (Phase 0). This page just
@@ -27,6 +28,10 @@ export default async function AdminSettingsPage() {
         tiers={config.tiers}
         bookingRules={bookingRules}
       />
+
+      <div style={{ marginTop: 48 }}>
+        <PricingV2Toggle />
+      </div>
 
       <div style={{ marginTop: 48 }}>
         <PaymentMethodToggles />
