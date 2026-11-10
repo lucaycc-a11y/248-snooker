@@ -54,6 +54,7 @@ import { submitGatewayForm, takeGatewayHandoff } from "@/lib/checkout/gateway-ha
 import { buildSupportMessage } from "@/lib/checkout/support-whatsapp"
 import { quoteBlockTotal, quoteBlockDetail, quoteBlockMinPoints } from "@/lib/pricing"
 import { DEFAULT_PERIODS, pricingRatesToPeriods, type PricingPeriod } from "@/lib/data/pricing"
+import ComboNudge from "@/components/pricing/ComboNudge"
 import { estimateEarnPoints } from "@/lib/points/estimate"
 import { formatPhoneDisplay } from "@/lib/phone-format"
 import { useHaptic } from "@/lib/useHaptic"
@@ -1730,6 +1731,7 @@ function Screen1({
             >
               {t("multi_slot_hint")}
             </div>
+            <ComboNudge periods={periods} blocks={runs} />
             <DualTableGrid
               selectedDate={selectedDate}
               daySlots={daySlots}
@@ -2471,6 +2473,8 @@ function Screen3({
               )
             })}
           </div>
+
+          <ComboNudge periods={periods} blocks={blocks} />
 
           {/* Contact info */}
           {profile && (profile.name || profile.email || profile.phone) && (

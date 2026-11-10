@@ -247,6 +247,7 @@
     "popup_close": "Got it",
     "faq_label": "Price tip: ",
     "faq_text": "Same-day bookings of {hours}+ hours enjoy combo rates.",
+    "nudge_met": "Combo minimum reached — combo rates applied.",
     "rate_line": "Combo HK${rate} / hour ({hours}h min)",
     "period_morning_short": "Morning",
     "period_afternoon_short": "Afternoon",
