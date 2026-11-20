@@ -19,8 +19,8 @@ const STEPS = [
     img: 'side-entrance',
     titleZh: '2. 貨車入口',
     titleEn: '2. Side Entrance',
-    bodyZh: '如有需要，可由側面入口進入，請小心地滑。',
-    bodyEn: 'Use the side entrance if needed. Watch your step — wet floor.',
+    bodyZh: '如有需要，可由側面入口進入。',
+    bodyEn: 'Use the side entrance if needed.',
   },
   {
     img: 'space8-door',

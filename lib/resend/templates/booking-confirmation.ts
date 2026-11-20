@@ -46,7 +46,7 @@ export const arrivalPhotosHtmlNew = `              <!-- Arrival guide photos (af
                 <p style="color:#a3a3a3;font-size:12px;line-height:1.5;margin:0 0 16px;">從大有街 32 號入口進入。<br/>Enter from 32 Tai Yau Street.</p>
                 <img src="https://space8.com.hk/images/venue-entrance/side-entrance.jpg" alt="2. 貨車入口 Side Entrance" width="360" style="display:block;width:100%;max-width:360px;height:auto;border-radius:12px;margin:0 auto 6px;border:0;" />
                 <p style="color:#ffffff;font-size:13px;font-weight:700;margin:0 0 2px;">2. 貨車入口 Side Entrance</p>
-                <p style="color:#a3a3a3;font-size:12px;line-height:1.5;margin:0 0 16px;">如有需要，可由側面入口進入，請小心地滑。<br/>Use the side entrance if needed. Watch your step — wet floor.</p>
+                <p style="color:#a3a3a3;font-size:12px;line-height:1.5;margin:0 0 16px;">如有需要，可由側面入口進入。<br/>Use the side entrance if needed.</p>
                 <img src="https://space8.com.hk/images/venue-entrance/space8-door.jpg" alt="3. SPACE8 門口 SPACE8 Entrance" width="360" style="display:block;width:100%;max-width:360px;height:auto;border-radius:12px;margin:0 auto 6px;border:0;" />
                 <p style="color:#ffffff;font-size:13px;font-weight:700;margin:0 0 2px;">3. SPACE8 門口 SPACE8 Entrance</p>
                 <p style="color:#a3a3a3;font-size:12px;line-height:1.5;margin:0 0 0px;">3 樓 05 室，用會員 QR Code 開門。<br/>Unit 05, 3/F. Scan your member QR code to open the door.</p>
