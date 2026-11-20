@@ -430,7 +430,7 @@ function OrderedTicketCard({
             marginBottom: 20,
           }}
         >
-          <QRCode data={orderTicket.memberCode} size={QR_PX} />
+          <QRCode card data={orderTicket.memberCode} size={QR_PX} />
           <div
             className="font-code"
             style={{

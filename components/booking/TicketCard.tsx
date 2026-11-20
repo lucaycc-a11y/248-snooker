@@ -475,6 +475,7 @@ export function TicketCard({
                     }}
                   >
                     <QRCode
+                      card
                       data={memberCode}
                       size={QR_PX}
                       enlargeLabel={t_ticket("qr_tap_enlarge")}

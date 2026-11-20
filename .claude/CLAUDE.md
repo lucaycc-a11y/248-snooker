@@ -46,3 +46,7 @@
 # graphify
 - **graphify** (`.claude/skills/graphify/SKILL.md`) - any input to knowledge graph. Trigger: `/graphify`
 When the user types `/graphify`, use the installed graphify skill or instructions before doing anything else.
+## Versioning (MANDATORY on every push)
+- Every push adds a row to `public.app_versions` (new migration, `INSERT ... ON CONFLICT (version) DO NOTHING`) with `adds` / `changes` / `removes`, (next patch after the newest row; `app_versions` is the source of truth for the admin version, not `package.json`). The admin header and `/admin/versions` show it as `vX.X.X`.
+- Test version (admin-only): insert with a **future** `released_at`; the admin UI then shows `vX.X.X（test）` (see `lib/data/getAppVersion.ts`). Normal release: `released_at` = now/past.
+- A test version is released to everyone from the admin dashboard (`/admin/versions` → 發佈給所有人), which sets `released_at` to now. No redeploy.

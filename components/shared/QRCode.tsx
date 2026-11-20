@@ -5,6 +5,14 @@ import { motion, AnimatePresence } from 'framer-motion'
 import QRCodeLib from 'qrcode'
 import { X } from 'lucide-react'
 
+// Same mesh gradient as app/member/components/MemberCardPremier.tsx.
+const MEMBER_CARD_BG = `
+  radial-gradient(75% 85% at 100% 0%, #2f6e3b 0%, rgba(33,78,42,0.78) 28%, transparent 72%),
+  radial-gradient(85% 90% at 0% 100%, #5d1393 0%, rgba(73,12,111,0.82) 30%, transparent 74%),
+  radial-gradient(80% 85% at 100% 100%, #1d1b92 0%, rgba(22,18,99,0.88) 30%, transparent 75%),
+  linear-gradient(135deg, #12051a 0%, #160b27 40%, #1b1338 100%)
+`
+
 const SPRING = { type: 'spring', stiffness: 320, damping: 30 } as const
 
 async function renderQrDataUrl(data: string): Promise<string> {
@@ -30,12 +38,16 @@ export function QRCode({
   size = 120,
   enlargeLabel = 'Tap to enlarge QR code',
   closeLabel = 'Close',
+  card = false,
 }: {
   data?: string
   src?: string | null
   size?: number
   enlargeLabel?: string
   closeLabel?: string
+  /** Member-card look (same mesh gradient + white rounded QR box as the member
+   *  card). Use on every member-code QR so all QR displays match the card. */
+  card?: boolean
 }) {
   const [generatedUrl, setGeneratedUrl] = useState<string | null>(null)
   const [open, setOpen] = useState(false)
@@ -57,8 +69,7 @@ export function QRCode({
 
   const url = src ?? generatedUrl
 
-  return (
-    <>
+  const trigger = (
       <button
         type="button"
         onClick={() => url && setOpen(true)}
@@ -86,6 +97,28 @@ export function QRCode({
           <div aria-hidden="true" style={{ width: size, height: size, background: '#ffffff', borderRadius: 8 }} />
         )}
       </button>
+  )
+
+  return (
+    <>
+      {card ? (
+        <div
+          style={{
+            width: 'fit-content',
+            margin: '0 auto',
+            padding: Math.round(size * 0.1),
+            borderRadius: Math.round(size * 0.14),
+            background: MEMBER_CARD_BG,
+            boxShadow: '0 8px 24px rgba(0,0,0,0.4), inset 0 0 0 1px rgba(255,255,255,0.12)',
+          }}
+        >
+          <div style={{ background: '#fff', borderRadius: Math.round(size * 0.09), padding: Math.round(size * 0.05) }}>
+            {trigger}
+          </div>
+        </div>
+      ) : (
+        trigger
+      )}
 
       <AnimatePresence>
         {open && url && (

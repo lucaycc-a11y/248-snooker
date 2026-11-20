@@ -74,7 +74,7 @@ export default function MemberQrGuide({
         <h2 id="member-qr-title" style={{ fontSize: 'clamp(24px, 5vw, 36px)', lineHeight: 1.1, margin: '12px 0 8px', letterSpacing: '-0.03em' }}>{t('access_qr_title')}</h2>
         <p style={{ color: '#5F6368', margin: '0 auto 24px', maxWidth: 520, lineHeight: 1.65 }}>{t('access_qr_description')}</p>
         <div style={{ position: 'relative', display: 'inline-flex', padding: 18, border: '1px solid rgba(0,0,0,0.12)', borderRadius: 18, background: '#fff' }}>
-          <QRCode src={qrDataUrl} size={Math.min(280, 68 * 4)} enlargeLabel={t('access_qr_enlarge')} closeLabel={t('close')} />
+          <QRCode card src={qrDataUrl} size={Math.min(280, 68 * 4)} enlargeLabel={t('access_qr_enlarge')} closeLabel={t('close')} />
           <span aria-hidden="true" className="member-qr-scanline" />
         </div>
         <div style={{ marginTop: 18, color: '#5F6368', fontSize: 13 }}>

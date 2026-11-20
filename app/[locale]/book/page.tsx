@@ -42,7 +42,7 @@ import CheckoutWalletRow, { type WalletResult } from "@/components/checkout/Chec
 import { creditToApply } from "@/lib/checkout/credit-rule"
 import { checkoutErrorText } from "@/lib/checkout/error-text"
 import { TicketCard } from "@/components/booking/TicketCard"
-import { TicketPrinter, TicketActions } from "@/components/checkout/TicketPrinter"
+import { TicketPrinter } from "@/components/checkout/TicketPrinter"
 import { getTableName, TABLE_NAMES } from "@/lib/booking/constants"
 import { createClient } from "@/lib/supabase/client"
 import { useAvailabilityCache } from "@/lib/booking/useAvailabilityCache"
@@ -3856,17 +3856,6 @@ function Screen4({ orderTicket }: { orderTicket: OrderTicket | null }) {
             </div>
           }
         />
-        {/* Calendar / share now sit below the ticket. position+zIndex lift them above
-            .ticket-printer-scene, whose -96px bottom margin overlaps this slot and
-            (being a positioned, isolated layer) swallows clicks otherwise. */}
-        <motion.div
-          initial={{ opacity: 0, y: 16 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.3, duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
-          style={{ position: "relative", zIndex: 1, marginTop: 72, marginBottom: 16 }}
-        >
-          <TicketActions orderTicket={orderTicket} locale={locale} />
-        </motion.div>
       </div>
     </div>
   )

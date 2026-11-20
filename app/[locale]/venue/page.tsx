@@ -30,12 +30,12 @@ const META: Record<string, { title: string; description: string }> = {
   "zh-CN": {
     title: "场地介绍｜SPACE8 香港新蒲岗中式八球室",
     description:
-      "SPACE8 场地设施及服务介绍：星牌中式八球台、专业级照明、智能 QR 门禁。全预约制，网上预订、QR码自助入场。地址：香港新蒲岗大有街 32 号泰力工业中心 3 楼 05 室。",
+      "SPACE8 场地设施及服务介绍：星牌中式八球台、专业级照明、智能 QR 门禁。全预约制，网上预订、QR码自助入场。地址：香港新蒲岗大有街 32 号泰力工业中心。",
   },
   en: {
     title: "Venue｜SPACE8 Chinese Eight-Ball Room in San Po Kong",
     description:
-      "SPACE8 venue facilities and services: Star Chinese eight-ball table, tournament lighting, smart QR entry. Reservation-based — book online, self check-in via QR code. Room 05, 3/f, Laurels Industrial Centre, Tai Yau Street 32, San Po Kong, Hong Kong.",
+      "SPACE8 venue facilities and services: Star Chinese eight-ball table, tournament lighting, smart QR entry. Reservation-based — book online, self check-in via QR code. Laurels Industrial Centre, 32 Tai Yau Street, San Po Kong, Hong Kong.",
   },
 };
 

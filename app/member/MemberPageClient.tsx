@@ -4,6 +4,7 @@ import { useTranslations } from 'next-intl'
 import dynamic from 'next/dynamic'
 import { type MemberDashboardData } from '@/lib/data/memberRedesignTypes'
 import { MemberCardPremier } from './components/MemberCardPremier'
+import { MemberVenueAddress } from './components/MemberVenueAddress'
 import { HorizontalActionTiles } from './components/HorizontalActionTiles'
 
 // Lazy load below-fold components
@@ -74,6 +75,7 @@ export function MemberPageClient({ initialData }: Props) {
           <div className="lg:sticky lg:top-[73px]">
             <div className="px-4 pt-4 sm:pt-6 md:mx-auto md:max-w-[480px] lg:mx-0 lg:max-w-none lg:px-0 lg:pt-0">
               <MemberCardPremier profile={profile} />
+              <MemberVenueAddress />
             </div>
           </div>
 

@@ -1,5 +1,6 @@
 import type { ReactNode } from 'react'
 import AdminPageHead from '@/components/admin/AdminPageHead'
+import ReleaseVersionButton from '@/components/admin/ReleaseVersionButton'
 import { getAppVersions, type AppVersionRow } from '@/lib/data/getAppVersion'
 
 // Auth is enforced by app/admin/(shell)/layout.tsx.
@@ -45,6 +46,7 @@ function VersionCard({ v }: { v: AppVersionRow }) {
       <List title={<span data-cms-key="admin.versions.adds">新增</span>} items={v.adds} />
       <List title={<span data-cms-key="admin.versions.changes">更改</span>} items={v.changes} />
       <List title={<span data-cms-key="admin.versions.removes">移除</span>} items={v.removes} />
+      {v.isTest ? <ReleaseVersionButton version={v.version} /> : null}
     </section>
   )
 }

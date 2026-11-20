@@ -213,7 +213,7 @@ export default function Nav() {
   // no longer stays trapped in the dark mobile treatment.
   const effectiveTheme: NavTheme = menuOpen ? 'dark' : theme
   const linkColor = effectiveTheme === 'dark' ? '#FFFFFF' : '#1A1A1A'
-  const memberLabel = loggedIn ? t('member') : t('login')
+  const memberLabel = loggedIn ? t('my_account') : t('login')
 
   function MemberIcon({ size = 20 }: { size?: number }) {
     if (avatarUrl) {
@@ -221,7 +221,7 @@ export default function Nav() {
         // eslint-disable-next-line @next/next/no-img-element
         <img
           src={avatarUrl}
-          alt={t('member')}
+          alt={t('my_account')}
           style={{
             width: size + 16,
             height: size + 16,

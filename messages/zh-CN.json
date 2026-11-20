@@ -448,7 +448,7 @@
     ],
     "contact_title": "联系我们",
     "contact_address_label": "地址",
-    "contact_address": "香港新蒲岗大有街 32 号泰力工业中心 3 楼 05 室",
+    "contact_address": "新蒲岗，邻近钻石山、启德",
     "contact_whatsapp_label": "WhatsApp",
     "contact_email_label": "电邮",
     "contact_hours_label": "营业时间",
@@ -1280,9 +1280,9 @@
     "faq_contact_q": "有问题如何联系？",
     "faq_contact_a": "可透过 WhatsApp 联系我们，或发送电邮至 info@space8.com.hk，我们将尽快回复。",
     "faq_sanpokong_q": "新蒲岗哪里有中式台球室？",
-    "faq_sanpokong_a": "SPACE8 位于香港新蒲岗大有街 32 号泰力工业中心 3 楼 05 室，是自助无烟中式台球室，设两间一台一房（1T）独立球室，全预约制，邻近港铁钻石山站及启德站。",
+    "faq_sanpokong_a": "SPACE8 位于新蒲岗，邻近钻石山、启德，是自助无烟中式台球室，设两间一台一房（1T）独立球室，全预约制，邻近港铁钻石山站及启德站。",
     "faq_location_q": "SPACE8 地址在哪里？如何前往？",
-    "faq_location_a": "地址：香港新蒲岗大有街 32 号泰力工业中心 3 楼 05 室。港铁钻石山站 A2 出口或启德站 Airside C 出口步行约 8–10 分钟，距离钻石山站 A2 出口约 500 米（建议路线）；亦可乘搭巴士或小巴至大有街附近下车。驾车人士建议使用新科技广场停车场（威信停车场）。",
+    "faq_location_a": "地址：新蒲岗，邻近钻石山、启德。港铁钻石山站 A2 出口或启德站 Airside C 出口步行约 8–10 分钟，距离钻石山站 A2 出口约 500 米（建议路线）；亦可乘搭巴士或小巴至大有街附近下车。驾车人士建议使用新科技广场停车场（威信停车场）。",
     "faq_how_to_book_q": "如何预约及入场？",
     "faq_how_to_book_a": "SPACE8 采用全预约制，所有预约用户均需注册成为会员。在网上选择日期、时段及时长并完成付款，系统会将专属 QR 码发送至你的注册电邮，也可在会员账户「我的预订」查看。到场后在入口扫描 QR 码即可自助入场。",
     "faq_private_room_q": "SPACE8 是一台一房吗？",
@@ -1682,7 +1682,7 @@
     "legal": "场地使用守则及条款",
     "contact_title": "联系我们",
     "address_label": "地址",
-    "address": "香港新蒲岗大有街 32 号泰力工业中心 3 楼 05 室",
+    "address": "新蒲岗，邻近钻石山、启德",
     "directions_label": "前往方法",
     "directions": "港铁钻石山站或启德站步行约 10 分钟",
     "map_cta": "Google Maps 导航",
@@ -1900,7 +1900,7 @@
     "weather_body": "【8 号或以上风球 / 黑色暴雨警告】\n如常营业：场地自动化系统维持正常运作，阁下可评估安全后如常前往。\n改期机制：若决定不前往，必须于原预约时间开始前以 WhatsApp 联系客服，即可安排于 7 天内免费改期（不设退款）。\n逾期处理：超过预约时间才申请或未于 7 天内使用，将视为自动放弃权益。\n\n【一般情况 / 其它天气（如 3 号风球、红雨）】\n不设退改：除上述极端天气守则外，所有预约一经确认，一律不接受取消、改期或退款。",
     "directions_title": "如何前往",
     "address_label": "地址",
-    "address": "香港新蒲岗大有街 32 号泰力工业中心 3 楼 05 室",
+    "address": "新蒲岗大有街 32 号泰力工业中心",
     "directions_body": "港铁钻石山站或启德站步行约 10 分钟；亦可乘搭巴士或小巴至大有街附近下车。",
     "map_cta": "Google Maps 导航",
     "book_cta": "立即预订",
@@ -3008,7 +3008,7 @@
     }
   },
   "homeDirections": {
-    "address": "香港新蒲崗大有街 32 号泰力工业中心",
+    "address": "新蒲岗，邻近钻石山、启德",
     "directions": [
       "距离 MTR 钻石山站 C2 出口约 7 分钟步行",
       "可乘坐以下巴士：11B、11C、11D、11X、22M、23M、26M、28、29M、42C、61X、62X、69C、74X、83X、89、213X、258D、259D",
@@ -3851,7 +3851,7 @@
     "faq_link": "常见问题",
     "logo_alt": "SPACE8 香港自助中式桌球会所 Logo",
     "seo_blurb": "SPACE8 是香港新蒲岗自助无烟智能中式桌球球室，两间1T独立球室，<b>每日 06:00 至 24:00 营业</b>，<b>网上预订、二维码自助入场</b>。专业设备，智能系统，聚光在桌球本身。<b>邻近钻石山和启德地铁站</b>，方便停车。",
-    "address_zh_en": "泰力工业中心 32 Tai Yau Street, San Po Kong, Hong Kong"
+    "address_zh_en": "San Po Kong, near Diamond Hill and Kai Tak"
   },
   "authExtra": {
     "recaptcha_notice": "本网站受 reCAPTCHA 保护，适用 Google <privacy>隐私政策</privacy>及<terms>服务条款</terms>。",

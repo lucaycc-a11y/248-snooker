@@ -42,6 +42,7 @@ import { QRCode } from "@/components/shared/QRCode";
 import { Logo } from "@/components/brand";
 import { HelpCentre } from "@/components/help/HelpCentre";
 import { MemberCardPremier } from "./components/MemberCardPremier";
+import { MemberVenueAddress } from "./components/MemberVenueAddress";
 
 // ── Landing-aligned palette: black + liquid glass, green/amber/purple tiers. ──
 const DEEP = "#0a0a0a"; // near-black base (QR modal)
@@ -320,6 +321,7 @@ export default function MemberDashboard({
               birthday_set: false,
             }}
           />
+          <MemberVenueAddress />
         </motion.div>
 
         <div className="member-dashboard-hero-side">
@@ -2163,8 +2165,8 @@ function QrModal({ booking, memberCode, onClose, locale }: { booking: MemberBook
             <h3 style={{ fontFamily: DISPLAY, fontSize: "24px", letterSpacing: "0.04em", margin: "0 0 20px", color: INK }} data-cms-key="member.qr_modal_title">
               {t("qr_modal_title")}
             </h3>
-            <div style={{ display: "flex", justifyContent: "center", padding: "20px", background: "white", borderRadius: "16px" }}>
-              <QRCode data={memberCode} size={200} enlargeLabel={t("qr_tap_enlarge")} closeLabel={t("close")} />
+            <div style={{ display: "flex", justifyContent: "center", padding: "4px 0" }}>
+              <QRCode card data={memberCode} size={200} enlargeLabel={t("qr_tap_enlarge")} closeLabel={t("close")} />
             </div>
             <div style={{ marginTop: "20px" }}>
               <div className="font-label" style={{ fontSize: "12px", color: SUBTLE }} data-cms-key="member.qr_reference">

@@ -321,6 +321,8 @@ async function renderBookingConfirmationHtml(bookingId: string): Promise<{
     '{{bookingDetailUrl}}': bookingDetailUrl,
     '{{memberEntryUrl}}': memberEntryUrl,
     '{{venueAddress}}': VENUE_ADDRESS,
+    '{{venueBuildingZh}}': ADDRESS.venuePageZh,
+    '{{venueUnitZh}}': ADDRESS.unitZh,
     '{{googleMapsUrl}}': GOOGLE_MAPS_URL,
     '{{currentYear}}': currentYear,
   })

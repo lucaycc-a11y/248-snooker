@@ -448,7 +448,7 @@
     ],
     "contact_title": "Contact us",
     "contact_address_label": "Address",
-    "contact_address": "Room 05, 3/f, Laurels Industrial Centre, Tai Yau Street 32, San Po Kong, Hong Kong",
+    "contact_address": "San Po Kong, near Diamond Hill and Kai Tak",
     "contact_whatsapp_label": "WhatsApp",
     "contact_email_label": "Email",
     "contact_hours_label": "Opening hours",
@@ -1196,9 +1196,9 @@
     "faq_contact_q": "How do I contact you?",
     "faq_contact_a": "Message us on WhatsApp or email info@space8.com.hk. We'll reply as soon as we can.",
     "faq_sanpokong_q": "Where can I play Chinese pool in San Po Kong?",
-    "faq_sanpokong_a": "SPACE8 is at Room 05, 3/F, Laurels Industrial Centre, 32 Tai Yau Street, San Po Kong, Hong Kong. It's a self-service, smoke-free Chinese pool venue with two private rooms, one table each. Booking is required. It's near Diamond Hill and Kai Tak MTR stations.",
+    "faq_sanpokong_a": "SPACE8 is at San Po Kong, near Diamond Hill and Kai Tak. It's a self-service, smoke-free Chinese pool venue with two private rooms, one table each. Booking is required. It's near Diamond Hill and Kai Tak MTR stations.",
     "faq_location_q": "Where is SPACE8, and how do I get there?",
-    "faq_location_a": "Address: Room 05, 3/F, Laurels Industrial Centre, 32 Tai Yau Street, San Po Kong, Hong Kong. It's an 8 to 10 minute walk from Diamond Hill MTR station (Exit A2) or Kai Tak MTR station (Airside, Exit C). The recommended route from Diamond Hill Exit A2 is about 500 m. You can also take a bus or minibus to Tai Yau Street. If you're driving, we suggest the New Tech Plaza car park (Wilson Parking).",
+    "faq_location_a": "Address: San Po Kong, near Diamond Hill and Kai Tak. It's an 8 to 10 minute walk from Diamond Hill MTR station (Exit A2) or Kai Tak MTR station (Airside, Exit C). The recommended route from Diamond Hill Exit A2 is about 500 m. You can also take a bus or minibus to Tai Yau Street. If you're driving, we suggest the New Tech Plaza car park (Wilson Parking).",
     "faq_how_to_book_q": "How do I book and get in?",
     "faq_how_to_book_a": "SPACE8 is by reservation only, and you'll need a member account to book. Choose a date, time slot, and duration online, then pay. Your QR code is emailed to you and also appears under My Bookings in your account. When you arrive, scan it at the entrance to go in.",
     "faq_private_room_q": "Is there one table per room?",
@@ -1598,7 +1598,7 @@
     "legal": "Venue rules and terms",
     "contact_title": "Contact us",
     "address_label": "Address",
-    "address": "Room 05, 3/F, Laurels Industrial Centre, 32 Tai Yau Street, San Po Kong, Hong Kong",
+    "address": "San Po Kong, near Diamond Hill and Kai Tak",
     "directions_label": "Getting here",
     "directions": "About a 10-minute walk from Diamond Hill or Kai Tak MTR",
     "map_cta": "Open in Google Maps",
@@ -1814,7 +1814,7 @@
     "weather_body": "[Typhoon Signal No. 8 or above / Black Rainstorm Warning]\nOpen as usual: Our automated systems keep running. Come as planned once you've judged it's safe.\nReschedule: If you won't be coming, message us on WhatsApp before your booking starts. We'll arrange a free reschedule within 7 days (no refund).\nLate requests: Requests made after your booking time, or sessions not used within 7 days, are forfeited.\n\n[General conditions / other weather (e.g. Signal No. 3, Red Rainstorm)]\nNo cancellations or changes: Apart from the extreme-weather policy above, confirmed bookings can't be cancelled, rescheduled or refunded.",
     "directions_title": "Getting here",
     "address_label": "Address",
-    "address": "Room 05, 3/F, Laurels Industrial Centre, 32 Tai Yau Street, San Po Kong, Hong Kong",
+    "address": "Laurels Industrial Centre, 32 Tai Yau Street, San Po Kong, Hong Kong",
     "directions_body": "It's about a 10-minute walk from Diamond Hill or Kai Tak MTR station. Buses and minibuses also stop near Tai Yau Street.",
     "map_cta": "Open in Google Maps",
     "book_cta": "Book now",
@@ -3008,7 +3008,7 @@
     }
   },
   "homeDirections": {
-    "address": "32 Tai Yau Street, San Po Kong, Hong Kong",
+    "address": "San Po Kong, near Diamond Hill and Kai Tak",
     "directions": [
       "7-minute walk from Diamond Hill MTR station, Exit C2",
       "Bus routes: 11B, 11C, 11D, 11X, 22M, 23M, 26M, 28, 29M, 42C, 61X, 62X, 69C, 74X, 83X, 89, 213X, 258D, 259D",
@@ -3851,7 +3851,7 @@
     "faq_link": "FAQ",
     "logo_alt": "SPACE8 logo. Self-service Chinese pool club, Hong Kong.",
     "seo_blurb": "SPACE8 is a self-service, smoke-free Chinese pool room in San Po Kong, Hong Kong, with two private rooms. <b>Open daily, 06:00 to 24:00.</b> <b>Book online and scan a QR code to enter.</b> Professional equipment and smart systems keep the focus on the game. <b>Near Diamond Hill and Kai Tak MTR stations</b>, with parking nearby.",
-    "address_zh_en": "Laurels Industrial Centre, 32 Tai Yau Street, San Po Kong, Hong Kong"
+    "address_zh_en": "San Po Kong, near Diamond Hill and Kai Tak"
   },
   "authExtra": {
     "recaptcha_notice": "This site is protected by reCAPTCHA. The Google <privacy>Privacy Policy</privacy> and <terms>Terms of Service</terms> apply.",
