@@ -2,6 +2,7 @@
 
 import { useLocale } from 'next-intl'
 import { ADDRESS, MAPS_URL } from '@/lib/site/nap'
+import { useV802 } from '@/lib/feature/use-v802'
 
 // Full venue address incl. floor/unit. Shown ONLY here (logged-in member page,
 // below the member card) and in the booking confirmation email — public pages
@@ -9,6 +10,8 @@ import { ADDRESS, MAPS_URL } from '@/lib/site/nap'
 export function MemberVenueAddress() {
   const locale = useLocale()
   const en = locale === 'en'
+  const v802 = useV802() // admin-only while 8.0.2 is a test build
+  if (!v802) return null
   return (
     <section
       data-testid="member-venue-address"

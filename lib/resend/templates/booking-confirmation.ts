@@ -21,6 +21,34 @@ export const bookingConfirmationQrUnavailableHtml = `<p style="color:#a3a3a3;fon
                   QR code unavailable in this email — please view it in your member page
                 </p>`
 
+/** v8.0.2 (admin-only while test): address split into building + big unit line. */
+export const venueAddressBlockNewHtml = (buildingZh: string, unitZh: string, addressEn: string) => `<p style="color:#ffffff;font-size:14px;margin:0 2px 2px 0;">
+                  ${buildingZh}
+                </p>
+                <p style="color:#ffffff;font-size:22px;font-weight:800;margin:0 0 6px;line-height:1.3;">
+                  ${unitZh}
+                </p>
+                <p style="color:#a3a3a3;font-size:12px;margin:0 0 10px;">
+                  ${addressEn}
+                </p>`
+
+/** Pre-8.0.2 address line. */
+export const venueAddressBlockOldHtml = (address: string) => `<p style="color:#ffffff;font-size:14px;margin:0 0 8px;">
+                  ${address}
+                </p>`
+
+/** v8.0.2 (admin-only while test): arrival guide photos. */
+export const arrivalPhotosHtmlNew = `              <!-- Arrival guide photos (after booking only) -->
+              <div style="text-align:center;margin-bottom:20px;">
+                <p style="color:#a3a3a3;font-size:12px;margin:0 0 10px;">到達指引 How to find us</p>
+                <img src="https://space8.com.hk/images/venue-entrance/main-entrance.jpg" alt="正門 Main Entrance" width="360" style="display:block;width:100%;max-width:360px;height:auto;border-radius:12px;margin:0 auto 6px;border:0;" />
+                <p style="color:#a3a3a3;font-size:12px;margin:0 0 14px;">正門 Main Entrance</p>
+                <img src="https://space8.com.hk/images/venue-entrance/side-entrance.jpg" alt="側門 Side Entrance" width="360" style="display:block;width:100%;max-width:360px;height:auto;border-radius:12px;margin:0 auto 6px;border:0;" />
+                <p style="color:#a3a3a3;font-size:12px;margin:0 0 14px;">側門 Side Entrance</p>
+                <img src="https://space8.com.hk/images/venue-entrance/space8-door.jpg" alt="門面 SPACE8 Entrance" width="360" style="display:block;width:100%;max-width:360px;height:auto;border-radius:12px;margin:0 auto 6px;border:0;" />
+                <p style="color:#a3a3a3;font-size:12px;margin:0;">門面 SPACE8 Entrance</p>
+              </div>`
+
 export const bookingConfirmationTemplate = `<!DOCTYPE html>
 <html lang="zh-HK">
 <head>
@@ -129,30 +157,13 @@ export const bookingConfirmationTemplate = `<!DOCTYPE html>
                 <p style="color:#a3a3a3;font-size:12px;margin:0 0 6px;">
                   場地地址 Venue Address
                 </p>
-                <p style="color:#ffffff;font-size:14px;margin:0 0 2px;">
-                  {{venueBuildingZh}}
-                </p>
-                <p style="color:#ffffff;font-size:22px;font-weight:800;margin:0 0 6px;line-height:1.3;">
-                  {{venueUnitZh}}
-                </p>
-                <p style="color:#a3a3a3;font-size:12px;margin:0 0 10px;">
-                  {{venueAddress}}
-                </p>
+                {{venueAddressBlockHtml}}
                 <a href="{{googleMapsUrl}}" style="color:#22c55e;font-size:13px;text-decoration:none;">
                   在 Google Maps 打開 Open in Google Maps →
                 </a>
               </div>
 
-              <!-- Arrival guide photos (after booking only) -->
-              <div style="text-align:center;margin-bottom:20px;">
-                <p style="color:#a3a3a3;font-size:12px;margin:0 0 10px;">到達指引 How to find us</p>
-                <img src="https://space8.com.hk/images/venue-entrance/main-entrance.jpg" alt="正門 Main Entrance" width="360" style="display:block;width:100%;max-width:360px;height:auto;border-radius:12px;margin:0 auto 6px;border:0;" />
-                <p style="color:#a3a3a3;font-size:12px;margin:0 0 14px;">正門 Main Entrance</p>
-                <img src="https://space8.com.hk/images/venue-entrance/side-entrance.jpg" alt="側門 Side Entrance" width="360" style="display:block;width:100%;max-width:360px;height:auto;border-radius:12px;margin:0 auto 6px;border:0;" />
-                <p style="color:#a3a3a3;font-size:12px;margin:0 0 14px;">側門 Side Entrance</p>
-                <img src="https://space8.com.hk/images/venue-entrance/space8-door.jpg" alt="門面 SPACE8 Entrance" width="360" style="display:block;width:100%;max-width:360px;height:auto;border-radius:12px;margin:0 auto 6px;border:0;" />
-                <p style="color:#a3a3a3;font-size:12px;margin:0;">門面 SPACE8 Entrance</p>
-              </div>
+              {{arrivalPhotosHtml}}
 
               <!-- WhatsApp Support -->
               <div style="background-color:rgba(37,211,102,0.08);border:1px solid rgba(37,211,102,0.2);border-radius:12px;padding:16px;margin-bottom:20px;text-align:center;">

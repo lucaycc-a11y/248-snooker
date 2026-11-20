@@ -1,5 +1,6 @@
 'use client'
 
+import { useV802 } from '@/lib/feature/use-v802'
 import { useState, useEffect } from 'react'
 import type { CSSProperties } from 'react'
 import { useLocale, useTranslations } from 'next-intl'
@@ -59,6 +60,7 @@ export default function Nav() {
   const router = useRouter()
   const locale = useLocale()
   const t = useTranslations('nav')
+  const v802 = useV802() // admin-only while 8.0.2 is a test build
 
   // Locale-aware returnUrl for OAuth redirects (re-attaches locale prefix for non-default locales)
   const returnUrl = locale === DEFAULT_LOCALE ? pathname : `/${locale}${pathname}`
@@ -213,7 +215,7 @@ export default function Nav() {
   // no longer stays trapped in the dark mobile treatment.
   const effectiveTheme: NavTheme = menuOpen ? 'dark' : theme
   const linkColor = effectiveTheme === 'dark' ? '#FFFFFF' : '#1A1A1A'
-  const memberLabel = loggedIn ? t('my_account') : t('login')
+  const memberLabel = loggedIn ? (v802 ? t('my_account') : t('member')) : t('login')
 
   function MemberIcon({ size = 20 }: { size?: number }) {
     if (avatarUrl) {
@@ -221,7 +223,7 @@ export default function Nav() {
         // eslint-disable-next-line @next/next/no-img-element
         <img
           src={avatarUrl}
-          alt={t('my_account')}
+          alt={v802 ? t('my_account') : t('member')}
           style={{
             width: size + 16,
             height: size + 16,

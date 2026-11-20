@@ -42,7 +42,8 @@ import CheckoutWalletRow, { type WalletResult } from "@/components/checkout/Chec
 import { creditToApply } from "@/lib/checkout/credit-rule"
 import { checkoutErrorText } from "@/lib/checkout/error-text"
 import { TicketCard } from "@/components/booking/TicketCard"
-import { TicketPrinter } from "@/components/checkout/TicketPrinter"
+import { useV802 } from "@/lib/feature/use-v802"
+import { TicketPrinter, TicketActions } from "@/components/checkout/TicketPrinter"
 import { getTableName, TABLE_NAMES } from "@/lib/booking/constants"
 import { createClient } from "@/lib/supabase/client"
 import { useAvailabilityCache } from "@/lib/booking/useAvailabilityCache"
@@ -3781,6 +3782,8 @@ function buildOrderTicket(bookings: ConfirmedBooking[]): OrderTicket | null {
  * Renders one consolidated order ticket with all merged room lines.
  */
 function Screen4({ orderTicket }: { orderTicket: OrderTicket | null }) {
+  // v8.0.2 (admin-only while test): payment page drops 加入日曆/分享.
+  const v802 = useV802()
   const t = useTranslations("book")
   const t_ticket = useTranslations("ticket")
   const locale = useLocale()
@@ -3856,6 +3859,16 @@ function Screen4({ orderTicket }: { orderTicket: OrderTicket | null }) {
             </div>
           }
         />
+        {!v802 && (
+          <motion.div
+            initial={{ opacity: 0, y: 16 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.3, duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
+            style={{ position: "relative", zIndex: 1, marginTop: 72, marginBottom: 16 }}
+          >
+            <TicketActions orderTicket={orderTicket} locale={locale} />
+          </motion.div>
+        )}
       </div>
     </div>
   )
