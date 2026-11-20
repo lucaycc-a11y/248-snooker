@@ -7,6 +7,30 @@ import { useV802 } from '@/lib/feature/use-v802'
 // Full venue address incl. floor/unit. Shown ONLY here (logged-in member page,
 // below the member card) and in the booking confirmation email — public pages
 // show the area line only.
+const STEPS = [
+  {
+    img: 'main-entrance',
+    titleZh: '1. 大廈正門',
+    titleEn: '1. Main Entrance',
+    bodyZh: '從大有街 32 號入口進入。',
+    bodyEn: 'Enter from 32 Tai Yau Street.',
+  },
+  {
+    img: 'side-entrance',
+    titleZh: '2. 貨車入口',
+    titleEn: '2. Side Entrance',
+    bodyZh: '如有需要，可由側面入口進入，請小心地滑。',
+    bodyEn: 'Use the side entrance if needed. Watch your step — wet floor.',
+  },
+  {
+    img: 'space8-door',
+    titleZh: '3. SPACE8 門口',
+    titleEn: '3. SPACE8 Entrance',
+    bodyZh: '3 樓 05 室，用會員 QR Code 開門。',
+    bodyEn: 'Unit 05, 3/F. Scan your member QR code to open the door.',
+  },
+] as const
+
 export function MemberVenueAddress() {
   const locale = useLocale()
   const en = locale === 'en'
@@ -39,6 +63,24 @@ export function MemberVenueAddress() {
       >
         {en ? 'Open in Google Maps →' : '在 Google Maps 打開 →'}
       </a>
+      <div style={{ marginTop: 16, display: 'grid', gap: 16 }}>
+        {STEPS.map((step) => (
+          <figure key={step.img} style={{ margin: 0 }}>
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src={`/images/venue-entrance/${step.img}.jpg`}
+              alt={en ? step.titleEn : step.titleZh}
+              loading="lazy"
+              style={{ display: 'block', width: '100%', height: 'auto', borderRadius: 12 }}
+            />
+            <figcaption style={{ marginTop: 6, fontSize: 13, lineHeight: 1.5 }}>
+              <strong>{en ? step.titleEn : step.titleZh}</strong>
+              <br />
+              <span style={{ color: 'rgba(255,255,255,0.7)' }}>{en ? step.bodyEn : step.bodyZh}</span>
+            </figcaption>
+          </figure>
+        ))}
+      </div>
     </section>
   )
 }
