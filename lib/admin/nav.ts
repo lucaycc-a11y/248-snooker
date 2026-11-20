@@ -151,6 +151,7 @@ export const ADMIN_AREAS: AdminArea[] = [
       { href: '/admin/media', label: '媒體', cmsKey: 'admin.nav.media', hint: '圖片與檔案' },
       { href: '/admin/ai-settings', label: 'AI 設定', cmsKey: 'admin.nav.ai_settings', hint: '客服 AI 回覆設定' },
       { href: '/admin/site-gate', label: '全站維修', cmsKey: 'admin.nav.site_gate', superAdminOnly: true, hint: '切換維修模式與開放' },
+      { href: '/admin/christmas', label: '聖誕預覽', cmsKey: 'admin.nav.christmas', superAdminOnly: true, hint: '揀選可見聖誕主題的管理員' },
     ],
   },
   {
