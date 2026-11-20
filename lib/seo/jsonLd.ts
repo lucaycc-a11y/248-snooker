@@ -26,6 +26,7 @@ function localisedAddress(locale: string) {
   const zh = locale.startsWith("zh");
   return {
     "@type": "PostalAddress",
+    streetAddress: zh ? ADDRESS.streetAddressPublicZh : ADDRESS.streetAddressPublicEn,
     addressLocality: zh ? ADDRESS.addressLocality : ADDRESS.addressLocalityEn,
     addressRegion: zh ? ADDRESS.addressRegion : ADDRESS.addressRegionEn,
     addressCountry: ADDRESS.addressCountry,

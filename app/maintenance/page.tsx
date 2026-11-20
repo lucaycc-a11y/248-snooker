@@ -24,6 +24,7 @@ export default async function MaintenancePage() {
     description: "香港新蒲崗自助無煙中八獨立球室，全預約制",
     address: {
       "@type": "PostalAddress",
+      streetAddress: ADDRESS.streetAddressPublicZh,
       addressLocality: ADDRESS.addressLocality,
       addressRegion: ADDRESS.addressRegion,
       addressCountry: ADDRESS.addressCountry,

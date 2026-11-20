@@ -24,13 +24,16 @@ export const ADDRESS = {
   /** Display string for Chinese surfaces (footer, contact, about). Matches
    *  messages/zh-HK.json `footer.address`. */
   displayZh: '香港新蒲崗大有街 32 號泰力工業中心 3 樓 05 室',
-  /** PUBLIC area line (footer, contact, home 如何前往, meta, JSON-LD). Never show
-   *  street/building/floor/unit on public pages — only after booking/login. */
+  /** PUBLIC address (footer, contact, home 如何前往, FAQ, meta, JSON-LD): building
+   *  level only. Never show floor/unit publicly — only after booking/login. */
   /** Floor + unit, shown only after booking / login. */
   unitZh: '3 樓 05 室',
   unitEn: 'Unit 05, 3/F',
-  publicZh: '新蒲崗，鄰近鑽石山、啟德',
-  publicEn: 'San Po Kong, near Diamond Hill and Kai Tak',
+  publicZh: '新蒲崗大有街 32 號泰力工業中心',
+  publicEn: 'Laurels Industrial Centre, 32 Tai Yau Street, San Po Kong, Hong Kong',
+  /** JSON-LD streetAddress: building level, no floor/unit. */
+  streetAddressPublicZh: '大有街32號泰力工業中心',
+  streetAddressPublicEn: 'Laurels Industrial Centre, 32 Tai Yau Street',
   /** Venue page (場地) only: building level, no floor/unit. */
   venuePageZh: '新蒲崗大有街 32 號泰力工業中心',
   venuePageEn: 'Laurels Industrial Centre, 32 Tai Yau Street, San Po Kong, Hong Kong',
