@@ -153,7 +153,16 @@ export function ChristmasTheme() {
     const canvas = document.createElement('canvas')
     canvas.setAttribute('aria-hidden', 'true')
     canvas.style.cssText =
-      'position:fixed;inset:0;width:100%;height:100%;pointer-events:none;z-index:9998'
+      'position:fixed;inset:0;width:100%;height:100%;pointer-events:none;z-index:-1'
+    // Snow sits BEHIND the page UI (cards, nav, buttons). The page background moves
+    // from <body> to <html> so a z-index:-1 canvas is not hidden by the body colour.
+    const html = document.documentElement
+    const bodyBg = getComputedStyle(document.body).backgroundColor
+    const hasBodyBg = bodyBg !== 'rgba(0, 0, 0, 0)' && bodyBg !== 'transparent'
+    if (hasBodyBg) {
+      html.style.setProperty('background-color', bodyBg, 'important')
+      document.body.style.setProperty('background-color', 'transparent', 'important')
+    }
     document.body.appendChild(canvas)
     const ctx = canvas.getContext('2d')
     if (!ctx) return
@@ -199,6 +208,10 @@ export function ChristmasTheme() {
       cancelAnimationFrame(raf)
       window.removeEventListener('resize', resize)
       canvas.remove()
+      if (hasBodyBg) {
+        html.style.removeProperty('background-color')
+        document.body.style.removeProperty('background-color')
+      }
     }
   }, [pairs, onBooking])
 
