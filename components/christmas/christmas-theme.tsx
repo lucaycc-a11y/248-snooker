@@ -7,6 +7,7 @@
 
 import { useEffect, useState } from 'react'
 import { useLocale } from 'next-intl'
+import { usePathname } from 'next/navigation'
 
 type Pair = readonly [string, string]
 type Flake = { x: number; y: number; r: number; s: number; d: number }
@@ -67,6 +68,19 @@ html[data-xmas="on"] .pricing-combo{color:#1f7a4a!important}
 html[data-xmas="on"] .pricing-section .apple-button--primary{
   background:linear-gradient(180deg,#d9444f,#a82733)!important;color:#fff!important;
 }
+/* Booking / payment pages: snow cap on main action buttons only */
+html[data-xmas="on"] .xmas-snowcap{position:relative}
+html[data-xmas="on"] .xmas-snowcap::before{
+  content:"";position:absolute;top:-4px;left:10%;width:80%;height:8px;pointer-events:none;z-index:1;
+  background:radial-gradient(circle at 12% 70%,#fff 0 3px,transparent 3.5px),
+             radial-gradient(circle at 38% 60%,#fff 0 4px,transparent 4.5px),
+             radial-gradient(circle at 66% 70%,#fff 0 3.5px,transparent 4px),
+             radial-gradient(circle at 90% 65%,#fff 0 3px,transparent 3.5px),
+             linear-gradient(#fff,#fff);
+  background-size:100% 100%,100% 100%,100% 100%,100% 100%,100% 5px;
+  background-repeat:no-repeat;background-position:0 0,0 0,0 0,0 0,0 3px;
+  border-radius:6px 6px 2px 2px;filter:drop-shadow(0 1px 1px rgba(0,0,0,.18));
+}
 @media (prefers-color-scheme:dark){
   html[data-xmas="on"] .pricing-section{background:#0b1a12!important}
   html[data-xmas="on"] .pricing-title,
@@ -77,6 +91,8 @@ html[data-xmas="on"] .pricing-section .apple-button--primary{
 
 export function ChristmasTheme() {
   const locale = useLocale()
+  const pathname = usePathname()
+  const onBooking = /(^|\/)(book|pay)(\/|$)/.test(pathname ?? '')
   const [pairs, setPairs] = useState<Pair[] | null>(null)
 
   useEffect(() => {
@@ -109,9 +125,30 @@ export function ChristmasTheme() {
     return () => obs.disconnect()
   }, [pairs])
 
+  // booking / payment pages: no falling snow, snow caps on main action buttons only
+  useEffect(() => {
+    if (!pairs || !onBooking) return
+    const CTA = /預訂|確認|付款|支付|繼續|下一步|Book|Confirm|Pay|Continue|Next/i
+    const mark = () => {
+      document.querySelectorAll<HTMLElement>('button, a[role="button"]').forEach((el) => {
+        const r = el.getBoundingClientRect()
+        const label = (el.textContent ?? '').trim()
+        const big = r.width >= 140 && r.height >= 40
+        if (big && label.length <= 24 && CTA.test(label)) el.classList.add('xmas-snowcap')
+      })
+    }
+    mark()
+    const obs = new MutationObserver(mark)
+    obs.observe(document.body, { childList: true, subtree: true })
+    return () => {
+      obs.disconnect()
+      document.querySelectorAll('.xmas-snowcap').forEach((el) => el.classList.remove('xmas-snowcap'))
+    }
+  }, [pairs, onBooking])
+
   // snow
   useEffect(() => {
-    if (!pairs) return
+    if (!pairs || onBooking) return
     if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return
     const canvas = document.createElement('canvas')
     canvas.setAttribute('aria-hidden', 'true')
@@ -163,7 +200,7 @@ export function ChristmasTheme() {
       window.removeEventListener('resize', resize)
       canvas.remove()
     }
-  }, [pairs])
+  }, [pairs, onBooking])
 
   if (!pairs) return null
   return (
