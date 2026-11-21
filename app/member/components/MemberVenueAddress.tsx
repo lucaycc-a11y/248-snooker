@@ -31,7 +31,7 @@ const STEPS = [
   },
 ] as const
 
-export function MemberVenueAddress() {
+export function MemberVenueAddress({ className }: { className?: string }) {
   const locale = useLocale()
   const en = locale === 'en'
   const v802 = useV802() // admin-only while 8.0.2 is a test build
@@ -39,6 +39,7 @@ export function MemberVenueAddress() {
   return (
     <section
       data-testid="member-venue-address"
+      className={className}
       style={{
         marginTop: 16,
         padding: '14px 16px',

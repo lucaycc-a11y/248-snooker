@@ -75,7 +75,8 @@ export function MemberPageClient({ initialData }: Props) {
           <div className="lg:sticky lg:top-[73px]">
             <div className="px-4 pt-4 sm:pt-6 md:mx-auto md:max-w-[480px] lg:mx-0 lg:max-w-none lg:px-0 lg:pt-0">
               <MemberCardPremier profile={profile} />
-              <MemberVenueAddress />
+              {/* Desktop: under the card (sticky left column). Mobile: at the very bottom, see below. */}
+              <MemberVenueAddress className="hidden lg:block" />
             </div>
           </div>
 
@@ -109,6 +110,11 @@ export function MemberPageClient({ initialData }: Props) {
             {/* Bottom Links */}
             <section className="px-4 pt-4">
               <BottomLinks />
+            </section>
+
+            {/* Mobile/tablet: venue address + arrival guide at the very bottom */}
+            <section className="px-4 pb-4 lg:hidden">
+              <MemberVenueAddress />
             </section>
           </div>
 
