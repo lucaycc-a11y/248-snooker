@@ -32,6 +32,7 @@ export function getFaqItems(t: (key: string) => string): FaqItem[] {
     { id: "faq-location",  question: t('faq_location_q'),  answer: t('faq_location_a') },
     { id: "faq-find-unit", question: t('faq_find_unit_q'), answer: t('faq_find_unit_a') },
     { id: "faq-toilet", question: t('faq_toilet_q'), answer: t('faq_toilet_a') },
+    { id: "faq-food", question: t('faq_food_q'), answer: t('faq_food_a') },
     { id: "faq-how-to-book", question: t('faq_how_to_book_q'), answer: t('faq_how_to_book_a') },
     { id: "faq-private-room", question: t('faq_private_room_q'), answer: t('faq_private_room_a') },
     { id: "faq-strangers", question: t('faq_strangers_q'), answer: t('faq_strangers_a') },
