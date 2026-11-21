@@ -649,7 +649,7 @@ export default function Nav() {
                   }}
                 >
                   <MemberIcon size={12} />
-                  {navText('member', 'Member')}
+                  {v802 ? t('my_account') : navText('member', 'Member')}
                 </PlainLink>
               )}
 
