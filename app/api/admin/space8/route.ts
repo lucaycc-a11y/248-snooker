@@ -11,6 +11,7 @@ export const dynamic = 'force-dynamic'
 // SPACE8 費用帳 writes. super_admin only (money). Tables are service-role only (RLS, no policies).
 // POST   { type: 'expense', kind, spentOn, item, amount, paidBy, note? }
 //        { type: 'claim', claimedOn, amount, paidTo, note? }
+// PATCH  same body as POST plus { id } — edits an existing row
 // DELETE { type: 'expense' | 'claim', id }
 
 const db = () => getServiceSupabase() as unknown as SupabaseClient
@@ -36,38 +37,54 @@ async function requireSuperAdmin(): Promise<NextResponse | null> {
 
 const bad = (msg = '資料不正確，請檢查') => NextResponse.json({ error: msg }, { status: 400 })
 
-export const POST = withAdminSecurity(
-  async (req) => {
-    const denied = await requireSuperAdmin()
-    if (denied) return denied
-    const b = obj(await req.json().catch(() => null))
-    try {
-      if (b.type === 'expense') {
-        const kind = b.kind === 'ai' || b.kind === 'other' ? b.kind : null
-        const amount = money(b.amount)
-        const item = kind === 'ai' ? 'AI Usage' : text(b.item, 80)
-        const paidBy = text(b.paidBy, 40)
-        if (!kind || !amount || !item || !paidBy || !isDateStr(b.spentOn)) return bad()
-        const { error } = await db().from('space8_expenses').insert({ kind, spent_on: b.spentOn, item, amount, paid_by: paidBy, note: optText(b.note, 200) })
-        if (error) throw error
-        return NextResponse.json({ ok: true })
-      }
-      if (b.type === 'claim') {
-        const amount = money(b.amount)
-        const paidTo = text(b.paidTo, 40)
-        if (!amount || !paidTo || !isDateStr(b.claimedOn)) return bad()
-        const { error } = await db().from('space8_claims').insert({ claimed_on: b.claimedOn, amount, paid_to: paidTo, note: optText(b.note, 200) })
-        if (error) throw error
-        return NextResponse.json({ ok: true })
-      }
-      return bad()
-    } catch (err) {
-      console.error('[admin/space8] create failed', err)
-      return NextResponse.json({ error: '儲存失敗，請再試' }, { status: 500 })
+type Row = Record<string, string | number | null>
+
+function parseExpense(b: Record<string, unknown>): Row | null {
+  const kind = b.kind === 'ai' || b.kind === 'other' ? b.kind : null
+  const amount = money(b.amount)
+  const item = kind === 'ai' ? 'AI Usage' : text(b.item, 80)
+  const paidBy = text(b.paidBy, 40)
+  if (!kind || !amount || !item || !paidBy || !isDateStr(b.spentOn)) return null
+  return { kind, spent_on: b.spentOn, item, amount, paid_by: paidBy, note: optText(b.note, 200) }
+}
+
+function parseClaim(b: Record<string, unknown>): Row | null {
+  const amount = money(b.amount)
+  const paidTo = text(b.paidTo, 40)
+  if (!amount || !paidTo || !isDateStr(b.claimedOn)) return null
+  return { claimed_on: b.claimedOn, amount, paid_to: paidTo, note: optText(b.note, 200) }
+}
+
+const TABLES = { expense: 'space8_expenses', claim: 'space8_claims' } as const
+
+async function write(req: Request, mode: 'insert' | 'update'): Promise<Response> {
+  const denied = await requireSuperAdmin()
+  if (denied) return denied
+  const b = obj(await req.json().catch(() => null))
+  const type = b.type === 'expense' || b.type === 'claim' ? b.type : null
+  if (!type) return bad()
+  const row = type === 'expense' ? parseExpense(b) : parseClaim(b)
+  if (!row) return bad()
+  try {
+    const table = db().from(TABLES[type])
+    if (mode === 'insert') {
+      const { error } = await table.insert(row)
+      if (error) throw error
+    } else {
+      if (typeof b.id !== 'string' || !UUID.test(b.id)) return bad()
+      const { error } = await table.update(row).eq('id', b.id)
+      if (error) throw error
     }
-  },
-  { rateLimit: { bucket: 'admin_space8_write', max: 60, windowSeconds: 60, identifierType: 'user' } },
-)
+    return NextResponse.json({ ok: true })
+  } catch (err) {
+    console.error(`[admin/space8] ${mode} failed`, err)
+    return NextResponse.json({ error: '儲存失敗，請再試' }, { status: 500 })
+  }
+}
+
+const limit = { rateLimit: { bucket: 'admin_space8_write', max: 60, windowSeconds: 60, identifierType: 'user' as const } }
+export const POST = withAdminSecurity((req) => write(req, 'insert'), limit)
+export const PATCH = withAdminSecurity((req) => write(req, 'update'), limit)
 
 export const DELETE = withAdminSecurity(
   async (req) => {

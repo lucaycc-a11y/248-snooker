@@ -10,9 +10,9 @@
 
 import { useMemo, useState, type FormEvent, type ReactNode } from 'react'
 import { useRouter } from 'next/navigation'
-import { Download, Plus, Trash2, X } from 'lucide-react'
+import { Download, Pencil, Plus, Trash2, X } from 'lucide-react'
 import AdminPageHead from '@/components/admin/AdminPageHead'
-import { DEFAULT_PAYERS, hkd, summarise, type Space8Data } from '@/lib/admin/space8Ledger'
+import { DEFAULT_PAYERS, hkd, summarise, type Space8Claim, type Space8Data, type Space8Expense } from '@/lib/admin/space8Ledger'
 
 type Tab = 'overview' | 'expenses' | 'claims'
 
@@ -63,8 +63,9 @@ export default function Space8Ledger({ data, today }: { data: Space8Data; today:
   const [expForm, setExpForm] = useState({ kind: 'other' as 'ai' | 'other', spentOn: today, item: '', amount: '', paidBy: payerNames[0] ?? DEFAULT_PAYERS[0], note: '' })
   const [claimForm, setClaimForm] = useState({ claimedOn: today, amount: '', paidTo: payerNames[0] ?? DEFAULT_PAYERS[0], note: '' })
   const [showForm, setShowForm] = useState<Tab | null>(null)
+  const [editId, setEditId] = useState<string | null>(null)
 
-  async function send(method: 'POST' | 'DELETE', body: Record<string, unknown>): Promise<boolean> {
+  async function send(method: 'POST' | 'PATCH' | 'DELETE', body: Record<string, unknown>): Promise<boolean> {
     setBusy(true)
     setMsg(null)
     try {
@@ -87,13 +88,35 @@ export default function Space8Ledger({ data, today }: { data: Space8Data; today:
 
   async function addExpense(e: FormEvent) {
     e.preventDefault()
-    const ok = await send('POST', { type: 'expense', ...expForm })
-    if (ok) setExpForm((f) => ({ ...f, item: '', amount: '', note: '' }))
+    const ok = await send(editId ? 'PATCH' : 'POST', { type: 'expense', ...(editId ? { id: editId } : {}), ...expForm })
+    if (ok) {
+      setExpForm((f) => ({ ...f, item: '', amount: '', note: '' }))
+      if (editId) closeForm()
+    }
   }
   async function addClaim(e: FormEvent) {
     e.preventDefault()
-    const ok = await send('POST', { type: 'claim', ...claimForm })
-    if (ok) setClaimForm((f) => ({ ...f, amount: '', note: '' }))
+    const ok = await send(editId ? 'PATCH' : 'POST', { type: 'claim', ...(editId ? { id: editId } : {}), ...claimForm })
+    if (ok) {
+      setClaimForm((f) => ({ ...f, amount: '', note: '' }))
+      if (editId) closeForm()
+    }
+  }
+  function closeForm() {
+    setEditId(null)
+    setShowForm(null)
+    setExpForm((f) => ({ ...f, item: '', amount: '', note: '' }))
+    setClaimForm((f) => ({ ...f, amount: '', note: '' }))
+  }
+  function editExpense(e: Space8Expense) {
+    setExpForm({ kind: e.kind, spentOn: e.spentOn, item: e.kind === 'ai' ? '' : e.item, amount: String(e.amount), paidBy: e.paidBy, note: e.note ?? '' })
+    setEditId(e.id)
+    setShowForm('expenses')
+  }
+  function editClaim(c: Space8Claim) {
+    setClaimForm({ claimedOn: c.claimedOn, amount: String(c.amount), paidTo: c.paidTo, note: c.note ?? '' })
+    setEditId(c.id)
+    setShowForm('claims')
   }
   async function remove(type: 'expense' | 'claim', id: string) {
     if (confirmId !== id) {
@@ -129,6 +152,7 @@ export default function Space8Ledger({ data, today }: { data: Space8Data; today:
   function claimFor(name: string) {
     const p = s.payers.find((x) => x.name === name)
     setClaimForm((f) => ({ ...f, paidTo: name, amount: p && p.outstanding > 0 ? String(p.outstanding) : '' }))
+    setEditId(null)
     setTab('claims')
     setShowForm('claims')
   }
@@ -263,8 +287,8 @@ export default function Space8Ledger({ data, today }: { data: Space8Data; today:
                 <option value="ai">AI Usage</option>
                 <option value="other">其他開支</option>
               </select>
-              <button type="button" className="admin-btn primary" onClick={() => setShowForm(showForm === 'expenses' ? null : 'expenses')}>
-                {showForm === 'expenses' ? <X size={16} aria-hidden /> : <Plus size={16} aria-hidden />} 新增開支
+              <button type="button" className="admin-btn primary" onClick={() => (showForm === 'expenses' ? closeForm() : (setEditId(null), setShowForm('expenses')))}>
+                {showForm === 'expenses' ? <X size={16} aria-hidden /> : <Plus size={16} aria-hidden />} {showForm === 'expenses' ? '取消' : '新增開支'}
               </button>
             </div>
           </div>
@@ -296,7 +320,7 @@ export default function Space8Ledger({ data, today }: { data: Space8Data; today:
               <label style={fieldStyle}><span className="admin-lbl">備註（可選）</span>
                 <input className={input} maxLength={200} value={expForm.note} onChange={(e) => setExpForm({ ...expForm, note: e.target.value })} />
               </label>
-              <button type="submit" className="admin-btn primary" disabled={busy}>{busy ? '儲存中…' : '儲存'}</button>
+              <button type="submit" className="admin-btn primary" disabled={busy}>{busy ? '儲存中…' : editId ? '更新' : '儲存'}</button>
             </form>
           ) : null}
           <Scroll>
@@ -312,6 +336,9 @@ export default function Space8Ledger({ data, today }: { data: Space8Data; today:
                     <td style={num}>{hkd(e.amount)}</td>
                     <td style={{ whiteSpace: 'nowrap' }}>{e.paidBy}</td>
                     <td style={{ textAlign: 'right', whiteSpace: 'nowrap' }}>
+                      <button type="button" className="admin-btn" onClick={() => editExpense(e)} disabled={busy} aria-label="編輯開支">
+                        <Pencil size={14} aria-hidden />
+                      </button>{' '}
                       <button type="button" className="admin-btn" onClick={() => remove('expense', e.id)} disabled={busy} aria-label="刪除開支">
                         <Trash2 size={14} aria-hidden /> {confirmId === e.id ? '確定刪除？' : ''}
                       </button>
@@ -328,8 +355,8 @@ export default function Space8Ledger({ data, today }: { data: Space8Data; today:
         <div className="admin-card admin-stack">
           <div style={{ display: 'flex', justifyContent: 'space-between', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
             <h3>Claim 記錄</h3>
-            <button type="button" className="admin-btn primary" onClick={() => setShowForm(showForm === 'claims' ? null : 'claims')}>
-              {showForm === 'claims' ? <X size={16} aria-hidden /> : <Plus size={16} aria-hidden />} 記錄 Claim
+            <button type="button" className="admin-btn primary" onClick={() => (showForm === 'claims' ? closeForm() : (setEditId(null), setShowForm('claims')))}>
+              {showForm === 'claims' ? <X size={16} aria-hidden /> : <Plus size={16} aria-hidden />} {showForm === 'claims' ? '取消' : '記錄 Claim'}
             </button>
           </div>
           {showForm === 'claims' ? (
@@ -348,7 +375,7 @@ export default function Space8Ledger({ data, today }: { data: Space8Data; today:
               <label style={fieldStyle}><span className="admin-lbl">備註（可選）</span>
                 <input className={input} maxLength={200} value={claimForm.note} onChange={(e) => setClaimForm({ ...claimForm, note: e.target.value })} />
               </label>
-              <button type="submit" className="admin-btn primary" disabled={busy}>{busy ? '儲存中…' : '儲存'}</button>
+              <button type="submit" className="admin-btn primary" disabled={busy}>{busy ? '儲存中…' : editId ? '更新' : '儲存'}</button>
             </form>
           ) : null}
           {claims.length === 0 ? (
@@ -367,6 +394,9 @@ export default function Space8Ledger({ data, today }: { data: Space8Data; today:
                       <td style={num}>{hkd(c.amount)}</td>
                       <td>{c.note ?? ''}</td>
                       <td style={{ textAlign: 'right', whiteSpace: 'nowrap' }}>
+                        <button type="button" className="admin-btn" onClick={() => editClaim(c)} disabled={busy} aria-label="編輯 Claim">
+                          <Pencil size={14} aria-hidden />
+                        </button>{' '}
                         <button type="button" className="admin-btn" onClick={() => remove('claim', c.id)} disabled={busy} aria-label="刪除 Claim">
                           <Trash2 size={14} aria-hidden /> {confirmId === c.id ? '確定刪除？' : ''}
                         </button>
