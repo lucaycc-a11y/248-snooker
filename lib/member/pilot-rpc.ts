@@ -77,3 +77,30 @@ export function parsePhotos(data: unknown): { enabled: boolean; photos: PilotPho
   }
   return { enabled: data.enabled === true, photos }
 }
+
+export type PilotStats = {
+  matches: number
+  wins: number
+  winRate: number
+  longestStreak: number
+  topOpponent: { name: string; matches: number; myWins: number } | null
+}
+
+function num(value: unknown): number {
+  return typeof value === 'number' && Number.isFinite(value) ? value : 0
+}
+
+export function parseStats(data: unknown): PilotStats | null {
+  if (!isRecord(data) || data.enabled !== true) return null
+  const opp = data.top_opponent
+  return {
+    matches: num(data.matches),
+    wins: num(data.wins),
+    winRate: num(data.win_rate),
+    longestStreak: num(data.longest_streak),
+    topOpponent:
+      isRecord(opp) && typeof opp.name === 'string'
+        ? { name: opp.name, matches: num(opp.matches), myWins: num(opp.my_wins) }
+        : null,
+  }
+}

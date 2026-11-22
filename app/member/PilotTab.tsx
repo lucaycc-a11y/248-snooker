@@ -2,12 +2,13 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { useTranslations } from "next-intl";
-import type { PilotMatch } from "@/lib/member/pilot-rpc";
+import type { PilotMatch, PilotStats } from "@/lib/member/pilot-rpc";
 
 type PilotPhoto = { id: string; kind: string; createdAt: string; url: string | null };
 
 type PilotPayload = {
   enabled: boolean;
+  stats?: PilotStats | null;
   matches: PilotMatch[];
   photos: PilotPhoto[];
 };
@@ -100,9 +101,16 @@ export default function PilotTab() {
     );
   }
 
+  // Lifetime numbers from the server; fall back to the recent list if they are missing.
   const finished = data.matches.filter((m) => m.finished);
-  const wins = finished.filter((m) => m.won).length;
-  const rate = finished.length > 0 ? Math.round((wins / finished.length) * 100) : 0;
+  const recentWins = finished.filter((m) => m.won).length;
+  const stats = data.stats ?? {
+    matches: finished.length,
+    wins: recentWins,
+    winRate: finished.length > 0 ? Math.round((recentWins / finished.length) * 100) : 0,
+    longestStreak: 0,
+    topOpponent: null,
+  };
 
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
@@ -113,11 +121,12 @@ export default function PilotTab() {
         </span>
       </div>
 
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(3, minmax(0, 1fr))", gap: 12 }}>
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(110px, 1fr))", gap: 12 }}>
         {[
-          { label: t("stat_matches"), value: String(finished.length) },
-          { label: t("stat_wins"), value: String(wins) },
-          { label: t("stat_rate"), value: `${rate}%` },
+          { label: t("stat_matches"), value: String(stats.matches) },
+          { label: t("stat_wins"), value: String(stats.wins) },
+          { label: t("stat_rate"), value: `${stats.winRate}%` },
+          { label: t("stat_streak"), value: String(stats.longestStreak) },
         ].map((stat) => (
           <div key={stat.label} style={{ ...CARD_STYLE, textAlign: "center", padding: 16 }}>
             <div style={{ fontSize: 26, fontWeight: 700 }}>{stat.value}</div>
@@ -125,6 +134,19 @@ export default function PilotTab() {
           </div>
         ))}
       </div>
+
+      {stats.topOpponent ? (
+        <div style={{ ...CARD_STYLE, padding: 16 }}>
+          <div style={{ fontSize: 12, color: "rgba(255,255,255,0.65)" }}>{t("top_opponent")}</div>
+          <div style={{ fontSize: 16, fontWeight: 600, marginTop: 4 }}>
+            {stats.topOpponent.name}
+            <span style={{ fontWeight: 400, fontSize: 13, color: "rgba(255,255,255,0.7)" }}>
+              {" · "}
+              {t("top_opponent_record", { matches: stats.topOpponent.matches, wins: stats.topOpponent.myWins })}
+            </span>
+          </div>
+        </div>
+      ) : null}
 
       <section style={CARD_STYLE} aria-label={t("records")}>
         <h3 style={{ margin: "0 0 12px", fontSize: 16 }}>{t("records")}</h3>

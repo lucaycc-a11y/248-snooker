@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
-import { looseRpc, parseMatches, parsePhotos } from '@/lib/member/pilot-rpc'
+import { looseRpc, parseMatches, parsePhotos, parseStats } from '@/lib/member/pilot-rpc'
 
 export const dynamic = 'force-dynamic'
 
@@ -22,9 +22,10 @@ export async function GET() {
   }
 
   const rpc = looseRpc(supabase)
-  const [matchesRes, photosRes] = await Promise.all([
+  const [matchesRes, photosRes, statsRes] = await Promise.all([
     rpc('pilot_my_matches', { p_limit: 30 }),
     rpc('pilot_my_photos', { p_limit: 60 }),
+    rpc('pilot_my_stats'),
   ])
   if (matchesRes.error || photosRes.error) {
     console.error('[member/pilot] rpc failed', matchesRes.error?.message, photosRes.error?.message)
@@ -46,8 +47,12 @@ export async function GET() {
   }
   const urlByPath = new Map(signed.map((item) => [item.path ?? '', item.signedUrl]))
 
+  // Lifetime stats are optional: if they fail the rest of the tab still works.
+  const stats = statsRes.error ? null : parseStats(statsRes.data)
+
   return NextResponse.json({
     enabled,
+    stats,
     matches,
     photos: photos
       .map((p) => ({ id: p.id, kind: p.kind, createdAt: p.createdAt, url: urlByPath.get(p.path) ?? null }))
