@@ -86,10 +86,6 @@ export type PilotStats = {
   topOpponent: { name: string; matches: number; myWins: number } | null
 }
 
-function num(value: unknown): number {
-  return typeof value === 'number' && Number.isFinite(value) ? value : 0
-}
-
 export function parseStats(data: unknown): PilotStats | null {
   if (!isRecord(data) || data.enabled !== true) return null
   const opp = data.top_opponent
