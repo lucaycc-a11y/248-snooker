@@ -4324,5 +4324,21 @@
     "vr_infinity_sofa": "Infinity Room 舒适沙发休息区",
     "vr_eternity_lounge": "Eternity Room 舒适休息区",
     "vr_table_pocket_balls": "专业桌球台角袋特写和 Aramith 比赛球"
+  },
+
+  "seoPricing": {
+    "page_title": "收费｜SPACE8 香港新蒲岗中式桌球室每小时价格",
+    "page_desc": "SPACE8 新蒲岗自助中式桌球室收费：每小时 HK${minRate} 起，按上午、下午、黄金时段计算。线上预订，即时确认。",
+    "h1": "收费",
+    "intro": "SPACE8 按时段收费，每小时 HK${minRate} 起。以下为最新价目，实际价格以预订时显示为准。",
+    "meta_from": "每小时 HK${rate} 起。",
+    "faq_q": "SPACE8 每小时收费是多少？",
+    "faq_a": "{rates}。实际价格以预订时显示为准。",
+    "faq_page_q": "SPACE8 收费表",
+    "rate_item": "{name}（{time}）每小时 HK${rate}",
+    "combo_part": "，连订 {hours} 小时起每小时 HK${combo}",
+    "sep": "；",
+    "venue_heading": "收费",
+    "see_pricing": "查看完整收费"
   }
 }

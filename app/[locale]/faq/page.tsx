@@ -4,6 +4,7 @@ import { pageAlternates, SITE_URL } from '@/lib/seo/site'
 import { indexingMeta } from '@/lib/env/app-env'
 import FAQClient from './FAQClient'
 import PricingV2FaqHint from '@/components/pricing/PricingV2FaqHint'
+import PriceFaqBlock from '@/components/pricing/PriceFaqBlock'
 
 type Props = {
   params: { locale: string }
@@ -37,11 +38,13 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   }
 }
 
-export default async function FaqPage() {
+export default async function FaqPage({ params }: Props) {
+  const { locale } = params
   return (
     <>
       <div style={{ background: '#e8e8e8' }}>
         <PricingV2FaqHint />
+        <PriceFaqBlock locale={locale} />
       </div>
       <FAQClient />
     </>

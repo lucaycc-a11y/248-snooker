@@ -12,6 +12,7 @@ import { getFaqJsonLd, HOMEPAGE_FAQ_IDS } from "@/components/landing/faqData";
 import { buildSportsClubJsonLd, safeJsonLd } from "@/lib/seo/jsonLd";
 import { periodsToSlots } from "@/lib/ui/pricing-adapter";
 import { applyPricingV2 } from "@/lib/pricing-v2";
+import { getPublicPricingPeriods, lowestPublicRate } from "@/lib/seo/public-pricing";
 import { MAP_QUERY } from "@/lib/site/nap";
 
 // ── Critical above-the-fold components (eager load) ─────────────────────────
@@ -94,7 +95,9 @@ export async function generateMetadata({
   }
 
   const m = meta[locale] ?? meta['zh-HK']
-  const description = m.description
+  const tSeoMeta = await getTranslations({ locale, namespace: 'seoPricing' })
+  const minRate = lowestPublicRate(await getPublicPricingPeriods())
+  const description = minRate != null ? `${m.description} ${tSeoMeta('meta_from', { rate: String(minRate) })}` : m.description
 
   return {
     title: m.title,

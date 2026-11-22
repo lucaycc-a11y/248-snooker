@@ -7,10 +7,19 @@ import Nav from "@/components/layout/Nav";
 import Footer from "@/components/layout/Footer";
 import { buildSportsClubJsonLd, safeJsonLd } from "@/lib/seo/jsonLd";
 import { getConfig } from "@/lib/data";
+import { getPublicPricingPeriods, lowestPublicRate } from "@/lib/seo/public-pricing";
+import { periodsToSlots } from "@/lib/ui/pricing-adapter";
+import PriceFaqBlock from "@/components/pricing/PriceFaqBlock";
+import { Link } from "@/i18n/navigation";
 
 // ── Heavy scroll animation components (lazy load) ───────────────────────────
 const VenueContent = dynamic(
   () => import("./VenueContent"),
+  { ssr: true }
+);
+
+const PricingCards = dynamic(
+  () => import("@/components/ui/pricing-cards"),
   { ssr: true }
 );
 
@@ -46,7 +55,9 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const { locale } = await params;
   const m = META[locale] ?? META["zh-HK"];
-  const description = m.description;
+  const tSeo = await getTranslations({ locale, namespace: "seoPricing" });
+  const minRate = lowestPublicRate(await getPublicPricingPeriods());
+  const description = minRate != null ? `${m.description} ${tSeo("meta_from", { rate: String(minRate) })}` : m.description;
   const path = locale === "zh-HK" ? "/venue" : `/${locale}/venue`;
   const t = await getTranslations({ locale, namespace: "venuePage" });
 
@@ -88,6 +99,12 @@ export default async function VenuePage({
   setRequestLocale(locale);
 
   const config = await getConfig();
+  const publicPeriods = await getPublicPricingPeriods();
+  const tPricing = await getTranslations({ locale, namespace: "pricingPage" });
+  const tCombo = await getTranslations({ locale, namespace: "combo" });
+  const tSeo = await getTranslations({ locale, namespace: "seoPricing" });
+  const slots = periodsToSlots(publicPeriods, (k, v) => tPricing(k, v), (k, v) => tCombo(k, v));
+  const hasCombo = slots.some((s) => s.comboLabel != null);
   const jsonLd = buildSportsClubJsonLd(locale, "/venue", {
     periods: config.periods,
     openHour: config.openHour,
@@ -99,6 +116,21 @@ export default async function VenuePage({
       <Nav />
       <script type="application/ld+json">{safeJsonLd(jsonLd)}</script>
       <VenueContent />
+      <PricingCards
+        theme="light"
+        heading={hasCombo ? tCombo("title") : tPricing("periods_title")}
+        subheading={hasCombo ? tCombo("note_tagline") : tPricing("periods_subtitle")}
+        slots={slots}
+        footnote={hasCombo ? tCombo("footnote") : undefined}
+      />
+      <div style={{ background: "#e8e8e8" }}>
+        <PriceFaqBlock locale={locale} />
+        <p style={{ maxWidth: 960, margin: "0 auto", padding: "0 20px 24px" }}>
+          <Link href="/pricing" data-cms-key="seoPricing.see_pricing" style={{ color: "#16a34a", fontWeight: 600 }}>
+            {tSeo("see_pricing")} →
+          </Link>
+        </p>
+      </div>
       <Footer />
       <WhatsAppButton />
     </main>

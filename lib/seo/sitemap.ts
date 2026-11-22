@@ -44,6 +44,7 @@ export const STATIC_PAGES: Array<[path: string, freq: ChangeFrequency, priority:
   ['/', 'weekly', 1],
   ['/book', 'daily', 0.9],
   ['/venue', 'monthly', 0.8],
+  ['/pricing', 'weekly', 0.8],
   ['/membership', 'monthly', 0.7],
   ['/about', 'monthly', 0.7],
   ['/faq', 'monthly', 0.6],

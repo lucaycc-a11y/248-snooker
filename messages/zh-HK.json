@@ -3542,5 +3542,21 @@
     "err_rate_limited": "嘗試次數過多，請稍後再試。",
     "err_send": "暫時未能發送電郵，請稍後再試。",
     "err_update": "未能更新密碼，請再試一次。"
+  },
+
+  "seoPricing": {
+    "page_title": "收費｜SPACE8 香港新蒲崗中式桌球室每小時價錢",
+    "page_desc": "SPACE8 新蒲崗自助中式桌球室收費：每小時 HK${minRate} 起，按上午、下午、黃金時段計算。線上預訂，即時確認。",
+    "h1": "收費",
+    "intro": "SPACE8 按時段收費，每小時 HK${minRate} 起。以下為最新價目，實際價錢以預訂時顯示為準。",
+    "meta_from": "每小時 HK${rate} 起。",
+    "faq_q": "SPACE8 每小時收費係幾多？",
+    "faq_a": "{rates}。實際價錢以預訂時顯示為準。",
+    "faq_page_q": "SPACE8 收費表",
+    "rate_item": "{name}（{time}）每小時 HK${rate}",
+    "combo_part": "，連訂 {hours} 小時起每小時 HK${combo}",
+    "sep": "；",
+    "venue_heading": "收費",
+    "see_pricing": "查看完整收費"
   }
 }

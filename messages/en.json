@@ -4324,5 +4324,21 @@
     "vr_infinity_sofa": "Comfortable sofa lounge in the Infinity room",
     "vr_eternity_lounge": "Comfortable lounge in the Eternity room",
     "vr_table_pocket_balls": "Close-up of the professional table corner pocket and Aramith match balls"
+  },
+
+  "seoPricing": {
+    "page_title": "Pricing | SPACE8 Chinese Pool Room in San Po Kong, Hong Kong",
+    "page_desc": "SPACE8 hourly rates: from HK${minRate} per hour, by time slot. Book online with instant confirmation.",
+    "h1": "Pricing",
+    "intro": "SPACE8 charges by time slot, from HK${minRate} per hour. The rate shown at booking is final.",
+    "meta_from": "From HK${rate} per hour.",
+    "faq_q": "How much does SPACE8 cost per hour?",
+    "faq_a": "{rates}. The rate shown at booking is final.",
+    "faq_page_q": "SPACE8 pricing",
+    "rate_item": "{name} ({time}): HK${rate} per hour",
+    "combo_part": ", or HK${combo} per hour when you book {hours}+ hours back to back",
+    "sep": "; ",
+    "venue_heading": "Pricing",
+    "see_pricing": "See full pricing"
   }
 }
