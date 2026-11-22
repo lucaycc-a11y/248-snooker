@@ -38,6 +38,7 @@ function ExtendInner() {
           updatedAt: Date.now(),
         }),
       )
+      sessionStorage.setItem('pilotExtend', '1') // /book shows the extension guide while this is set
       setPhase('redirecting')
       window.location.href = '/book'
     } catch {

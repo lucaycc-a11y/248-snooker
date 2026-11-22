@@ -1904,6 +1904,13 @@ function Screen3({
 }) {
   const t = useTranslations("book")
   const tCombo = useTranslations("combo")
+  // Set by /extend (iPad QR): shows the extension guide instead of the generic 連訂 upsell.
+  const [isExtension, setIsExtension] = useState(false)
+  useEffect(() => {
+    try {
+      setIsExtension(sessionStorage.getItem("pilotExtend") === "1")
+    } catch {}
+  }, [])
   const locale = useLocale()
 
   // Part 5: Slot removal confirmation dialog
@@ -2472,7 +2479,30 @@ function Screen3({
 
           {/* 連訂 upsell — only when a block missed the combo threshold: ask,
               don't price. Back to slot picking to extend it. */}
-          {comboMinHours != null && blocks.some((b) => b.duration < comboMinHours) && (
+          {isExtension && (
+            <div
+              style={{
+                padding: "14px 16px",
+                marginBottom: 14,
+                border: `1px solid ${tokens.colors.border}`,
+                borderRadius: tokens.radius.input,
+                background: tokens.colors.brandDim,
+              }}
+            >
+              <div style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 14, fontWeight: 700, color: tokens.colors.text, marginBottom: 8 }}>
+                <Clock size={16} style={{ color: tokens.colors.link, flexShrink: 0 }} />
+                <span data-cms-key="combo.extend_guide_title">{tCombo("extend_guide_title")}</span>
+              </div>
+              <ol style={{ margin: 0, paddingLeft: 20, display: "flex", flexDirection: "column", gap: 6, fontSize: 13, lineHeight: 1.5, color: tokens.colors.text }}>
+                <li data-cms-key="combo.extend_guide_1">{tCombo("extend_guide_1")}</li>
+                <li data-cms-key="combo.extend_guide_2">{tCombo("extend_guide_2")}</li>
+                <li data-cms-key="combo.extend_guide_3">{tCombo("extend_guide_3")}</li>
+                <li data-cms-key="combo.extend_guide_4">{tCombo("extend_guide_4")}</li>
+              </ol>
+            </div>
+          )}
+
+          {!isExtension && comboMinHours != null && blocks.some((b) => b.duration < comboMinHours) && (
             <div
               style={{
                 display: "flex",
@@ -4528,6 +4558,7 @@ export default function BookPage() {
     if (confirmedBooking && typeof window !== "undefined") {
       try {
         sessionStorage.removeItem("bookingSelection")
+        sessionStorage.removeItem("pilotExtend")
         sessionStorage.removeItem("pendingBooking")
         clearKPayPersistedState()
       } catch {}
