@@ -26,8 +26,10 @@ import {
   Coins,
   Check,
   HelpCircle,
+  Trophy,
 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
+import PilotTab from "./PilotTab";
 import { CHANGE_REQUEST_COOLDOWN } from "@/lib/auth/change-constants";
 import { BackButton } from "@/components/shared/BackButton";
 import { resolveTier, type Tier } from "@/lib/data/pricing";
@@ -81,7 +83,7 @@ const TIER_GLOW: Record<string, string> = {
 // Display names for tier IDs — see lib/member/tierDisplay.ts (single source
 // of truth). This module renders localized long-form names via tierLabel().
 
-type TabId = "overview" | "bookings" | "wallet" | "points" | "settings" | "access" | "help";
+type TabId = "overview" | "bookings" | "wallet" | "points" | "settings" | "access" | "help" | "pilot";
 
 // Number of days after which a past booking moves to "History"
 const RECENT_DAYS = 30
@@ -167,7 +169,7 @@ export default function MemberDashboard({
   // Honour a ?tab= deep-link (e.g. the account menu's "Settings" → /member?tab=settings).
   const initialTab: TabId = ((): TabId => {
     const q = searchParams.get("tab");
-    if (q === "bookings" || q === "points" || q === "settings" || q === "access" || q === "help") return q;
+    if (q === "bookings" || q === "points" || q === "settings" || q === "access" || q === "help" || q === "pilot") return q;
     return "overview";
   })();
   const [tab, setTab] = useState<TabId>(initialTab);
@@ -436,6 +438,7 @@ export default function MemberDashboard({
             { id: "points" as TabId, key: "tab_points", icon: <Coins size={15} strokeWidth={2} /> },
             { id: "settings" as TabId, key: "tab_settings", icon: <Settings2 size={15} strokeWidth={2} /> },
             { id: "access" as TabId, key: "tab_access", icon: <QrCodeIcon size={15} strokeWidth={2} /> },
+            { id: "pilot" as TabId, key: "tab_pilot", icon: <Trophy size={15} strokeWidth={2} /> },
             { id: "help" as TabId, key: "tab_help", icon: <HelpCircle size={15} strokeWidth={2} /> },
           ]).map((tabItem) => {
             const active = tab === tabItem.id;
@@ -566,6 +569,7 @@ export default function MemberDashboard({
               {tab === "access" && (
                 <MemberQrGuide memberCode={user.member_code} qrDataUrl={memberQrDataUrl} />
               )}
+              {tab === "pilot" && <PilotTab />}
               {tab === "help" && (
                 <HelpCentre locale={locale as "zh-HK" | "zh-CN" | "en"} />
               )}

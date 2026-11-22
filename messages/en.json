@@ -607,6 +607,7 @@
     "tab_settings": "Settings",
     "tab_access": "Access guide",
     "tab_help": "Help",
+    "tab_pilot": "Space Pilot",
     "section_upcoming": "Upcoming",
     "section_upcoming_desc": "Your confirmed upcoming bookings",
     "section_recent": "Recent",
@@ -4324,5 +4325,30 @@
     "vr_infinity_sofa": "Comfortable sofa lounge in the Infinity room",
     "vr_eternity_lounge": "Comfortable lounge in the Eternity room",
     "vr_table_pocket_balls": "Close-up of the professional table corner pocket and Aramith match balls"
+  },
+  "memberPilot": {
+    "loading": "Loading…",
+    "error": "Couldn't load this right now. Please try again.",
+    "retry": "Retry",
+    "beta": "BETA",
+    "title": "Space Pilot match records",
+    "locked": "Space Pilot is in beta and currently open to admins only. It will open to all members soon.",
+    "stat_matches": "Matches",
+    "stat_wins": "Wins",
+    "stat_rate": "Win rate",
+    "records": "Match history",
+    "empty_matches": "No matches yet. Scan your member code on the iPad at the venue to start scoring!",
+    "unfinished": "Unfinished",
+    "won": "Won",
+    "lost": "Lost",
+    "game_eight": "8-Ball",
+    "game_nine": "9-Ball",
+    "photos": "My photos",
+    "photos_private": "Only you can see these. Nobody else can.",
+    "empty_photos": "Take a photo on the iPad and choose “Save to my Space Pilot” — it will show up here.",
+    "photo_alt": "Space Pilot photo",
+    "delete": "Delete",
+    "delete_yes": "Delete",
+    "delete_no": "Cancel"
   }
 }

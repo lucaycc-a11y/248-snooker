@@ -607,6 +607,7 @@
     "tab_settings": "设置",
     "tab_access": "入场指南",
     "tab_help": "说明",
+    "tab_pilot": "Space Pilot",
     "section_upcoming": "即将到来",
     "section_upcoming_desc": "你已确认的未来预订",
     "section_recent": "最近",
@@ -4324,5 +4325,30 @@
     "vr_infinity_sofa": "Infinity Room 舒适沙发休息区",
     "vr_eternity_lounge": "Eternity Room 舒适休息区",
     "vr_table_pocket_balls": "专业桌球台角袋特写和 Aramith 比赛球"
+  },
+  "memberPilot": {
+    "loading": "加载中…",
+    "error": "暂时无法加载，请稍后再试。",
+    "retry": "重试",
+    "beta": "BETA",
+    "title": "Space Pilot 计分记录",
+    "locked": "Space Pilot 正在内测，暂时只对管理员开放。其他会员很快就可以使用。",
+    "stat_matches": "场数",
+    "stat_wins": "胜场",
+    "stat_rate": "胜率",
+    "records": "对战记录",
+    "empty_matches": "暂无对战记录。到场后在 iPad 扫描会员码即可开始记分！",
+    "unfinished": "未完成",
+    "won": "胜",
+    "lost": "负",
+    "game_eight": "中八",
+    "game_nine": "九球",
+    "photos": "我的照片",
+    "photos_private": "只有你自己能看到，其他人看不到。",
+    "empty_photos": "在 iPad 拍照并选择“保存到我的 Space Pilot”，照片就会出现在这里。",
+    "photo_alt": "Space Pilot 照片",
+    "delete": "删除",
+    "delete_yes": "确定删除",
+    "delete_no": "取消"
   }
 }

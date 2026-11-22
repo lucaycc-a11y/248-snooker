@@ -1,0 +1,191 @@
+"use client";
+
+import { useCallback, useEffect, useState } from "react";
+import { useTranslations } from "next-intl";
+import type { PilotMatch } from "@/lib/member/pilot-rpc";
+
+type PilotPhoto = { id: string; kind: string; createdAt: string; url: string | null };
+
+type PilotPayload = {
+  enabled: boolean;
+  matches: PilotMatch[];
+  photos: PilotPhoto[];
+};
+
+type LoadState = "loading" | "ready" | "error";
+
+const CARD_STYLE: React.CSSProperties = {
+  borderRadius: 20,
+  padding: 20,
+  background: "rgba(255,255,255,0.06)",
+  border: "1px solid rgba(255,255,255,0.10)",
+};
+
+function formatDate(iso: string): string {
+  const date = new Date(iso);
+  if (Number.isNaN(date.getTime())) return "";
+  return date.toLocaleString("zh-HK", {
+    timeZone: "Asia/Hong_Kong",
+    month: "short",
+    day: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: false,
+  });
+}
+
+function isPayload(value: unknown): value is PilotPayload {
+  if (typeof value !== "object" || value === null) return false;
+  const v = value as Record<string, unknown>;
+  return typeof v.enabled === "boolean" && Array.isArray(v.matches) && Array.isArray(v.photos);
+}
+
+/** Space Pilot tab on /member: score records and the member's own private photos. */
+export default function PilotTab() {
+  const t = useTranslations("memberPilot");
+  const [state, setState] = useState<LoadState>("loading");
+  const [data, setData] = useState<PilotPayload | null>(null);
+  const [confirmId, setConfirmId] = useState<string | null>(null);
+
+  const load = useCallback(async () => {
+    try {
+      const res = await fetch("/api/member/pilot", { cache: "no-store" });
+      const json: unknown = await res.json().catch(() => null);
+      if (!res.ok || !isPayload(json)) {
+        setState("error");
+        return;
+      }
+      setData(json);
+      setState("ready");
+    } catch {
+      setState("error");
+    }
+  }, []);
+
+  useEffect(() => {
+    void load();
+  }, [load]);
+
+  async function removePhoto(id: string) {
+    setConfirmId(null);
+    const res = await fetch(`/api/member/pilot/photos?id=${encodeURIComponent(id)}`, { method: "DELETE" });
+    if (res.ok) {
+      setData((prev) => (prev ? { ...prev, photos: prev.photos.filter((p) => p.id !== id) } : prev));
+    }
+  }
+
+  if (state === "loading") {
+    return <p style={{ color: "rgba(255,255,255,0.6)" }}>{t("loading")}</p>;
+  }
+  if (state === "error" || !data) {
+    return (
+      <div style={CARD_STYLE}>
+        <p style={{ margin: 0, color: "rgba(255,255,255,0.8)" }}>{t("error")}</p>
+        <button type="button" onClick={() => { setState("loading"); void load(); }} style={{ marginTop: 12, minHeight: 44, padding: "0 18px", borderRadius: 12 }}>
+          {t("retry")}
+        </button>
+      </div>
+    );
+  }
+
+  if (!data.enabled) {
+    return (
+      <div style={{ ...CARD_STYLE, opacity: 0.6, textAlign: "center", padding: 32 }} aria-disabled="true">
+        <span style={{ display: "inline-block", padding: "4px 12px", borderRadius: 999, background: "rgba(255,255,255,0.12)", fontSize: 12, letterSpacing: 1 }}>
+          {t("beta")}
+        </span>
+        <h3 style={{ margin: "14px 0 6px", fontSize: 18 }}>{t("title")}</h3>
+        <p style={{ margin: 0, color: "rgba(255,255,255,0.7)", fontSize: 14 }}>{t("locked")}</p>
+      </div>
+    );
+  }
+
+  const finished = data.matches.filter((m) => m.finished);
+  const wins = finished.filter((m) => m.won).length;
+  const rate = finished.length > 0 ? Math.round((wins / finished.length) * 100) : 0;
+
+  return (
+    <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
+      <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+        <h2 style={{ margin: 0, fontSize: 20 }}>{t("title")}</h2>
+        <span style={{ padding: "3px 10px", borderRadius: 999, background: "rgba(93,180,0,0.2)", color: "#9be24a", fontSize: 11, letterSpacing: 1 }}>
+          {t("beta")}
+        </span>
+      </div>
+
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(3, minmax(0, 1fr))", gap: 12 }}>
+        {[
+          { label: t("stat_matches"), value: String(finished.length) },
+          { label: t("stat_wins"), value: String(wins) },
+          { label: t("stat_rate"), value: `${rate}%` },
+        ].map((stat) => (
+          <div key={stat.label} style={{ ...CARD_STYLE, textAlign: "center", padding: 16 }}>
+            <div style={{ fontSize: 26, fontWeight: 700 }}>{stat.value}</div>
+            <div style={{ fontSize: 12, color: "rgba(255,255,255,0.65)" }}>{stat.label}</div>
+          </div>
+        ))}
+      </div>
+
+      <section style={CARD_STYLE} aria-label={t("records")}>
+        <h3 style={{ margin: "0 0 12px", fontSize: 16 }}>{t("records")}</h3>
+        {data.matches.length === 0 ? (
+          <p style={{ margin: 0, color: "rgba(255,255,255,0.65)", fontSize: 14 }}>{t("empty_matches")}</p>
+        ) : (
+          <ul style={{ listStyle: "none", margin: 0, padding: 0, display: "flex", flexDirection: "column", gap: 8 }}>
+            {data.matches.map((m) => (
+              <li key={m.id} style={{ display: "flex", alignItems: "center", gap: 12, padding: "10px 12px", borderRadius: 14, background: "rgba(255,255,255,0.05)" }}>
+                <span
+                  style={{
+                    minWidth: 56, textAlign: "center", padding: "4px 8px", borderRadius: 999, fontSize: 12, fontWeight: 700,
+                    background: !m.finished ? "rgba(255,255,255,0.12)" : m.won ? "rgba(93,180,0,0.25)" : "rgba(230,70,70,0.22)",
+                  }}
+                >
+                  {!m.finished ? t("unfinished") : m.won ? t("won") : t("lost")}
+                </span>
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div style={{ fontSize: 14, fontWeight: 600 }}>
+                    {m.game === "nineBall" ? t("game_nine") : t("game_eight")} · {m.myScore} : {m.oppScore}
+                  </div>
+                  <div style={{ fontSize: 12, color: "rgba(255,255,255,0.6)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                    {m.opponents.length > 0 ? `vs ${m.opponents.join(", ")}` : ""} {m.roomName ? `· ${m.roomName}` : ""}
+                  </div>
+                </div>
+                <time style={{ fontSize: 12, color: "rgba(255,255,255,0.55)" }} dateTime={m.startedAt}>{formatDate(m.startedAt)}</time>
+              </li>
+            ))}
+          </ul>
+        )}
+      </section>
+
+      <section style={CARD_STYLE} aria-label={t("photos")}>
+        <h3 style={{ margin: "0 0 4px", fontSize: 16 }}>{t("photos")}</h3>
+        <p style={{ margin: "0 0 12px", fontSize: 12, color: "rgba(255,255,255,0.6)" }}>{t("photos_private")}</p>
+        {data.photos.length === 0 ? (
+          <p style={{ margin: 0, color: "rgba(255,255,255,0.65)", fontSize: 14 }}>{t("empty_photos")}</p>
+        ) : (
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(140px, 1fr))", gap: 10 }}>
+            {data.photos.map((p) => (
+              <figure key={p.id} style={{ margin: 0, position: "relative", borderRadius: 14, overflow: "hidden", background: "#000" }}>
+                {p.url ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img src={p.url} alt={t("photo_alt")} style={{ display: "block", width: "100%", aspectRatio: "1 / 1", objectFit: "cover" }} />
+                ) : null}
+                <figcaption style={{ position: "absolute", left: 0, right: 0, bottom: 0, padding: 8, display: "flex", justifyContent: "space-between", alignItems: "center", background: "linear-gradient(transparent, rgba(0,0,0,0.7))", fontSize: 11 }}>
+                  <span>{formatDate(p.createdAt)}</span>
+                  {confirmId === p.id ? (
+                    <span style={{ display: "flex", gap: 6 }}>
+                      <button type="button" onClick={() => void removePhoto(p.id)} style={{ minHeight: 32, padding: "0 10px", borderRadius: 8, background: "#e64646", color: "#fff" }}>{t("delete_yes")}</button>
+                      <button type="button" onClick={() => setConfirmId(null)} style={{ minHeight: 32, padding: "0 10px", borderRadius: 8 }}>{t("delete_no")}</button>
+                    </span>
+                  ) : (
+                    <button type="button" onClick={() => setConfirmId(p.id)} aria-label={t("delete")} style={{ minHeight: 32, padding: "0 10px", borderRadius: 8 }}>{t("delete")}</button>
+                  )}
+                </figcaption>
+              </figure>
+            ))}
+          </div>
+        )}
+      </section>
+    </div>
+  );
+}

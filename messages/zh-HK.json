@@ -607,6 +607,7 @@
     "tab_settings": "設定",
     "tab_access": "入場指南",
     "tab_help": "說明",
+    "tab_pilot": "Space Pilot",
     "section_upcoming": "即將到來",
     "section_upcoming_desc": "你已確認的未來預訂",
     "section_recent": "最近",
@@ -3542,5 +3543,30 @@
     "err_rate_limited": "嘗試次數過多，請稍後再試。",
     "err_send": "暫時未能發送電郵，請稍後再試。",
     "err_update": "未能更新密碼，請再試一次。"
+  },
+  "memberPilot": {
+    "loading": "載入中…",
+    "error": "暫時未能載入，請稍後再試。",
+    "retry": "重試",
+    "beta": "BETA",
+    "title": "Space Pilot 計分紀錄",
+    "locked": "Space Pilot 現正內測，暫時只開放給管理員。其他會員很快就可以使用。",
+    "stat_matches": "場數",
+    "stat_wins": "勝場",
+    "stat_rate": "勝率",
+    "records": "對戰紀錄",
+    "empty_matches": "未有對戰紀錄。到場後喺 iPad 掃描會員碼就可以開始記分！",
+    "unfinished": "未完成",
+    "won": "勝",
+    "lost": "負",
+    "game_eight": "中八",
+    "game_nine": "九球",
+    "photos": "我的相片",
+    "photos_private": "只有你自己睇得到，其他人睇唔到。",
+    "empty_photos": "喺 iPad 影相並揀「儲存到我的 Space Pilot」，相片就會出現喺呢度。",
+    "photo_alt": "Space Pilot 相片",
+    "delete": "刪除",
+    "delete_yes": "確定刪除",
+    "delete_no": "取消"
   }
 }

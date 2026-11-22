@@ -1,7 +1,8 @@
 'use client'
 
 import { useSearchParams, useRouter } from 'next/navigation'
-import { useEffect, Suspense } from 'react'
+import { useEffect, useState, Suspense } from 'react'
+import { createClient } from '@/lib/supabase/client'
 import { AuthCard } from '@/components/auth/AuthCard'
 
 // /join?room=r1&session=xxx — Guest instant-join flow for Space Pilot.
@@ -12,8 +13,49 @@ function JoinPageInner() {
   const router = useRouter()
   const room = params.get('room') ?? ''
   const session = params.get('session') ?? ''
+  // /join?c=<code> — a friend scanned the Space Pilot QR on the iPad.
+  const code = (params.get('c') ?? '').toUpperCase()
+  const [claim, setClaim] = useState<'idle' | 'done' | 'expired' | 'error'>('idle')
+
+  // Links this account to the table. Returns true when the seat was claimed.
+  async function claimSeat(): Promise<boolean> {
+    if (!code) return false
+    try {
+      const res = await fetch('/api/member/pilot/join', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ code }),
+      })
+      setClaim(res.ok ? 'done' : res.status === 410 || res.status === 404 ? 'expired' : 'error')
+      return res.ok
+    } catch {
+      setClaim('error')
+      return false
+    }
+  }
+
+  // Already signed in on this phone? Join straight away, no form.
+  useEffect(() => {
+    if (!code) return
+    let cancelled = false
+    void createClient()
+      .auth.getUser()
+      .then(({ data }) => {
+        if (!cancelled && data.user) void claimSeat()
+      })
+    return () => {
+      cancelled = true
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [code])
 
   async function onAuthComplete() {
+    // Space Pilot QR: after login or registration, claim the seat and stay on this page
+    // so the friend sees the confirmation.
+    if (code) {
+      await claimSeat()
+      return
+    }
     // If a matching pending guest_join_request exists, mark it completed.
     // This is best-effort — a failure here should never block the user.
     if (room && session) {
@@ -71,7 +113,38 @@ function JoinPageInner() {
           </p>
         </div>
 
-        <AuthCard returnUrl={`/join?room=${room}&session=${session}`} onAuthComplete={onAuthComplete} />
+        {claim === 'done' ? (
+          <div style={{ textAlign: 'center', color: '#fff', fontFamily: "'Noto Sans TC', sans-serif" }}>
+            <p style={{ fontSize: 20, fontWeight: 700, margin: '0 0 8px' }}>已加入檯面！</p>
+            <p style={{ margin: '0 0 20px', color: 'rgba(255,255,255,0.7)', fontSize: 14 }}>
+              返去 iPad 繼續，你嘅名已經喺玩家名單。
+            </p>
+            <button
+              type="button"
+              onClick={() => router.replace('/member?tab=pilot')}
+              style={{ minHeight: 48, padding: '0 24px', borderRadius: 14, background: '#fff', color: '#000', fontWeight: 600 }}
+            >
+              前往會員中心
+            </button>
+          </div>
+        ) : (
+          <>
+            {claim === 'expired' && (
+              <p style={{ color: '#ffb3b3', fontSize: 14, textAlign: 'center', margin: '0 0 16px' }}>
+                呢個加入碼已過期，請喺 iPad 重新顯示 QR。
+              </p>
+            )}
+            {claim === 'error' && (
+              <p style={{ color: '#ffb3b3', fontSize: 14, textAlign: 'center', margin: '0 0 16px' }}>
+                暫時未能加入，請再試一次。
+              </p>
+            )}
+            <AuthCard
+              returnUrl={code ? `/join?c=${code}` : `/join?room=${room}&session=${session}`}
+              onAuthComplete={onAuthComplete}
+            />
+          </>
+        )}
       </div>
     </section>
   )
