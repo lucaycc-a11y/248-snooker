@@ -15,7 +15,11 @@ type PilotPayload = {
 
 type LoadState = "loading" | "ready" | "error";
 
+// Good Times for everything on this tab (Chinese falls back to Noto Sans TC, which Good Times lacks).
+const FONT_STYLE: React.CSSProperties = { fontFamily: "'Good Times', 'Noto Sans TC', system-ui, sans-serif" };
+
 const CARD_STYLE: React.CSSProperties = {
+  ...FONT_STYLE,
   borderRadius: 20,
   padding: 20,
   background: "rgba(255,255,255,0.06)",
@@ -113,7 +117,7 @@ export default function PilotTab() {
   };
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
+    <div style={{ display: "flex", flexDirection: "column", gap: 20, ...FONT_STYLE }}>
       <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
         <h2 style={{ margin: 0, fontSize: 20 }}>{t("title")}</h2>
         <span style={{ padding: "3px 10px", borderRadius: 999, background: "rgba(93,180,0,0.2)", color: "#9be24a", fontSize: 11, letterSpacing: 1 }}>

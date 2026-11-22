@@ -16,7 +16,7 @@ export default function MemberPilotPage() {
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
             </svg>
           </a>
-          <h1 className="text-lg font-medium">Space Pilot</h1>
+          <h1 className="text-lg font-medium" style={{ fontFamily: "'Good Times', 'Noto Sans TC', system-ui, sans-serif" }}>SPACE PILOT</h1>
           <span className="w-6" />
         </div>
       </header>

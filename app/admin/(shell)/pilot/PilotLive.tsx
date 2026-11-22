@@ -88,7 +88,7 @@ export default function PilotLive() {
         return (
           <section key={d.id} style={{ border: '1px solid var(--admin-border, rgba(128,128,128,0.25))', borderRadius: 16, padding: 18 }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
-              <h2 style={{ margin: 0, fontSize: 20 }}>{d.room}</h2>
+              <h2 style={{ margin: 0, fontSize: 18, fontFamily: "'Good Times', 'Noto Sans TC', system-ui, sans-serif" }}>{d.room}</h2>
               <span style={{ fontSize: 12, opacity: 0.7 }}>{stale ? '離線／無回應' : '在線'}</span>
             </div>
             <p style={{ margin: '8px 0', fontSize: 14 }}>
@@ -102,7 +102,7 @@ export default function PilotLive() {
                   {live.race_to ? ` · 先到 ${live.race_to}` : ''}
                   {live.linked ? ' · 跨房連線' : ''}
                 </div>
-                <div style={{ fontSize: 28, fontWeight: 700, margin: '4px 0' }}>
+                <div style={{ fontSize: 28, fontWeight: 700, margin: '4px 0', fontFamily: "'Good Times', system-ui, sans-serif" }}>
                   {live.score_a ?? 0} : {live.score_b ?? 0}
                 </div>
                 <div style={{ fontSize: 13 }}>

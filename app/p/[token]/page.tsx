@@ -48,7 +48,7 @@ export default function SharedPhotoPage() {
   const wrap: React.CSSProperties = {
     minHeight: '100dvh', background: '#000', color: '#fff', display: 'flex', flexDirection: 'column',
     alignItems: 'center', justifyContent: 'center', gap: 20, padding: 24, textAlign: 'center',
-    fontFamily: "var(--font-good-times, 'Noto Sans TC', system-ui, sans-serif)",
+    fontFamily: "'Good Times', 'Noto Sans TC', system-ui, sans-serif",
   }
 
   if (state.kind === 'loading') return <main style={wrap}>…</main>

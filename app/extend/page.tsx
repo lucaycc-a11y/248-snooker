@@ -55,7 +55,7 @@ function ExtendInner() {
   const box: React.CSSProperties = {
     minHeight: '100dvh', background: '#000', color: '#fff', display: 'flex', flexDirection: 'column',
     alignItems: 'center', justifyContent: 'center', gap: 16, padding: 24, textAlign: 'center',
-    fontFamily: "var(--font-good-times, 'Noto Sans TC', system-ui, sans-serif)",
+    fontFamily: "'Good Times', 'Noto Sans TC', system-ui, sans-serif",
   }
   const message: Record<Exclude<Phase, 'login'>, string> = {
     checking: '檢查緊時段…',
