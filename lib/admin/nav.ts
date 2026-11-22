@@ -120,6 +120,7 @@ export const ADMIN_AREAS: AdminArea[] = [
     items: [
       { href: '/admin/revenue', label: '收入報表', cmsKey: 'admin.nav.revenue', hint: '收入、銷售、每日與月報' },
       { href: '/admin/revenue-check', label: '收入核對', cmsKey: 'admin.nav.revenue_check', hint: '核對收入與付款，並可向 AI 查詢', menu: false },
+      { href: '/admin/space8', label: 'SPACE8 費用', cmsKey: 'admin.nav.space8', superAdminOnly: true, hint: '開發費用、各人墊付、Claim 扣減與匯出 PDF' },
       { href: '/admin/payment-log', label: '付款', cmsKey: 'admin.nav.payment_log', hint: '付款監控、核對、訂單與客戶查詢' },
       { href: '/admin/sales-report', label: '銷售報表', cmsKey: 'admin.nav.sales_report', hint: '按期間的銷售明細', menu: false },
     ],

@@ -11,7 +11,7 @@ import { money } from '@/lib/admin/today'
 
 const FONT_DIR = path.join(process.cwd(), 'assets', 'fonts')
 let fontsReady = false
-function ensureFonts() {
+export function ensureFonts() {
   if (fontsReady) return
   Font.register({
     family: 'NotoTC',
