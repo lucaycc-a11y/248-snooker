@@ -4327,6 +4327,9 @@
     "vr_table_pocket_balls": "Close-up of the professional table corner pocket and Aramith match balls"
   },
   "memberPilot": {
+    "menu_title": "Space Pilot",
+    "menu_subtitle": "Match records, win rate and photos (beta)",
+    "back": "Back",
     "loading": "Loading…",
     "error": "Couldn't load this right now. Please try again.",
     "retry": "Retry",

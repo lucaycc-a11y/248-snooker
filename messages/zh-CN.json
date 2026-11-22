@@ -4327,6 +4327,9 @@
     "vr_table_pocket_balls": "专业桌球台角袋特写和 Aramith 比赛球"
   },
   "memberPilot": {
+    "menu_title": "Space Pilot",
+    "menu_subtitle": "计分记录、胜率和照片（内测）",
+    "back": "返回",
     "loading": "加载中…",
     "error": "暂时无法加载，请稍后再试。",
     "retry": "重试",

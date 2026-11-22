@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { Settings, User, Shield, FileText, type LucideIcon } from 'lucide-react'
+import { Settings, User, Shield, FileText, Trophy, type LucideIcon } from 'lucide-react'
 import { useTranslations } from 'next-intl'
 
 // ════════════════════════════════════════════════════════════════════════════
@@ -10,6 +10,7 @@ import { useTranslations } from 'next-intl'
 
 export function BottomLinks() {
   const t = useTranslations('member')
+  const tp = useTranslations('memberPilot')
   const [version, setVersion] = useState<string>('')
 
   useEffect(() => {
@@ -32,6 +33,12 @@ export function BottomLinks() {
     <div className="space-y-4 pb-12">
       {/* Primary Links */}
       <div className="space-y-2">
+        <BottomLink
+          href="/member/pilot"
+          icon={Trophy}
+          title={tp('menu_title')}
+          subtitle={tp('menu_subtitle')}
+        />
         <BottomLink
           href="/member/settings"
           icon={Settings}

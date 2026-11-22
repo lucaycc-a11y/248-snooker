@@ -3545,6 +3545,9 @@
     "err_update": "未能更新密碼，請再試一次。"
   },
   "memberPilot": {
+    "menu_title": "Space Pilot",
+    "menu_subtitle": "計分紀錄、勝率同相片（內測）",
+    "back": "返回",
     "loading": "載入中…",
     "error": "暫時未能載入，請稍後再試。",
     "retry": "重試",
