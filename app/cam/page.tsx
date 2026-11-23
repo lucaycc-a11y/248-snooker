@@ -15,12 +15,12 @@ const STAGGER_MS = 7000
 const PRE_MS = 3000
 const POST_MS = 3000
 const POLL_MS = 2000
-const PRIORITY: Record<string, number> = { manual: 1, streak: 2, key_ball: 3, finish: 4 }
+const PRIORITY: Record<string, number> = { score: 0.5, manual: 1, streak: 2, key_ball: 3, finish: 4 }
 
 type Live = { phase: string; scoreA: number; scoreB: number; players: string[] }
 type Pending = { t: number; kind: string; label: string; scoreA: number; scoreB: number }
 type Seg = { start: number; end: number; blob: Blob }
-type Uploaded = { id: string; shareToken: string; label: string }
+type Uploaded = { id: string; shareToken: string; label: string; verdict: string; train: boolean }
 
 function pickMime(): { mime: string; ext: string } {
   const options: [string, string][] = [
@@ -72,6 +72,8 @@ function CamInner() {
   const [uploads, setUploads] = useState<Uploaded[]>([])
   const [busy, setBusy] = useState(0)
   const [notice, setNotice] = useState('')
+  const [train, setTrain] = useState(false)
+  const trainRef = useRef(false)
 
   const upload = useCallback(async (seg: Seg, ev: Pending) => {
     setBusy((n) => n + 1)
@@ -98,7 +100,7 @@ function CamInner() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           code, kind: ev.kind, label, matchKey: matchKeyRef.current, scoreA: ev.scoreA, scoreB: ev.scoreB,
-          players: liveRef.current.players, durationMs: seg.end - seg.start, ext,
+          players: liveRef.current.players, durationMs: seg.end - seg.start, ext, train: trainRef.current,
         }),
       })
       const json: unknown = await res.json().catch(() => null)
@@ -114,7 +116,21 @@ function CamInner() {
         setNotice('影片上傳失敗。')
         return
       }
-      setUploads((list) => [{ id: o.path as string, shareToken: o.shareToken as string, label }, ...list].slice(0, 8))
+      const path = o.path as string
+      setUploads((list) => [{ id: path, shareToken: o.shareToken as string, label, verdict: '', train: o.train === true }, ...list].slice(0, 8))
+      // MiMo watches the saved clip once (skipped for WebM). The verdict is only shown and stored.
+      void fetch('/api/pilot/clip/verify', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ code, path }),
+      })
+        .then(async (r) => {
+          const j: unknown = await r.json().catch(() => null)
+          if (typeof j !== 'object' || j === null) return
+          const v = j as Record<string, unknown>
+          if (v.checked !== true) return
+          const text = `${v.potted === true ? '✓ 有入袋' : v.potted === false ? '✗ 冇入袋' : '? 唔肯定'}${typeof v.description === 'string' && v.description ? ' · ' + v.description : ''}`
+          setUploads((list) => list.map((u) => (u.id === path ? { ...u, verdict: text } : u)))
+        })
+        .catch(() => undefined)
     } finally {
       setBusy((n) => n - 1)
     }
@@ -233,6 +249,7 @@ function CamInner() {
             const side: 'a' | 'b' = da > 0 ? 'a' : 'b'
             run = scorer === side ? run + (da > 0 ? da : db) : (da > 0 ? da : db)
             scorer = side
+            addPending('score', `得分 ${live.scoreA}:${live.scoreB}`)
             if (run === 3) addPending('streak', '連得 3 分')
             const before = prev.a - prev.b
             const after = live.scoreA - live.scoreB
@@ -270,6 +287,10 @@ function CamInner() {
       </p>
       {error ? <p style={{ margin: 0, color: '#ff8080' }}>{error}</p> : null}
       {notice ? <p style={{ margin: 0, color: '#ffd27a', fontSize: 13 }}>{notice}</p> : null}
+      <label style={{ display: 'flex', gap: 8, alignItems: 'center', fontSize: 13, color: 'rgba(255,255,255,0.8)' }}>
+        <input type="checkbox" checked={train} onChange={(e) => { setTrain(e.target.checked); trainRef.current = e.target.checked }} />
+        訓練模式：片保存 180 日做 AI 訓練（只限管理員，唔會俾會員睇）
+      </label>
       <button
         type="button"
         disabled={!camReady || !recording}
@@ -288,7 +309,8 @@ function CamInner() {
               <div style={{ background: '#fff', padding: 8, borderRadius: 10, display: 'inline-block' }}>
                 <QRCodeSVG value={`${origin}/c/${u.shareToken}`} size={104} />
               </div>
-              <div style={{ fontSize: 12, marginTop: 6 }}>{u.label}</div>
+              <div style={{ fontSize: 12, marginTop: 6 }}>{u.label}{u.train ? ' · 訓練' : ''}</div>
+              {u.verdict ? <div style={{ fontSize: 11, marginTop: 2, color: 'rgba(255,255,255,0.7)' }}>{u.verdict}</div> : null}
               <div style={{ fontSize: 10, color: 'rgba(255,255,255,0.5)' }}>掃碼睇／存入我的 · 24 小時內有效</div>
             </div>
           ))}

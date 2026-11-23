@@ -14,6 +14,7 @@ type Body = {
   players: string[]
   durationMs: number
   ext: string
+  train: boolean
 }
 
 function isBody(v: unknown): v is Body {
@@ -23,7 +24,7 @@ function isBody(v: unknown): v is Body {
     typeof o.code === 'string' && typeof o.kind === 'string' && typeof o.label === 'string' &&
     typeof o.matchKey === 'string' && typeof o.scoreA === 'number' && typeof o.scoreB === 'number' &&
     Array.isArray(o.players) && o.players.every((p) => typeof p === 'string') &&
-    typeof o.durationMs === 'number' && typeof o.ext === 'string'
+    typeof o.durationMs === 'number' && typeof o.ext === 'string' && (o.train === undefined || typeof o.train === 'boolean')
   )
 }
 
@@ -49,6 +50,7 @@ export async function POST(req: Request) {
     p_players: body.players.slice(0, 8).map((p) => p.slice(0, 40)),
     p_duration_ms: Math.round(body.durationMs),
     p_ext: body.ext,
+    p_train: body.train === true,
   })
   if (error || typeof data !== 'object' || data === null) {
     return NextResponse.json({ error: 'internal' }, { status: 500 })
@@ -62,5 +64,5 @@ export async function POST(req: Request) {
   if (signed.error || !signed.data) {
     return NextResponse.json({ error: 'sign_failed' }, { status: 500 })
   }
-  return NextResponse.json({ path, token: signed.data.token, shareToken: str(reg.share_token) })
+  return NextResponse.json({ path, token: signed.data.token, shareToken: str(reg.share_token), train: reg.train === true })
 }
