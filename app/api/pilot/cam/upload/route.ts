@@ -50,7 +50,7 @@ export async function POST(req: Request) {
     p_players: body.players.slice(0, 8).map((p) => p.slice(0, 40)),
     p_duration_ms: Math.round(body.durationMs),
     p_ext: body.ext,
-    p_train: body.train === true,
+    p_train: false, // customer footage is never used for AI training
   })
   if (error || typeof data !== 'object' || data === null) {
     return NextResponse.json({ error: 'internal' }, { status: 500 })

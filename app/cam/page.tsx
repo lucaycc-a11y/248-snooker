@@ -72,8 +72,6 @@ function CamInner() {
   const [uploads, setUploads] = useState<Uploaded[]>([])
   const [busy, setBusy] = useState(0)
   const [notice, setNotice] = useState('')
-  const [train, setTrain] = useState(false)
-  const trainRef = useRef(false)
 
   const upload = useCallback(async (seg: Seg, ev: Pending) => {
     setBusy((n) => n + 1)
@@ -100,7 +98,7 @@ function CamInner() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           code, kind: ev.kind, label, matchKey: matchKeyRef.current, scoreA: ev.scoreA, scoreB: ev.scoreB,
-          players: liveRef.current.players, durationMs: seg.end - seg.start, ext, train: trainRef.current,
+          players: liveRef.current.players, durationMs: seg.end - seg.start, ext, train: false,
         }),
       })
       const json: unknown = await res.json().catch(() => null)
@@ -287,10 +285,6 @@ function CamInner() {
       </p>
       {error ? <p style={{ margin: 0, color: '#ff8080' }}>{error}</p> : null}
       {notice ? <p style={{ margin: 0, color: '#ffd27a', fontSize: 13 }}>{notice}</p> : null}
-      <label style={{ display: 'flex', gap: 8, alignItems: 'center', fontSize: 13, color: 'rgba(255,255,255,0.8)' }}>
-        <input type="checkbox" checked={train} onChange={(e) => { setTrain(e.target.checked); trainRef.current = e.target.checked }} />
-        訓練模式：片保存 180 日做 AI 訓練（只限管理員，唔會俾會員睇）
-      </label>
       <button
         type="button"
         disabled={!camReady || !recording}
