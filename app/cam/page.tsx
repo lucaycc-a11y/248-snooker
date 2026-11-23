@@ -1,323 +1,423 @@
 'use client'
 
-import { Suspense, useCallback, useEffect, useRef, useState } from 'react'
-import { useSearchParams } from 'next/navigation'
-import { QRCodeSVG } from 'qrcode.react'
-import { createClient } from '@/lib/supabase/client'
+import { useCallback, useEffect, useRef, useState } from 'react'
 
-// /cam?c=<code> — phone used as the Space Pilot camera (admin beta).
-// The iPad shows a QR for this page. The phone records in overlapping 14s segments (each a standalone,
-// playable file), and when the iPad's score shows something worth keeping (streak, comeback, finish) it uploads
-// ONE segment that covers the moment. Everything else is dropped, so Storage stays tiny.
+// Publishable key: public by design (safe in client code). The PIN is typed by the user and never stored here.
+const RPC_URL = 'https://wqmciwieiqvnswvspdyz.supabase.co/rest/v1/rpc/pilot_set_recording'
+const PUBLISHABLE_KEY = 'sb_publishable_KAycCemv78UlO3k6W1VWBA_LA2WreFg'
 
-const SEG_MS = 14000
-const STAGGER_MS = 7000
-const PRE_MS = 3000
-const POST_MS = 3000
-const POLL_MS = 2000
-const PRIORITY: Record<string, number> = { score: 0.5, manual: 1, streak: 2, key_ball: 3, finish: 4 }
+const UPLOAD_URL = 'https://wqmciwieiqvnswvspdyz.supabase.co/functions/v1/cam-upload-url'
+const MAX_BYTES = 500 * 1024 * 1024
+const AUTO_STOP_BYTES = 450 * 1024 * 1024
 
-type Live = { phase: string; scoreA: number; scoreB: number; players: string[] }
-type Pending = { t: number; kind: string; label: string; scoreA: number; scoreB: number }
-type Seg = { start: number; end: number; blob: Blob }
-type Uploaded = { id: string; shareToken: string; label: string; verdict: string; train: boolean }
+type UploadState = 'idle' | 'uploading' | 'done' | 'failed' | 'toolarge'
+type UrlResult = { ok: true; signedUrl: string } | { ok: false; message: string }
 
-function pickMime(): { mime: string; ext: string } {
-  const options: [string, string][] = [
-    ['video/mp4', 'mp4'],
-    ['video/webm;codecs=vp9', 'webm'],
-    ['video/webm;codecs=vp8', 'webm'],
-    ['video/webm', 'webm'],
-  ]
-  for (const [mime, ext] of options) {
-    if (typeof MediaRecorder !== 'undefined' && MediaRecorder.isTypeSupported(mime)) return { mime, ext }
-  }
-  return { mime: '', ext: 'mp4' }
+type RpcResult = { ok: true } | { ok: false; message: string }
+
+function isRecord(v: unknown): v is Record<string, unknown> {
+  return typeof v === 'object' && v !== null
 }
 
-function parseLive(data: unknown): { ok: boolean; room: string; live: Live } {
-  const empty: Live = { phase: 'idle', scoreA: 0, scoreB: 0, players: [] }
-  if (typeof data !== 'object' || data === null) return { ok: false, room: '', live: empty }
-  const d = data as Record<string, unknown>
-  const l = typeof d.live === 'object' && d.live !== null ? (d.live as Record<string, unknown>) : {}
-  return {
-    ok: d.ok === true,
-    room: typeof d.room === 'string' ? d.room : '',
-    live: {
-      phase: typeof l.phase === 'string' ? l.phase : 'idle',
-      scoreA: typeof l.score_a === 'number' ? l.score_a : 0,
-      scoreB: typeof l.score_b === 'number' ? l.score_b : 0,
-      players: Array.isArray(l.players) ? l.players.filter((p): p is string => typeof p === 'string') : [],
-    },
-  }
+function messageFor(code: string): string {
+  if (code.includes('BAD_PIN')) return 'PIN 不正確'
+  if (code.includes('ROOM_NOT_FOUND')) return '找不到房間，請重新掃描 iPad 上的 QR'
+  return '操作失敗，請稍後再試'
 }
 
-function CamInner() {
-  const code = useSearchParams().get('c') ?? ''
-  const videoRef = useRef<HTMLVideoElement>(null)
-  const streamRef = useRef<MediaStream | null>(null)
-  const segsRef = useRef<Seg[]>([])
-  const pendingRef = useRef<Pending[]>([])
-  const loopRef = useRef<ReturnType<typeof setInterval> | null>(null)
-  const prevRef = useRef<{ phase: string; a: number; b: number; scorer: 'a' | 'b' | null; run: number } | null>(null)
-  const liveRef = useRef<Live>({ phase: 'idle', scoreA: 0, scoreB: 0, players: [] })
-  const matchKeyRef = useRef('')
-  const mimeRef = useRef(pickMime())
-
-  const [camReady, setCamReady] = useState(false)
-  const [error, setError] = useState('')
-  const [room, setRoom] = useState('')
-  const [phase, setPhase] = useState('idle')
-  const [recording, setRecording] = useState(false)
-  const [uploads, setUploads] = useState<Uploaded[]>([])
-  const [busy, setBusy] = useState(0)
-  const [notice, setNotice] = useState('')
-
-  const upload = useCallback(async (seg: Seg, ev: Pending) => {
-    setBusy((n) => n + 1)
+async function callRpc(room: string, pin: string, recording: boolean, keepalive = false): Promise<RpcResult> {
+  try {
+    const res = await fetch(RPC_URL, {
+      method: 'POST',
+      keepalive,
+      headers: {
+        'Content-Type': 'application/json',
+        apikey: PUBLISHABLE_KEY,
+        Authorization: `Bearer ${PUBLISHABLE_KEY}`,
+      },
+      body: JSON.stringify({ p_room: room, p_pin: pin, p_recording: recording }),
+    })
+    if (res.ok) return { ok: true }
+    let code = ''
     try {
-      const { ext } = mimeRef.current
-      // AI title (MiMo; plain rules if it is unavailable). Never blocks the upload for long.
-      let label = ev.label
-      try {
-        const ai = await fetch('/api/pilot/ai/analyze', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ code, kind: ev.kind, label: ev.label, scoreA: ev.scoreA, scoreB: ev.scoreB, players: liveRef.current.players, game: '' }),
-          signal: AbortSignal.timeout(8000),
-        })
-        const j: unknown = await ai.json().catch(() => null)
-        if (ai.ok && typeof j === 'object' && j !== null && typeof (j as Record<string, unknown>).title === 'string') {
-          label = (j as Record<string, string>).title
-        }
-      } catch {
-        /* keep the rule label */
-      }
-      const res = await fetch('/api/pilot/cam/upload', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          code, kind: ev.kind, label, matchKey: matchKeyRef.current, scoreA: ev.scoreA, scoreB: ev.scoreB,
-          players: liveRef.current.players, durationMs: seg.end - seg.start, ext, train: false,
-        }),
-      })
-      const json: unknown = await res.json().catch(() => null)
-      const o = typeof json === 'object' && json !== null ? (json as Record<string, unknown>) : {}
-      if (!res.ok || typeof o.path !== 'string' || typeof o.token !== 'string' || typeof o.shareToken !== 'string') {
-        setNotice(typeof o.error === 'string' && o.error.endsWith('CAP') ? '今日／今場片數已滿，唔再儲存。' : '上傳登記失敗。')
-        return
-      }
-      const up = await createClient().storage.from('pilot-clips').uploadToSignedUrl(o.path, o.token, seg.blob, {
-        contentType: seg.blob.type || (ext === 'webm' ? 'video/webm' : 'video/mp4'),
-      })
-      if (up.error) {
-        setNotice('影片上傳失敗。')
-        return
-      }
-      const path = o.path as string
-      setUploads((list) => [{ id: path, shareToken: o.shareToken as string, label, verdict: '', train: o.train === true }, ...list].slice(0, 8))
-      // MiMo watches the saved clip once (skipped for WebM). The verdict is only shown and stored.
-      void fetch('/api/pilot/clip/verify', {
-        method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ code, path }),
-      })
-        .then(async (r) => {
-          const j: unknown = await r.json().catch(() => null)
-          if (typeof j !== 'object' || j === null) return
-          const v = j as Record<string, unknown>
-          if (v.checked !== true) return
-          const text = `${v.potted === true ? '✓ 有入袋' : v.potted === false ? '✗ 冇入袋' : '? 唔肯定'}${typeof v.description === 'string' && v.description ? ' · ' + v.description : ''}`
-          setUploads((list) => list.map((u) => (u.id === path ? { ...u, verdict: text } : u)))
-        })
-        .catch(() => undefined)
-    } finally {
-      setBusy((n) => n - 1)
-    }
-  }, [code])
-
-  // Called whenever a segment finishes: if it covers a pending moment, upload it once.
-  const onSegment = useCallback((seg: Seg) => {
-    segsRef.current = [...segsRef.current, seg].slice(-4)
-    const now = Date.now()
-    pendingRef.current = pendingRef.current.filter((p) => now - p.t < 40000)
-    const covered = pendingRef.current.filter((p) => seg.start <= p.t - PRE_MS && seg.end >= p.t + POST_MS)
-    if (covered.length === 0) return
-    pendingRef.current = pendingRef.current.filter((p) => !covered.includes(p))
-    const best = covered.reduce((a, b) => ((PRIORITY[b.kind] ?? 0) > (PRIORITY[a.kind] ?? 0) ? b : a))
-    void upload(seg, best)
-  }, [upload])
-
-  const startSegment = useCallback(() => {
-    const stream = streamRef.current
-    if (!stream || typeof MediaRecorder === 'undefined') return
-    const { mime } = mimeRef.current
-    let rec: MediaRecorder
-    try {
-      rec = new MediaRecorder(stream, { ...(mime ? { mimeType: mime } : {}), videoBitsPerSecond: 1_200_000 })
+      const body: unknown = await res.json()
+      if (isRecord(body) && typeof body.message === 'string') code = body.message
     } catch {
-      setError('呢部手機唔支援錄影。')
-      return
+      // non-JSON error body
     }
-    const start = Date.now()
-    const chunks: Blob[] = []
-    rec.ondataavailable = (e) => { if (e.data.size > 0) chunks.push(e.data) }
-    rec.onstop = () => {
-      const type = chunks[0]?.type || mime || 'video/mp4'
-      onSegment({ start, end: Date.now(), blob: new Blob(chunks, { type }) })
+    return { ok: false, message: messageFor(code) }
+  } catch {
+    return { ok: false, message: '連線失敗，請檢查網絡後再試' }
+  }
+}
+
+function uploadMessageFor(code: string): string {
+  if (code.includes('BAD_PIN')) return 'PIN 不正確'
+  if (code.includes('ROOM_NOT_FOUND')) return '找不到房間，請重新掃描 iPad 上的 QR'
+  if (code.includes('TOO_LARGE')) return '檔案超過 500 MB，請下載保存'
+  return '上傳失敗，請重試'
+}
+
+async function requestUploadUrl(room: string, pin: string, contentType: string, size: number): Promise<UrlResult> {
+  try {
+    const res = await fetch(UPLOAD_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', apikey: PUBLISHABLE_KEY },
+      body: JSON.stringify({ room, pin, content_type: contentType, size }),
+    })
+    const body: unknown = await res.json().catch(() => null)
+    if (res.ok && isRecord(body) && typeof body.signedUrl === 'string') {
+      return { ok: true, signedUrl: body.signedUrl }
     }
-    rec.start()
-    setTimeout(() => { if (rec.state !== 'inactive') rec.stop() }, SEG_MS)
-  }, [onSegment])
+    const code = isRecord(body) && typeof body.message === 'string' ? body.message : ''
+    return { ok: false, message: uploadMessageFor(code) }
+  } catch {
+    return { ok: false, message: '連線失敗，上傳失敗，請重試' }
+  }
+}
 
-  const setRecordingLoop = useCallback((on: boolean) => {
-    if (on && !loopRef.current) {
-      startSegment()
-      loopRef.current = setInterval(startSegment, STAGGER_MS)
-      setRecording(true)
-    } else if (!on && loopRef.current) {
-      clearInterval(loopRef.current)
-      loopRef.current = null
-      setRecording(false)
+function putWithProgress(url: string, blob: Blob, contentType: string, onProgress: (pct: number) => void): Promise<boolean> {
+  return new Promise((resolve) => {
+    const xhr = new XMLHttpRequest()
+    xhr.open('PUT', url)
+    xhr.setRequestHeader('Content-Type', contentType)
+    xhr.upload.onprogress = (e) => {
+      if (e.lengthComputable) onProgress(Math.min(99, Math.round((e.loaded / e.total) * 100)))
     }
-  }, [startSegment])
+    xhr.onload = () => resolve(xhr.status >= 200 && xhr.status < 300)
+    xhr.onerror = () => resolve(false)
+    xhr.onabort = () => resolve(false)
+    xhr.send(blob)
+  })
+}
 
-  const addPending = useCallback((kind: string, label: string) => {
-    const l = liveRef.current
-    pendingRef.current.push({ t: Date.now(), kind, label, scoreA: l.scoreA, scoreB: l.scoreB })
-  }, [])
+function pickMime(): string | undefined {
+  if (typeof MediaRecorder === 'undefined') return undefined
+  const list = ['video/mp4', 'video/webm;codecs=vp9,opus', 'video/webm;codecs=vp8,opus', 'video/webm']
+  return list.find((m) => MediaRecorder.isTypeSupported(m))
+}
 
-  // Camera
-  useEffect(() => {
-    let cancelled = false
-    void (async () => {
-      try {
-        const stream = await navigator.mediaDevices.getUserMedia({
-          video: { facingMode: 'environment', width: { ideal: 1280 }, height: { ideal: 720 }, frameRate: { ideal: 30 } },
-          audio: false,
-        })
-        if (cancelled) { stream.getTracks().forEach((t) => t.stop()); return }
-        streamRef.current = stream
-        if (videoRef.current) { videoRef.current.srcObject = stream; void videoRef.current.play().catch(() => undefined) }
-        setCamReady(true)
-      } catch {
-        setError('開唔到鏡頭，請喺瀏覽器允許使用相機。')
-      }
-    })()
-    let wake: { release: () => Promise<void> } | null = null
-    const nav = navigator as Navigator & { wakeLock?: { request: (t: 'screen') => Promise<{ release: () => Promise<void> }> } }
-    void nav.wakeLock?.request('screen').then((w) => { wake = w }).catch(() => undefined)
-    return () => {
-      cancelled = true
-      setRecordingLoop(false)
-      streamRef.current?.getTracks().forEach((t) => t.stop())
-      void wake?.release()
-    }
-  }, [setRecordingLoop])
+function fmt(sec: number): string {
+  const m = Math.floor(sec / 60)
+  const s = sec % 60
+  return `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`
+}
 
-  // Poll the iPad state and turn score changes into "moments".
-  useEffect(() => {
-    if (!/^[0-9A-Za-z]{10}$/.test(code)) { setError('配對碼無效，請重新掃描 iPad 上嘅 QR。'); return }
-    let stopTimer: ReturnType<typeof setTimeout> | null = null
-    const tick = async () => {
-      try {
-        const res = await fetch(`/api/pilot/cam/status?c=${code}`, { cache: 'no-store' })
-        const parsed = parseLive(await res.json().catch(() => null))
-        if (!parsed.ok) { setError('配對已過期，請重新掃描 iPad 上嘅 QR。'); return }
-        setError('')
-        setRoom(parsed.room)
-        const live = parsed.live
-        liveRef.current = live
-        setPhase(live.phase)
-        const prev = prevRef.current
-        const inMatch = live.phase === 'match' || live.phase === 'winner'
-
-        if (inMatch) {
-          if (stopTimer) { clearTimeout(stopTimer); stopTimer = null }
-          if (!prev || prev.phase === 'home' || prev.phase === 'idle') matchKeyRef.current = new Date().toISOString()
-          setRecordingLoop(true)
-        } else if (loopRef.current && !stopTimer) {
-          stopTimer = setTimeout(() => { setRecordingLoop(false); stopTimer = null }, SEG_MS + 2000)
-        }
-
-        let scorer = prev?.scorer ?? null
-        let run = prev?.run ?? 0
-        if (prev && live.phase === 'match' && prev.phase === 'match') {
-          const da = live.scoreA - prev.a
-          const db = live.scoreB - prev.b
-          if (da > 0 || db > 0) {
-            const side: 'a' | 'b' = da > 0 ? 'a' : 'b'
-            run = scorer === side ? run + (da > 0 ? da : db) : (da > 0 ? da : db)
-            scorer = side
-            addPending('score', `得分 ${live.scoreA}:${live.scoreB}`)
-            if (run === 3) addPending('streak', '連得 3 分')
-            const before = prev.a - prev.b
-            const after = live.scoreA - live.scoreB
-            if (before !== 0 && after !== 0 && Math.sign(before) !== Math.sign(after)) addPending('key_ball', '逆轉！')
-          }
-        }
-        if (prev && prev.phase === 'match' && live.phase === 'winner') addPending('finish', `完場 ${live.scoreA}:${live.scoreB}`)
-        if (!inMatch) { scorer = null; run = 0 }
-        prevRef.current = { phase: live.phase, a: live.scoreA, b: live.scoreB, scorer, run }
-      } catch {
-        /* keep polling */
-      }
-    }
-    void tick()
-    const id = setInterval(() => void tick(), POLL_MS)
-    return () => { clearInterval(id); if (stopTimer) clearTimeout(stopTimer) }
-  }, [code, addPending, setRecordingLoop])
-
-  const origin = typeof window === 'undefined' ? '' : window.location.origin
-  const phaseText = phase === 'match' ? '比賽進行中' : phase === 'winner' ? '比賽完結' : '等待比賽開始'
-
-  return (
-    <main style={{ minHeight: '100dvh', background: '#000', color: '#fff', padding: 16, fontFamily: "'Good Times', 'Noto Sans TC', system-ui, sans-serif", display: 'flex', flexDirection: 'column', gap: 12 }}>
-      <header style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <strong>SPACE PILOT CAM</strong>
-        <span style={{ fontSize: 12, padding: '3px 10px', borderRadius: 999, background: recording ? 'rgba(230,70,70,0.3)' : 'rgba(255,255,255,0.12)' }}>
-          {recording ? '● 錄影中' : '待機'}
-        </span>
-      </header>
-      <div style={{ position: 'relative', borderRadius: 16, overflow: 'hidden', background: '#111' }}>
-        <video ref={videoRef} muted playsInline autoPlay style={{ width: '100%', display: 'block', aspectRatio: '16 / 9', objectFit: 'cover' }} />
-      </div>
-      <p style={{ margin: 0, fontSize: 14, color: 'rgba(255,255,255,0.8)' }}>
-        {room ? `${room} · ` : ''}{phaseText}{busy > 0 ? ' · 上傳中…' : ''}
-      </p>
-      {error ? <p style={{ margin: 0, color: '#ff8080' }}>{error}</p> : null}
-      {notice ? <p style={{ margin: 0, color: '#ffd27a', fontSize: 13 }}>{notice}</p> : null}
-      <button
-        type="button"
-        disabled={!camReady || !recording}
-        onClick={() => addPending('manual', 'Replay')}
-        style={{ minHeight: 52, borderRadius: 14, fontSize: 16, background: recording ? '#5db400' : 'rgba(255,255,255,0.12)', color: '#fff', border: 0 }}
-      >
-        Replay：截取呢一刻
-      </button>
-      <p style={{ margin: 0, fontSize: 12, color: 'rgba(255,255,255,0.5)' }}>
-        請將手機固定喺三腳架、保持亮屏同充電。只會保存精彩片段（約 14 秒），其餘畫面唔會上傳。
-      </p>
-      {uploads.length > 0 ? (
-        <section style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(140px, 1fr))', gap: 12 }}>
-          {uploads.map((u) => (
-            <div key={u.id} style={{ background: 'rgba(255,255,255,0.06)', borderRadius: 14, padding: 10, textAlign: 'center' }}>
-              <div style={{ background: '#fff', padding: 8, borderRadius: 10, display: 'inline-block' }}>
-                <QRCodeSVG value={`${origin}/c/${u.shareToken}`} size={104} />
-              </div>
-              <div style={{ fontSize: 12, marginTop: 6 }}>{u.label}{u.train ? ' · 訓練' : ''}</div>
-              {u.verdict ? <div style={{ fontSize: 11, marginTop: 2, color: 'rgba(255,255,255,0.7)' }}>{u.verdict}</div> : null}
-              <div style={{ fontSize: 10, color: 'rgba(255,255,255,0.5)' }}>掃碼睇／存入我的 · 24 小時內有效</div>
-            </div>
-          ))}
-        </section>
-      ) : null}
-    </main>
-  )
+const pill: React.CSSProperties = {
+  minHeight: 52, padding: '0 28px', borderRadius: 999, border: 'none',
+  fontSize: 17, fontWeight: 600, cursor: 'pointer',
 }
 
 export default function CamPage() {
+  const [room, setRoom] = useState<string | null>(null)
+  const [cameraOn, setCameraOn] = useState(false)
+  const [pin, setPin] = useState('')
+  const [recording, setRecording] = useState(false)
+  const [seconds, setSeconds] = useState(0)
+  const [error, setError] = useState('')
+  const [stopFailed, setStopFailed] = useState(false)
+  const [busy, setBusy] = useState(false)
+  const [downloadUrl, setDownloadUrl] = useState('')
+  const [downloadExt, setDownloadExt] = useState('webm')
+  const [uploadState, setUploadState] = useState<UploadState>('idle')
+  const [progress, setProgress] = useState(0)
+  const [uploadError, setUploadError] = useState('')
+
+  const videoRef = useRef<HTMLVideoElement>(null)
+  const streamRef = useRef<MediaStream | null>(null)
+  const recorderRef = useRef<MediaRecorder | null>(null)
+  const chunksRef = useRef<Blob[]>([])
+  const flagOnRef = useRef(false) // server believes recording=true
+  const roomRef = useRef('')
+  const pinRef = useRef('')
+  const blobRef = useRef<Blob | null>(null)
+  const bytesRef = useRef(0)
+  const stopResolveRef = useRef<((b: Blob) => void) | null>(null)
+  const uploadStateRef = useRef<UploadState>('idle')
+  const stopRef = useRef<() => void>(() => undefined)
+
+  useEffect(() => {
+    const r = new URLSearchParams(window.location.search).get('room')
+    const v = r && r.trim() ? r.trim() : ''
+    setRoom(v)
+    roomRef.current = v
+  }, [])
+
+  useEffect(() => { pinRef.current = pin }, [pin])
+  useEffect(() => { uploadStateRef.current = uploadState }, [uploadState])
+
+  // Warn before leaving while an upload is running or has failed (footage would be lost).
+  useEffect(() => {
+    const warn = (e: BeforeUnloadEvent) => {
+      if (uploadStateRef.current === 'uploading' || uploadStateRef.current === 'failed') {
+        e.preventDefault()
+        e.returnValue = ''
+      }
+    }
+    window.addEventListener('beforeunload', warn)
+    return () => window.removeEventListener('beforeunload', warn)
+  }, [])
+
+  useEffect(() => {
+    if (!recording) return
+    const id = window.setInterval(() => setSeconds((s) => s + 1), 1000)
+    return () => window.clearInterval(id)
+  }, [recording])
+
+  // Clear the iPad's red dot if the tab is closed while the flag is on.
+  useEffect(() => {
+    const release = () => {
+      if (flagOnRef.current && roomRef.current) {
+        void callRpc(roomRef.current, pinRef.current, false, true)
+      }
+    }
+    window.addEventListener('pagehide', release)
+    window.addEventListener('beforeunload', release)
+    return () => {
+      window.removeEventListener('pagehide', release)
+      window.removeEventListener('beforeunload', release)
+      streamRef.current?.getTracks().forEach((t) => t.stop())
+    }
+  }, [])
+
+  useEffect(() => () => { if (downloadUrl) URL.revokeObjectURL(downloadUrl) }, [downloadUrl])
+
+  const openCamera = useCallback(async () => {
+    setError('')
+    if (!navigator.mediaDevices?.getUserMedia) {
+      setError('此瀏覽器不支援鏡頭，請改用 Safari 或 Chrome，並確認以 https 開啟')
+      return
+    }
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({
+        video: { facingMode: 'environment' },
+        audio: true,
+      })
+      streamRef.current = stream
+      if (videoRef.current) {
+        videoRef.current.srcObject = stream
+        await videoRef.current.play().catch(() => undefined)
+      }
+      setCameraOn(true)
+    } catch {
+      setError('無法開啟鏡頭，請在瀏覽器設定中允許使用鏡頭')
+    }
+  }, [])
+
+  const releaseFlag = useCallback(async () => {
+    const r = await callRpc(roomRef.current, pinRef.current, false)
+    if (r.ok) {
+      flagOnRef.current = false
+      setStopFailed(false)
+    } else {
+      setStopFailed(true)
+      setError(`警告：未能通知 iPad 結束錄影（${r.message}），iPad 上的紅點可能仍在顯示，請重試`)
+    }
+    return r.ok
+  }, [])
+
+  const upload = useCallback(async (blob: Blob) => {
+    setUploadError('')
+    if (blob.size > MAX_BYTES) {
+      setUploadState('toolarge')
+      setUploadError('檔案超過 500 MB，請下載保存')
+      return
+    }
+    const baseType = (blob.type || 'video/webm').split(';')[0].trim()
+    setProgress(0)
+    setUploadState('uploading')
+    const r = await requestUploadUrl(roomRef.current, pinRef.current, baseType, blob.size)
+    if (!r.ok) {
+      setUploadState('failed')
+      setUploadError(r.message)
+      return
+    }
+    const ok = await putWithProgress(r.signedUrl, blob, baseType, setProgress)
+    if (ok) {
+      setProgress(100)
+      setUploadState('done')
+      blobRef.current = null
+    } else {
+      setUploadState('failed')
+      setUploadError('上傳失敗，請重試')
+    }
+  }, [])
+
+  const start = useCallback(async () => {
+    if (!room || !streamRef.current || busy) return
+    setError('')
+    if (!/^\d{4}$/.test(pin)) {
+      setError('請輸入 4 位數字 PIN')
+      return
+    }
+    setBusy(true)
+    const r = await callRpc(room, pin, true)
+    if (!r.ok) {
+      setBusy(false)
+      setError(r.message)
+      return
+    }
+    flagOnRef.current = true
+    try {
+      chunksRef.current = []
+      const mime = pickMime()
+      const rec = new MediaRecorder(streamRef.current, mime ? { mimeType: mime } : undefined)
+      bytesRef.current = 0
+      blobRef.current = null
+      setUploadState('idle')
+      setUploadError('')
+      rec.ondataavailable = (e) => {
+        if (e.data.size > 0) {
+          chunksRef.current.push(e.data)
+          bytesRef.current += e.data.size
+          if (bytesRef.current >= AUTO_STOP_BYTES && rec.state === 'recording') {
+            setError('錄影檔案接近 500 MB 上限，已自動停止錄影')
+            stopRef.current()
+          }
+        }
+      }
+      rec.onstop = () => {
+        const type = rec.mimeType || mime || 'video/webm'
+        const blob = new Blob(chunksRef.current, { type })
+        blobRef.current = blob
+        setDownloadExt(type.includes('mp4') ? 'mp4' : 'webm')
+        setDownloadUrl(URL.createObjectURL(blob))
+        stopResolveRef.current?.(blob)
+        stopResolveRef.current = null
+      }
+      rec.start(1000)
+      recorderRef.current = rec
+      if (downloadUrl) { URL.revokeObjectURL(downloadUrl); setDownloadUrl('') }
+      setSeconds(0)
+      setRecording(true)
+    } catch {
+      setError('無法開始錄影，此瀏覽器可能不支援')
+      await releaseFlag()
+    }
+    setBusy(false)
+  }, [room, pin, busy, downloadUrl, releaseFlag])
+
+  const stop = useCallback(async () => {
+    if (busy) return
+    setBusy(true)
+    const rec = recorderRef.current
+    let blobP: Promise<Blob> | null = null
+    if (rec && rec.state !== 'inactive') {
+      blobP = new Promise<Blob>((resolve) => { stopResolveRef.current = resolve })
+      rec.stop()
+    }
+    setRecording(false)
+    await releaseFlag()
+    if (blobP) {
+      const blob = await blobP
+      setBusy(false)
+      await upload(blob)
+      return
+    }
+    setBusy(false)
+  }, [busy, releaseFlag, upload])
+
+  useEffect(() => { stopRef.current = () => { void stop() } }, [stop])
+
+  const retryUpload = useCallback(async () => {
+    if (blobRef.current) await upload(blobRef.current)
+  }, [upload])
+
+  const retry = useCallback(async () => {
+    setBusy(true)
+    setError('')
+    await releaseFlag()
+    setBusy(false)
+  }, [releaseFlag])
+
+  const shell: React.CSSProperties = {
+    minHeight: '100dvh', background: '#000', color: '#fff', overflowX: 'hidden',
+    display: 'flex', flexDirection: 'column', gap: 16, boxSizing: 'border-box',
+    padding: 'max(16px, env(safe-area-inset-top)) max(16px, env(safe-area-inset-right)) max(16px, env(safe-area-inset-bottom)) max(16px, env(safe-area-inset-left))',
+    fontFamily: "'Noto Sans TC', -apple-system, sans-serif",
+  }
+
+  if (room === null) return <main style={shell} />
+
+  if (!room) {
+    return (
+      <main style={{ ...shell, alignItems: 'center', justifyContent: 'center', textAlign: 'center' }}>
+        <p style={{ fontSize: 18 }}>請用 iPad 上的 QR 開啟此頁</p>
+      </main>
+    )
+  }
+
   return (
-    <Suspense fallback={null}>
-      <CamInner />
-    </Suspense>
+    <main style={shell}>
+      <style>{`@keyframes camblink{0%,100%{opacity:1}50%{opacity:.2}}`}</style>
+      <header style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <strong style={{ fontSize: 18 }}>SPACE8 錄影</strong>
+        <span style={{ color: 'rgba(255,255,255,0.6)', fontSize: 14 }}>{room}</span>
+      </header>
+
+      <div style={{ position: 'relative', flex: 1, minHeight: 240, borderRadius: 24, overflow: 'hidden', background: '#111' }}>
+        <video ref={videoRef} playsInline muted autoPlay style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
+        {recording ? (
+          <div style={{ position: 'absolute', top: 14, left: 14, display: 'flex', alignItems: 'center', gap: 8, background: 'rgba(0,0,0,0.55)', padding: '6px 12px', borderRadius: 999 }}>
+            <span style={{ width: 12, height: 12, borderRadius: '50%', background: '#ff3b30', animation: 'camblink 1s infinite' }} />
+            <span style={{ fontWeight: 700, fontSize: 14 }}>REC</span>
+            <span style={{ fontVariantNumeric: 'tabular-nums', fontSize: 14 }}>{fmt(seconds)}</span>
+          </div>
+        ) : null}
+      </div>
+
+      {recording ? <p style={{ margin: 0, textAlign: 'center', fontSize: 14, color: 'rgba(255,255,255,0.8)' }}>此房間設有錄影</p> : null}
+      {uploadState !== 'idle' ? (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+          {uploadState === 'uploading' ? (
+            <>
+              <p style={{ margin: 0, fontSize: 14 }}>上傳中 {progress}%</p>
+              <div style={{ height: 8, borderRadius: 999, background: 'rgba(255,255,255,0.15)', overflow: 'hidden' }}>
+                <div style={{ width: `${progress}%`, height: '100%', background: '#fff', transition: 'width .2s' }} />
+              </div>
+            </>
+          ) : null}
+          {uploadState === 'done' ? <p style={{ margin: 0, fontSize: 14, color: '#7ee787' }}>上傳完成</p> : null}
+          {uploadState === 'failed' ? <p role="alert" style={{ margin: 0, fontSize: 14, color: '#ff8a80' }}>{uploadError || '上傳失敗，請重試'}</p> : null}
+          {uploadState === 'toolarge' ? <p role="alert" style={{ margin: 0, fontSize: 14, color: '#ffd27a' }}>檔案超過 500 MB，請下載保存</p> : null}
+          {uploadState === 'failed' ? (
+            <button type="button" onClick={retryUpload} style={{ ...pill, background: '#fff', color: '#000' }}>重試上傳</button>
+          ) : null}
+        </div>
+      ) : null}
+      {error ? <p role="alert" style={{ margin: 0, color: '#ff8a80', fontSize: 14 }}>{error}</p> : null}
+      {stopFailed ? (
+        <button type="button" onClick={retry} disabled={busy} style={{ ...pill, background: '#ffd27a', color: '#000' }}>重試通知 iPad 結束錄影</button>
+      ) : null}
+
+      {!cameraOn ? (
+        <button type="button" onClick={openCamera} style={{ ...pill, background: '#fff', color: '#000' }}>開啟鏡頭</button>
+      ) : (
+        <>
+          <input
+            type="password"
+            inputMode="numeric"
+            maxLength={4}
+            autoComplete="off"
+            placeholder="請輸入 4 位數字 PIN"
+            value={pin}
+            disabled={recording}
+            onChange={(e) => setPin(e.target.value.replace(/\D/g, '').slice(0, 4))}
+            style={{ minHeight: 52, borderRadius: 999, border: '1px solid rgba(255,255,255,0.2)', background: 'rgba(255,255,255,0.08)', color: '#fff', textAlign: 'center', fontSize: 20, letterSpacing: 8 }}
+          />
+          {recording ? (
+            <button type="button" onClick={stop} disabled={busy} style={{ ...pill, background: '#ff3b30', color: '#fff' }}>停止錄影</button>
+          ) : (
+            <button type="button" onClick={start} disabled={busy || stopFailed} style={{ ...pill, background: '#fff', color: '#000' }}>開始錄影</button>
+          )}
+        </>
+      )}
+
+      {downloadUrl ? (
+        <a href={downloadUrl} download={`space8-${room}-${Date.now()}.${downloadExt}`} style={{ color: '#fff', textAlign: 'center', fontSize: 16 }}>
+          下載錄影
+        </a>
+      ) : null}
+    </main>
   )
 }
