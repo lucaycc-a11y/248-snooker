@@ -4364,7 +4364,22 @@
     "f3Title": "Stats & progress",
     "f3Body": "Win rate, streaks and progress curves at a glance.",
     "adminOnly": "Admins only (draft)",
-    "betaNote": "In beta, open to a small group of players."
+    "betaNote": "In beta, open to a small group of players.",
+    "betaTag": "Beta test · Not for public",
+    "faqTitle": "FAQ",
+    "faqLegal": "Read the Space Pilot data collection notice",
+    "faq1q": "What is Space Pilot?",
+    "faq1a": "Space Pilot is a scoring system on an iPad mounted on the wall. It keeps score live, records the result and turns it into your stats, saved to your member page.",
+    "faq2q": "Who can use it now?",
+    "faq2a": "Space Pilot is in beta and open to a small group of players only. It is not public yet.",
+    "faq3q": "Where are my stats saved?",
+    "faq3a": "Results and stats are saved to your member page automatically. Sign in to see them.",
+    "faq4q": "How do the two rooms link up?",
+    "faq4a": "Space Infinity and Space Eternity connect live and share the score. Friends in separate rooms still play the same match.",
+    "faq5q": "What are Highlights?",
+    "faq5a": "In-room recording is still in beta. Clips can be replayed and shared from your member page afterwards. See the data collection notice for how data is collected, kept and used.",
+    "faq6q": "Is my data used to train AI?",
+    "faq6a": "No. We do not use customer data to train AI."
   },
   "memberPilot": {
     "rotTitle": "Rotations",

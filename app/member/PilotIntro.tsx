@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef } from "react";
+import { useRef, useState } from "react";
 import Image from "next/image";
 import {
   motion,
@@ -135,7 +135,7 @@ function DeviceShadow() {
   return (
     <div
       aria-hidden
-      style={{ position: "absolute", left: "3%", right: "3%", top: "4%", bottom: "2%", borderRadius: "6% / 8%", boxShadow: DEVICE_BOX_SHADOW }}
+      style={{ position: "absolute", left: "5.6%", right: "6.1%", top: "5.9%", bottom: "5.4%", borderRadius: "5.4% / 7.6%", background: "#000", boxShadow: DEVICE_BOX_SHADOW }}
     />
   );
 }
@@ -500,7 +500,7 @@ function Features() {
   const t = useTranslations("memberPilotIntro");
   const items = [
     { n: "01", title: t("f1Title"), body: t("f1Body") },
-    { n: "02", title: t("f2Title"), body: t("f2Body") },
+    { n: "02", title: t("f2Title"), body: t("f2Body"), beta: true },
     { n: "03", title: t("f3Title"), body: t("f3Body") },
   ];
   return (
@@ -522,11 +522,85 @@ function Features() {
             minHeight: 200,
           }}
         >
-          <div style={{ fontFamily: HEADING, fontSize: 12, letterSpacing: "0.2em", color: GREEN }}>{it.n}</div>
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8 }}>
+            <div style={{ fontFamily: HEADING, fontSize: 12, letterSpacing: "0.2em", color: GREEN }}>{it.n}</div>
+            {"beta" in it && it.beta && (
+              <span style={{ fontSize: 10, letterSpacing: "0.1em", padding: "3px 9px", borderRadius: 999, border: `1px solid ${GREEN}`, color: GREEN, whiteSpace: "nowrap" }}>
+                {t("betaTag")}
+              </span>
+            )}
+          </div>
           <div style={{ marginTop: 40, fontSize: 22, fontWeight: 700, letterSpacing: "-0.01em", color: INK }}>{it.title}</div>
           <div style={{ marginTop: 10, fontSize: 15, lineHeight: 1.7, color: SUBTLE }}>{it.body}</div>
         </motion.div>
       ))}
+    </div>
+  );
+}
+
+// ─── Section 5: FAQ ─────────────────────────────────────────────────────────
+function FaqItem({ q, a, open, onToggle }: { q: string; a: string; open: boolean; onToggle: () => void }) {
+  return (
+    <div style={{ borderBottom: `1px solid ${BORDER}` }}>
+      <button
+        type="button"
+        onClick={onToggle}
+        aria-expanded={open}
+        style={{
+          width: "100%",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "space-between",
+          gap: 16,
+          padding: "22px 0",
+          background: "none",
+          border: "none",
+          cursor: "pointer",
+          textAlign: "left",
+          color: INK,
+          fontFamily: FONT_FAMILY,
+          fontSize: "clamp(17px, 2.6vw, 21px)",
+          fontWeight: 600,
+          letterSpacing: "-0.01em",
+        }}
+      >
+        <span>{q}</span>
+        <motion.span aria-hidden animate={{ rotate: open ? 45 : 0 }} transition={{ duration: 0.3, ease: EASE }} style={{ fontSize: 28, lineHeight: 1, color: GREEN, flexShrink: 0 }}>
+          +
+        </motion.span>
+      </button>
+      <motion.div
+        initial={false}
+        animate={{ height: open ? "auto" : 0, opacity: open ? 1 : 0 }}
+        transition={{ duration: 0.45, ease: EASE }}
+        style={{ overflow: "hidden" }}
+      >
+        <p style={{ margin: 0, padding: "0 32px 24px 0", fontSize: 16, lineHeight: 1.8, color: SUBTLE }}>{a}</p>
+      </motion.div>
+    </div>
+  );
+}
+
+function Faq() {
+  const t = useTranslations("memberPilotIntro");
+  const [openIdx, setOpenIdx] = useState<number | null>(0);
+  const items = [1, 2, 3, 4, 5, 6].map((n) => ({ q: t(`faq${n}q` as "faq1q"), a: t(`faq${n}a` as "faq1a") }));
+  return (
+    <div style={{ maxWidth: 760, margin: "0 auto" }}>
+      <Reveal>
+        <div style={{ textAlign: "center", marginBottom: 32 }}>
+          <Kicker>FAQ</Kicker>
+          <BigTitle>{t("faqTitle")}</BigTitle>
+        </div>
+      </Reveal>
+      <div style={{ borderTop: `1px solid ${BORDER}` }}>
+        {items.map((it, i) => (
+          <FaqItem key={i} q={it.q} a={it.a} open={openIdx === i} onToggle={() => setOpenIdx(openIdx === i ? null : i)} />
+        ))}
+      </div>
+      <p style={{ marginTop: 24, textAlign: "center", fontSize: 14 }}>
+        <a href="/legal" style={{ color: GREEN, textDecoration: "none" }}>{t("faqLegal")}</a>
+      </p>
     </div>
   );
 }
@@ -546,6 +620,9 @@ export default function PilotIntro({ variant = "member" }: { variant?: "member" 
           <div style={{ paddingTop: "clamp(64px, 12vh, 120px)" }}>
             <Features />
           </div>
+          <div style={{ paddingTop: sectionPad }}>
+            <Faq />
+          </div>
         </div>
       </div>
     );
@@ -563,6 +640,9 @@ export default function PilotIntro({ variant = "member" }: { variant?: "member" 
       </div>
       <div style={{ paddingTop: "clamp(64px, 12vh, 120px)" }}>
         <Features />
+      </div>
+      <div style={{ paddingTop: sectionPad }}>
+        <Faq />
       </div>
     </div>
   );
