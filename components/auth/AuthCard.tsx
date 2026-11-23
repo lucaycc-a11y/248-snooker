@@ -689,7 +689,7 @@ export function AuthCard({
   if (initializing && phase === "methods") {
     return (
       <div style={{ display: "flex", justifyContent: "center", padding: "32px 0" }}>
-        <LoadingGif />
+        <LoadingGif spinnerOnly />
       </div>
     )
   }

@@ -3,7 +3,7 @@
 import { useState } from 'react'
 
 /** Branded loading animation shared by route, booking, and auth loading states. */
-export function LoadingGif({ size = 140, label = 'Loading' }: { size?: number; label?: string }) {
+export function LoadingGif({ size = 140, label = 'Loading', spinnerOnly = false }: { size?: number; label?: string; spinnerOnly?: boolean }) {
   const clampedSize = Math.max(120, Math.min(160, size))
   const [videoFailed, setVideoFailed] = useState(false)
 
@@ -19,7 +19,7 @@ export function LoadingGif({ size = 140, label = 'Loading' }: { size?: number; l
         justifyContent: 'center',
       }}
     >
-      {videoFailed ? (
+      {videoFailed || spinnerOnly ? (
         <span
           aria-hidden="true"
           style={{
