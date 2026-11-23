@@ -104,7 +104,7 @@ function Word({ word, progress, start, end }: { word: string; progress: MotionVa
 // Greyed text that "lights up" word by word while scrolling (the Apple paragraph reveal).
 function ScrollWords({ text }: { text: string }) {
   const ref = useRef<HTMLParagraphElement>(null);
-  const { scrollYProgress } = useScroll({ target: ref, offset: ["start 0.85", "end 0.45"] });
+  const { scrollYProgress } = useScroll({ target: ref, offset: ["start 0.9", "end 0.35"] });
   // Chinese has no spaces, so split into chunks at punctuation and fall back to short slices.
   const chunks = text.match(/[^，。、；,.\s]+[，。、；,.\s]*/g) ?? [text];
   const pieces = chunks.flatMap((c) => (c.length > 8 && !/\s/.test(c) ? c.match(/.{1,6}/g) ?? [c] : [c]));
@@ -396,6 +396,9 @@ function Rooms() {
   const left = useTransform(scrollYProgress, [0, 0.7], [reduce ? 0 : -48, 0]);
   const right = useTransform(scrollYProgress, [0, 0.7], [reduce ? 0 : 48, 0]);
   const fade = useTransform(scrollYProgress, [0, 0.5], [reduce ? 1 : 0, 1]);
+  const riseA = useTransform(scrollYProgress, [0, 0.8], [reduce ? 0 : 70, 0], { ease: ZOOM_EASE });
+  const riseB = useTransform(scrollYProgress, [0, 0.8], [reduce ? 0 : 120, 0], { ease: ZOOM_EASE });
+  const popScale = useTransform(scrollYProgress, [0, 0.8], [reduce ? 1 : 0.92, 1], { ease: ZOOM_EASE });
   const pill = useTransform(scrollYProgress, [0.55, 0.9], [0, 1]);
   return (
     <div ref={ref} style={{ textAlign: "center" }}>
@@ -421,11 +424,11 @@ function Rooms() {
           }}
         />
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 300px), 1fr))", gap: "clamp(40px, 9vw, 96px)", position: "relative" }}>
-          <motion.div style={{ x: left, opacity: fade, willChange: "transform, opacity" }}>
+          <motion.div style={{ x: left, y: riseA, scale: popScale, opacity: fade, willChange: "transform, opacity" }}>
             <DeviceImg src={SCREEN_SRC.scoring} alt={t("roomA")} sizes="(max-width: 700px) 90vw, 440px" />
             <div style={{ marginTop: 20, fontFamily: HEADING, fontSize: 12, letterSpacing: "0.2em", color: INK }}>{t("roomA")}</div>
           </motion.div>
-          <motion.div style={{ x: right, opacity: fade, willChange: "transform, opacity" }}>
+          <motion.div style={{ x: right, y: riseB, scale: popScale, opacity: fade, willChange: "transform, opacity" }}>
             <DeviceImg src={SCREEN_SRC.winner} alt={t("roomB")} sizes="(max-width: 700px) 90vw, 440px" />
             <div style={{ marginTop: 20, fontFamily: HEADING, fontSize: 12, letterSpacing: "0.2em", color: INK }}>{t("roomB")}</div>
           </motion.div>
@@ -505,10 +508,10 @@ function Features() {
       {items.map((it, i) => (
         <motion.div
           key={it.n}
-          initial={{ opacity: 0, y: 40 }}
-          whileInView={{ opacity: 1, y: 0 }}
+          initial={{ opacity: 0, y: 56, scale: 0.96 }}
+          whileInView={{ opacity: 1, y: 0, scale: 1 }}
           viewport={{ once: true, margin: "-10% 0px" }}
-          transition={{ duration: 0.8, ease: EASE, delay: i * 0.1 }}
+          transition={{ duration: 1, ease: EASE, delay: i * 0.12 }}
           whileHover={{ y: -4 }}
           style={{
             padding: "28px 24px 32px",
