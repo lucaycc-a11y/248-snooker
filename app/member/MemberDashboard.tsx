@@ -485,7 +485,7 @@ export default function MemberDashboard({
                 }}
               >
                 {tabItem.icon}
-                <span style={{ marginLeft: 6 }}>{t(tabItem.key)}</span>
+                <span style={{ marginLeft: 6, ...(tabItem.id === "pilot" ? { fontFamily: "'Good Times', sans-serif", letterSpacing: "0.04em" } : {}) }}>{t(tabItem.key)}</span>
                 {active && (
                   <motion.span
                     layoutId="member-tab-underline"

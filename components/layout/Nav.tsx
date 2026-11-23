@@ -64,7 +64,11 @@ export default function Nav() {
   const v802 = useV802() // admin-only while 8.0.2 is a test build
   const isAdmin = useIsAdmin()
   // Space Pilot (beta) is admin-only until it opens to a small group of players.
-  const links = isAdmin ? [...navItems, { href: '/spacepilot', key: 'spacepilot' } as const] : navItems
+  const pilotItem = { href: '/spacepilot', key: 'spacepilot' } as const
+  // Space Pilot sits just above Membership, admin-only while in beta.
+  const links: ReadonlyArray<{ href: string; key: string }> = isAdmin
+    ? [...navItems.filter((i) => i.key !== 'membership'), pilotItem, ...navItems.filter((i) => i.key === 'membership')]
+    : navItems
 
   // Locale-aware returnUrl for OAuth redirects (re-attaches locale prefix for non-default locales)
   const returnUrl = locale === DEFAULT_LOCALE ? pathname : `/${locale}${pathname}`
@@ -376,6 +380,7 @@ export default function Nav() {
                 href={item.href}
                 data-cms-key={`nav.link.${item.key}`}
                 style={{
+                  ...(item.key === 'spacepilot' ? { fontFamily: "'Good Times', sans-serif", letterSpacing: '0.04em' } : {}),
                   fontSize: 14,
                   fontWeight: 500,
                   color: active ? tokens.colors.brand : linkColor,
@@ -625,6 +630,7 @@ export default function Nav() {
                   onClick={() => setMenuOpen(false)}
                   data-cms-key={`nav.link.${item.key}`}
                   style={{
+                    ...(item.key === 'spacepilot' ? { fontFamily: "'Good Times', sans-serif", letterSpacing: '0.04em' } : {}),
                     fontSize: 30,
                     fontWeight: 600,
                     color: pathname === item.href ? tokens.colors.brand : tokens.colors.text,

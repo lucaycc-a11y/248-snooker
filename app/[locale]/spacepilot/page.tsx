@@ -40,11 +40,9 @@ export default async function SpacePilotPage({
   if (!(await isActiveAdmin())) notFound();
 
   return (
-    <main className="relative bg-black">
+    <main className="relative overflow-x-clip bg-black">
       <Nav />
-      <div style={{ maxWidth: 1120, margin: "0 auto", padding: "96px 20px 0" }}>
-        <PilotIntro />
-      </div>
+      <PilotIntro variant="page" />
       <Footer />
     </main>
   );

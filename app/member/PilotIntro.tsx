@@ -7,6 +7,7 @@ import {
   useReducedMotion,
   useScroll,
   useTransform,
+  cubicBezier,
   type MotionValue,
 } from "framer-motion";
 import { useTranslations } from "next-intl";
@@ -27,8 +28,10 @@ const HEADING = "'Good Times', 'Noto Sans TC', system-ui, sans-serif";
 const EASE = [0.16, 1, 0.3, 1] as const;
 
 // Layered shadow: tight contact line + mid + soft ambient, like a device mounted on a wall.
-const DEVICE_SHADOW =
-  "drop-shadow(0 1px 1px rgba(0,0,0,0.65)) drop-shadow(0 10px 14px rgba(0,0,0,0.5)) drop-shadow(0 34px 42px rgba(0,0,0,0.45))";
+// Static box-shadow (not a filter): rasterised once, so it stays cheap while the layer scales on scroll.
+const DEVICE_BOX_SHADOW =
+  "0 1px 2px rgba(0,0,0,0.7), 0 12px 20px rgba(0,0,0,0.5), 0 40px 64px rgba(0,0,0,0.45)";
+const ZOOM_EASE = cubicBezier(0.33, 0, 0.2, 1);
 
 const SCREENS = ["dashboard", "race", "scoring", "winner"] as const;
 type ScreenId = (typeof SCREENS)[number];
@@ -128,34 +131,80 @@ function ScrollWords({ text }: { text: string }) {
   );
 }
 
-function DeviceImg({ src, alt, priority = false, sizes }: { src: string; alt: string; priority?: boolean; sizes: string }) {
+function DeviceShadow() {
   return (
-    <Image
-      src={src}
-      alt={alt}
-      width={1400}
-      height={992}
-      sizes={sizes}
-      priority={priority}
-      style={{ width: "100%", height: "auto", display: "block", filter: DEVICE_SHADOW }}
+    <div
+      aria-hidden
+      style={{ position: "absolute", left: "3%", right: "3%", top: "4%", bottom: "2%", borderRadius: "6% / 8%", boxShadow: DEVICE_BOX_SHADOW }}
     />
   );
 }
 
+function DeviceImg({ src, alt, priority = false, sizes, shadow = true }: { src: string; alt: string; priority?: boolean; sizes: string; shadow?: boolean }) {
+  return (
+    <div style={{ position: "relative" }}>
+      {shadow && <DeviceShadow />}
+      <Image
+        src={src}
+        alt={alt}
+        width={1400}
+        height={992}
+        sizes={sizes}
+        priority={priority}
+        style={{ width: "100%", height: "auto", display: "block", position: "relative" }}
+      />
+    </div>
+  );
+}
+
 // ─── Section 1: hero ────────────────────────────────────────────────────────
-function Hero() {
+// Same backdrop as the Space Pilot app: near-black violet base, green glow top-right, purple glow bottom-left.
+function PilotBackdrop({ progress }: { progress: MotionValue<number> }) {
+  const reduce = useReducedMotion();
+  const yA = useTransform(progress, [0, 1], [0, 140]);
+  const yB = useTransform(progress, [0, 1], [0, 60]);
+  const drift = (d: number) => (reduce ? undefined : { x: [0, d, 0], scale: [1, 1.08, 1] });
+  const loop = { duration: 16, repeat: Infinity, ease: "easeInOut" as const };
+  return (
+    <div aria-hidden style={{ position: "absolute", inset: 0, overflow: "hidden", background: "#05030c" }}>
+      <motion.div
+        style={{ position: "absolute", width: "85vmax", height: "85vmax", right: "-38vmax", top: "-42vmax", y: yA, willChange: "transform",
+          background: "radial-gradient(circle, rgba(34,197,94,0.34) 0%, rgba(34,197,94,0.08) 40%, rgba(34,197,94,0) 65%)" }}
+        animate={drift(-48)}
+        transition={loop}
+      />
+      <motion.div
+        style={{ position: "absolute", width: "95vmax", height: "95vmax", left: "-48vmax", bottom: "-52vmax", y: yB, willChange: "transform",
+          background: "radial-gradient(circle, rgba(124,58,237,0.5) 0%, rgba(88,28,180,0.16) 42%, rgba(88,28,180,0) 66%)" }}
+        animate={drift(52)}
+        transition={{ ...loop, duration: 20 }}
+      />
+      <div style={{ position: "absolute", inset: 0, background: "linear-gradient(180deg, rgba(0,0,0,0) 60%, #000 100%)" }} />
+    </div>
+  );
+}
+
+function Hero({ page = false }: { page?: boolean }) {
   const t = useTranslations("memberPilotIntro");
+  const reduce = useReducedMotion();
   const ref = useRef<HTMLDivElement>(null);
   const { scrollYProgress } = useScroll({ target: ref, offset: ["start start", "end start"] });
   const opacity = useTransform(scrollYProgress, [0, 0.7], [1, 0]);
-  const y = useTransform(scrollYProgress, [0, 1], [0, -60]);
+  const y = useTransform(scrollYProgress, [0, 1], [0, -80]);
+  const scale = useTransform(scrollYProgress, [0, 1], [1, 0.94]);
+  // Staggered entrance on load (opacity + transform only).
+  const rise = (n: number) =>
+    reduce
+      ? {}
+      : { initial: { opacity: 0, y: 28 }, animate: { opacity: 1, y: 0 }, transition: { duration: 1.1, ease: EASE, delay: 0.1 + n * 0.14 } };
   return (
     <div
       ref={ref}
-      style={{ minHeight: "88vh", display: "flex", alignItems: "center", justifyContent: "center", textAlign: "center", padding: "0 8px" }}
+      style={{ position: "relative", minHeight: page ? "100svh" : "88vh", display: "flex", alignItems: "center", justifyContent: "center", textAlign: "center", padding: "0 20px" }}
     >
-      <motion.div style={{ opacity, y }}>
-        <div style={{ display: "inline-flex", alignItems: "center", gap: 10 }}>
+      {page && <PilotBackdrop progress={scrollYProgress} />}
+      <motion.div style={{ opacity, y, scale, position: "relative", willChange: "transform, opacity" }}>
+        <motion.div {...rise(0)} style={{ display: "inline-flex", alignItems: "center", gap: 10 }}>
           <Kicker>{t("kicker")}</Kicker>
           <span
             style={{
@@ -169,8 +218,9 @@ function Hero() {
           >
             BETA
           </span>
-        </div>
-        <h1
+        </motion.div>
+        <motion.h1
+          {...rise(1)}
           style={{
             margin: "28px 0 0",
             fontSize: "clamp(40px, 9vw, 84px)",
@@ -183,12 +233,12 @@ function Hero() {
           {t("heroTitle1")}
           <br />
           {t("heroTitle2")}
-        </h1>
-        <p style={{ margin: "28px auto 0", maxWidth: 520, fontSize: "clamp(16px, 2.4vw, 20px)", lineHeight: 1.7, color: SUBTLE }}>
+        </motion.h1>
+        <motion.p {...rise(2)} style={{ margin: "28px auto 0", maxWidth: 520, fontSize: "clamp(16px, 2.4vw, 20px)", lineHeight: 1.7, color: SUBTLE }}>
           {t("heroBody")}
-        </p>
-        <p style={{ margin: "14px auto 0", fontSize: 13, letterSpacing: "0.04em", color: GREEN }}>{t("betaNote")}</p>
-        <div style={{ marginTop: 56, color: SUBTLE, fontSize: 12, letterSpacing: "0.1em" }}>
+        </motion.p>
+        <motion.p {...rise(3)} style={{ margin: "14px auto 0", fontSize: 13, letterSpacing: "0.04em", color: GREEN }}>{t("betaNote")}</motion.p>
+        <motion.div {...rise(4)} style={{ marginTop: 56, color: SUBTLE, fontSize: 12, letterSpacing: "0.1em" }}>
           {t("scroll")}
           <motion.div
             aria-hidden
@@ -200,7 +250,7 @@ function Hero() {
               <path d="M6 9l6 6 6-6" />
             </svg>
           </motion.div>
-        </div>
+        </motion.div>
       </motion.div>
     </div>
   );
@@ -236,19 +286,27 @@ function ScreenLayer({ id, index, progress }: { id: ScreenId; index: number; pro
   const opacity = useTransform(progress, keys, vals);
   return (
     <motion.div style={{ position: "absolute", inset: 0, opacity }}>
-      <DeviceImg src={SCREEN_SRC[id]} alt={index === 0 ? t("stageLabel") : ""} priority={index === 0} sizes="(max-width: 900px) 92vw, 860px" />
+      <DeviceImg src={SCREEN_SRC[id]} alt={index === 0 ? t("stageLabel") : ""} priority={index === 0} shadow={false} sizes="(max-width: 900px) 92vw, 860px" />
     </motion.div>
   );
 }
 
-function WallStage() {
+function StepDot({ index, progress }: { index: number; progress: MotionValue<number> }) {
+  const a = 0.34 + index * 0.17;
+  const opacity = useTransform(progress, [a - 0.06, a, a + 0.15, a + 0.19], index === 3 ? [0.25, 1, 1, 1] : [0.25, 1, 1, 0.25]);
+  const scaleY = useTransform(progress, [a - 0.06, a, a + 0.15, a + 0.19], index === 3 ? [1, 2.4, 2.4, 2.4] : [1, 2.4, 2.4, 1]);
+  return <motion.span style={{ width: 4, height: 8, borderRadius: 3, background: GREEN, opacity, scaleY, display: "block" }} />;
+}
+
+function WallStage({ page = false }: { page?: boolean }) {
   const reduce = useReducedMotion();
   const ref = useRef<HTMLDivElement>(null);
   const { scrollYProgress } = useScroll({ target: ref, offset: ["start start", "end end"] });
-  const zoom = useTransform(scrollYProgress, [0, 0.32], [reduce ? 1 : 2.4, 1]);
-  const dim = useTransform(scrollYProgress, [0, 0.4], [0, 0.55]);
-  const glow = useTransform(scrollYProgress, [0.12, 0.42], [0, 1]);
-  const lift = useTransform(scrollYProgress, [0, 0.32], [reduce ? 0 : 30, 0]);
+  const zoom = useTransform(scrollYProgress, [0, 0.32], [reduce ? 1 : 2.4, 1], { ease: ZOOM_EASE });
+  const dim = useTransform(scrollYProgress, [0, 0.4], [0, 0.42]);
+  const glow = useTransform(scrollYProgress, [0.1, 0.42], [0, 1]);
+  const lift = useTransform(scrollYProgress, [0, 0.32], [reduce ? 0 : 30, 0], { ease: ZOOM_EASE });
+  const tilt = useTransform(scrollYProgress, [0, 0.32], [reduce ? 0 : 9, 0], { ease: ZOOM_EASE });
   return (
     <div ref={ref} style={{ height: "340vh", position: "relative" }}>
       <div
@@ -257,12 +315,13 @@ function WallStage() {
           top: 0,
           height: "100svh",
           overflow: "hidden",
-          borderRadius: 28,
-          border: `1px solid ${BORDER}`,
+          borderRadius: page ? 0 : 28,
+          border: page ? "none" : `1px solid ${BORDER}`,
           background: "#000",
+          contain: "paint",
         }}
       >
-        <motion.div style={{ position: "absolute", inset: 0, scale: zoom, transformOrigin: "50% 42%" }}>
+        <motion.div style={{ position: "absolute", inset: 0, scale: zoom, transformOrigin: "50% 42%", willChange: "transform" }}>
           <Image
             src="/pilot-intro/wall.webp"
             alt=""
@@ -270,18 +329,23 @@ function WallStage() {
             sizes="(max-width: 1200px) 100vw, 1200px"
             style={{ objectFit: "cover", objectPosition: "50% 45%" }}
           />
-          {/* soft light spill from the screen onto the fabric panels */}
+          {/* Dim the wall only, so the iPad stays bright. */}
+          <motion.div aria-hidden style={{ position: "absolute", inset: 0, background: "#000", opacity: dim }} />
+          <div
+            aria-hidden
+            style={{ position: "absolute", inset: 0, background: "radial-gradient(ellipse 70% 70% at 50% 42%, rgba(0,0,0,0) 40%, rgba(0,0,0,0.6) 100%)" }}
+          />
+          {/* soft light spill from the screen onto the fabric panels (plain gradient, no blur filter) */}
           <motion.div
             aria-hidden
             style={{
               position: "absolute",
-              left: "8%",
-              right: "8%",
-              top: "6%",
-              height: "68%",
+              left: "0%",
+              right: "0%",
+              top: "0%",
+              height: "84%",
               opacity: glow,
-              background: "radial-gradient(ellipse at 50% 50%, rgba(34,197,94,0.35) 0%, rgba(34,120,70,0.16) 45%, rgba(0,0,0,0) 72%)",
-              filter: "blur(44px)",
+              background: "radial-gradient(ellipse 52% 46% at 50% 40%, rgba(34,197,94,0.30) 0%, rgba(124,58,237,0.14) 48%, rgba(0,0,0,0) 76%)",
             }}
           />
           <div
@@ -292,30 +356,26 @@ function WallStage() {
               width: "min(88%, 880px)",
               transform: "translate(-50%, -50%)",
               aspectRatio: "1400 / 992",
+              perspective: 1400,
             }}
           >
-            <motion.div style={{ position: "absolute", inset: 0, y: lift }}>
+            <motion.div style={{ position: "absolute", inset: 0, y: lift, rotateX: tilt, willChange: "transform" }}>
+              <DeviceShadow />
               {SCREENS.map((id, i) => (
                 <ScreenLayer key={id} id={id} index={i} progress={scrollYProgress} />
               ))}
             </motion.div>
           </div>
         </motion.div>
-        {/* darken the room as the story starts */}
-        <motion.div aria-hidden style={{ position: "absolute", inset: 0, background: "#000", opacity: dim, pointerEvents: "none" }} />
-        <div
-          aria-hidden
-          style={{
-            position: "absolute",
-            inset: 0,
-            background: "radial-gradient(ellipse 70% 70% at 50% 42%, rgba(0,0,0,0) 40%, rgba(0,0,0,0.7) 100%)",
-            pointerEvents: "none",
-          }}
-        />
         <div
           aria-hidden
           style={{ position: "absolute", left: 0, right: 0, bottom: 0, height: "34%", background: "linear-gradient(180deg, rgba(0,0,0,0), rgba(0,0,0,0.88))", pointerEvents: "none" }}
         />
+        <div aria-hidden style={{ position: "absolute", right: 14, top: "50%", transform: "translateY(-50%)", display: "flex", flexDirection: "column", gap: 8 }}>
+          {[0, 1, 2, 3].map((i) => (
+            <StepDot key={i} index={i} progress={scrollYProgress} />
+          ))}
+        </div>
         <div style={{ position: "absolute", left: 0, right: 0, bottom: "clamp(28px, 7vh, 64px)", height: 120 }}>
           {[0, 1, 2, 3].map((i) => (
             <Caption key={i} index={i} progress={scrollYProgress} />
@@ -357,16 +417,15 @@ function Rooms() {
             height: 280,
             transform: "translateY(-50%)",
             background: "radial-gradient(ellipse at 50% 50%, rgba(34,197,94,0.18) 0%, rgba(0,0,0,0) 65%)",
-            filter: "blur(40px)",
             pointerEvents: "none",
           }}
         />
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 300px), 1fr))", gap: "clamp(40px, 9vw, 96px)", position: "relative" }}>
-          <motion.div style={{ x: left, opacity: fade }}>
+          <motion.div style={{ x: left, opacity: fade, willChange: "transform, opacity" }}>
             <DeviceImg src={SCREEN_SRC.scoring} alt={t("roomA")} sizes="(max-width: 700px) 90vw, 440px" />
             <div style={{ marginTop: 20, fontFamily: HEADING, fontSize: 12, letterSpacing: "0.2em", color: INK }}>{t("roomA")}</div>
           </motion.div>
-          <motion.div style={{ x: right, opacity: fade }}>
+          <motion.div style={{ x: right, opacity: fade, willChange: "transform, opacity" }}>
             <DeviceImg src={SCREEN_SRC.winner} alt={t("roomB")} sizes="(max-width: 700px) 90vw, 440px" />
             <div style={{ marginTop: 20, fontFamily: HEADING, fontSize: 12, letterSpacing: "0.2em", color: INK }}>{t("roomB")}</div>
           </motion.div>
@@ -455,8 +514,6 @@ function Features() {
             padding: "28px 24px 32px",
             borderRadius: 24,
             background: GLASS_BG,
-            backdropFilter: GLASS_BLUR,
-            WebkitBackdropFilter: GLASS_BLUR,
             border: `1px solid ${BORDER}`,
             boxShadow: "0 1px 2px rgba(0,0,0,0.4), 0 12px 24px rgba(0,0,0,0.35), 0 32px 56px rgba(0,0,0,0.3)",
             minHeight: 200,
@@ -471,8 +528,25 @@ function Features() {
   );
 }
 
-export default function PilotIntro() {
+export default function PilotIntro({ variant = "member" }: { variant?: "member" | "page" }) {
   const t = useTranslations("memberPilotIntro");
+  if (variant === "page") {
+    return (
+      <div style={{ fontFamily: FONT_FAMILY, color: INK }}>
+        <Hero page />
+        <WallStage page />
+        <div style={{ maxWidth: 1120, margin: "0 auto", padding: `${sectionPad} 20px ${sectionPad}` }}>
+          <Rooms />
+          <div style={{ paddingTop: sectionPad }}>
+            <ScrollWords text={t("wordsText")} />
+          </div>
+          <div style={{ paddingTop: "clamp(64px, 12vh, 120px)" }}>
+            <Features />
+          </div>
+        </div>
+      </div>
+    );
+  }
   return (
     <div style={{ fontFamily: FONT_FAMILY, color: INK, paddingBottom: sectionPad }}>
       <div style={{ fontSize: 11, color: SUBTLE, textAlign: "center", paddingTop: 8 }}>{t("adminOnly")}</div>
