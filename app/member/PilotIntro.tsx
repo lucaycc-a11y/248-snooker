@@ -298,7 +298,7 @@ function StepDot({ index, progress }: { index: number; progress: MotionValue<num
   return <motion.span style={{ width: 4, height: 8, borderRadius: 3, background: GREEN, opacity, scaleY, display: "block" }} />;
 }
 
-function WallStage({ page = false }: { page?: boolean }) {
+function WallStage({ page = false, bleed = false }: { page?: boolean; bleed?: boolean }) {
   const reduce = useReducedMotion();
   const ref = useRef<HTMLDivElement>(null);
   const { scrollYProgress } = useScroll({ target: ref, offset: ["start start", "end end"] });
@@ -308,7 +308,7 @@ function WallStage({ page = false }: { page?: boolean }) {
   const lift = useTransform(scrollYProgress, [0, 0.32], [reduce ? 0 : 30, 0], { ease: ZOOM_EASE });
   const tilt = useTransform(scrollYProgress, [0, 0.32], [reduce ? 0 : 9, 0], { ease: ZOOM_EASE });
   return (
-    <div ref={ref} style={{ height: "340vh", position: "relative" }}>
+    <div ref={ref} style={{ height: "340vh", position: "relative", ...(bleed ? { width: "100vw", marginLeft: "calc(50% - 50vw)" } : {}) }}>
       <div
         style={{
           position: "sticky",
@@ -551,10 +551,10 @@ export default function PilotIntro({ variant = "member" }: { variant?: "member" 
     );
   }
   return (
-    <div style={{ fontFamily: FONT_FAMILY, color: INK, paddingBottom: sectionPad }}>
+    <div style={{ fontFamily: FONT_FAMILY, color: INK, paddingBottom: sectionPad, overflowX: "clip" }}>
       <div style={{ fontSize: 11, color: SUBTLE, textAlign: "center", paddingTop: 8 }}>{t("adminOnly")}</div>
       <Hero />
-      <WallStage />
+      <WallStage page bleed />
       <div style={{ paddingTop: sectionPad }}>
         <Rooms />
       </div>
