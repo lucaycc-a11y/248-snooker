@@ -30,6 +30,7 @@ import {
 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import PilotTab from "./PilotTab";
+import PilotIntro from "./PilotIntro";
 import { CHANGE_REQUEST_COOLDOWN } from "@/lib/auth/change-constants";
 import { BackButton } from "@/components/shared/BackButton";
 import { resolveTier, type Tier } from "@/lib/data/pricing";
@@ -83,7 +84,7 @@ const TIER_GLOW: Record<string, string> = {
 // Display names for tier IDs — see lib/member/tierDisplay.ts (single source
 // of truth). This module renders localized long-form names via tierLabel().
 
-type TabId = "overview" | "bookings" | "wallet" | "points" | "settings" | "access" | "help" | "pilot";
+type TabId = "overview" | "bookings" | "wallet" | "points" | "settings" | "access" | "help" | "pilot" | "pilotIntro";
 
 // Number of days after which a past booking moves to "History"
 const RECENT_DAYS = 30
@@ -169,10 +170,30 @@ export default function MemberDashboard({
   // Honour a ?tab= deep-link (e.g. the account menu's "Settings" → /member?tab=settings).
   const initialTab: TabId = ((): TabId => {
     const q = searchParams.get("tab");
-    if (q === "bookings" || q === "points" || q === "settings" || q === "access" || q === "help" || q === "pilot") return q;
+    if (q === "bookings" || q === "points" || q === "settings" || q === "access" || q === "help" || q === "pilot" || q === "pilotIntro") return q;
     return "overview";
   })();
   const [tab, setTab] = useState<TabId>(initialTab);
+  // Space Pilot intro tab is an admin-only preview: hidden until the API confirms admin.
+  const [isAdmin, setIsAdmin] = useState(false);
+  useEffect(() => {
+    let cancelled = false;
+    void (async () => {
+      try {
+        const res = await fetch("/api/member/check-admin", { cache: "no-store" });
+        if (!res.ok) return;
+        const json: unknown = await res.json().catch(() => null);
+        if (!cancelled && typeof json === "object" && json !== null && (json as Record<string, unknown>).isAdmin === true) {
+          setIsAdmin(true);
+        }
+      } catch {
+        /* stay hidden */
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
   const [fadeVisible, setFadeVisible] = useState(false);
   const tabsRef = useRef<HTMLDivElement>(null);
   const [qrBooking, setQrBooking] = useState<MemberBooking | null>(null);
@@ -439,6 +460,7 @@ export default function MemberDashboard({
             { id: "settings" as TabId, key: "tab_settings", icon: <Settings2 size={15} strokeWidth={2} /> },
             { id: "access" as TabId, key: "tab_access", icon: <QrCodeIcon size={15} strokeWidth={2} /> },
             { id: "pilot" as TabId, key: "tab_pilot", icon: <Trophy size={15} strokeWidth={2} /> },
+            ...(isAdmin ? [{ id: "pilotIntro" as TabId, key: "tab_pilot_intro", icon: <Sparkles size={15} strokeWidth={2} /> }] : []),
             { id: "help" as TabId, key: "tab_help", icon: <HelpCircle size={15} strokeWidth={2} /> },
           ]).map((tabItem) => {
             const active = tab === tabItem.id;
@@ -570,6 +592,7 @@ export default function MemberDashboard({
                 <MemberQrGuide memberCode={user.member_code} qrDataUrl={memberQrDataUrl} />
               )}
               {tab === "pilot" && <PilotTab />}
+              {tab === "pilotIntro" && isAdmin && <PilotIntro />}
               {tab === "help" && (
                 <HelpCentre locale={locale as "zh-HK" | "zh-CN" | "en"} />
               )}

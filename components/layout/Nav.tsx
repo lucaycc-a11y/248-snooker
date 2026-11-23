@@ -1,6 +1,7 @@
 'use client'
 
 import { useV802 } from '@/lib/feature/use-v802'
+import { useIsAdmin } from '@/lib/feature/use-is-admin'
 import { useState, useEffect } from 'react'
 import type { CSSProperties } from 'react'
 import { useLocale, useTranslations } from 'next-intl'
@@ -61,6 +62,9 @@ export default function Nav() {
   const locale = useLocale()
   const t = useTranslations('nav')
   const v802 = useV802() // admin-only while 8.0.2 is a test build
+  const isAdmin = useIsAdmin()
+  // Space Pilot (beta) is admin-only until it opens to a small group of players.
+  const links = isAdmin ? [...navItems, { href: '/spacepilot', key: 'spacepilot' } as const] : navItems
 
   // Locale-aware returnUrl for OAuth redirects (re-attaches locale prefix for non-default locales)
   const returnUrl = locale === DEFAULT_LOCALE ? pathname : `/${locale}${pathname}`
@@ -364,7 +368,7 @@ export default function Nav() {
             padding: '11px 26px',
           }}
         >
-          {navItems.map((item) => {
+          {links.map((item) => {
             const active = pathname === item.href
             return (
               <Link
@@ -614,7 +618,7 @@ export default function Nav() {
                 width: '100%',
               }}
             >
-              {navItems.map((item) => (
+              {links.map((item) => (
                 <Link
                   key={item.href}
                   href={item.href}

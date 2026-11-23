@@ -1,0 +1,492 @@
+"use client";
+
+import { useRef } from "react";
+import Image from "next/image";
+import {
+  motion,
+  useReducedMotion,
+  useScroll,
+  useTransform,
+  type MotionValue,
+} from "framer-motion";
+import { useTranslations } from "next-intl";
+
+// Space Pilot intro for the member page (admin-only preview tab).
+// Scroll story: hero → wall zoom-out with the iPad demo → two linked rooms → feature cards.
+// Visual tokens match MemberDashboard (black base, glass cards, #22C55E accent, Good Times headings).
+
+const INK = "#f5f5f7";
+const SUBTLE = "#A1A1A6";
+const BORDER = "rgba(255,255,255,0.1)";
+const GREEN = "#22C55E";
+const GLASS_BG = "rgba(255,255,255,0.05)";
+const GLASS_BLUR = "blur(20px) saturate(180%)";
+const FONT_FAMILY =
+  "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', 'PingFang HK', 'Noto Sans TC', 'Helvetica Neue', Helvetica, Arial, sans-serif";
+const HEADING = "'Good Times', 'Noto Sans TC', system-ui, sans-serif";
+const EASE = [0.16, 1, 0.3, 1] as const;
+
+// Layered shadow: tight contact line + mid + soft ambient, like a device mounted on a wall.
+const DEVICE_SHADOW =
+  "drop-shadow(0 1px 1px rgba(0,0,0,0.65)) drop-shadow(0 10px 14px rgba(0,0,0,0.5)) drop-shadow(0 34px 42px rgba(0,0,0,0.45))";
+
+const SCREENS = ["dashboard", "race", "scoring", "winner"] as const;
+type ScreenId = (typeof SCREENS)[number];
+const SCREEN_SRC: Record<ScreenId, string> = {
+  dashboard: "/pilot-intro/ipad-dashboard.webp",
+  race: "/pilot-intro/ipad-race.webp",
+  scoring: "/pilot-intro/ipad-scoring.webp",
+  winner: "/pilot-intro/ipad-winner.webp",
+};
+
+const sectionPad = "clamp(96px, 18vh, 200px)";
+
+function Kicker({ children }: { children: string }) {
+  return (
+    <div
+      style={{
+        fontFamily: HEADING,
+        fontSize: 12,
+        letterSpacing: "0.22em",
+        color: GREEN,
+        textTransform: "uppercase",
+      }}
+    >
+      {children}
+    </div>
+  );
+}
+
+function BigTitle({ children, size = "clamp(34px, 7vw, 64px)" }: { children: React.ReactNode; size?: string }) {
+  return (
+    <h2
+      style={{
+        margin: "18px 0 0",
+        fontFamily: FONT_FAMILY,
+        fontSize: size,
+        fontWeight: 700,
+        lineHeight: 1.12,
+        letterSpacing: "-0.02em",
+        color: INK,
+      }}
+    >
+      {children}
+    </h2>
+  );
+}
+
+function Reveal({ children, delay = 0 }: { children: React.ReactNode; delay?: number }) {
+  const reduce = useReducedMotion();
+  return (
+    <motion.div
+      initial={reduce ? false : { opacity: 0, y: 36 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true, margin: "-12% 0px" }}
+      transition={{ duration: 0.9, ease: EASE, delay }}
+    >
+      {children}
+    </motion.div>
+  );
+}
+
+function Word({ word, progress, start, end }: { word: string; progress: MotionValue<number>; start: number; end: number }) {
+  const opacity = useTransform(progress, [start, end], [0.22, 1]);
+  return (
+    <motion.span style={{ opacity }}>
+      {word}
+    </motion.span>
+  );
+}
+
+// Greyed text that "lights up" word by word while scrolling (the Apple paragraph reveal).
+function ScrollWords({ text }: { text: string }) {
+  const ref = useRef<HTMLParagraphElement>(null);
+  const { scrollYProgress } = useScroll({ target: ref, offset: ["start 0.85", "end 0.45"] });
+  // Chinese has no spaces, so split into chunks at punctuation and fall back to short slices.
+  const chunks = text.match(/[^，。、；,.\s]+[，。、；,.\s]*/g) ?? [text];
+  const pieces = chunks.flatMap((c) => (c.length > 8 && !/\s/.test(c) ? c.match(/.{1,6}/g) ?? [c] : [c]));
+  const n = pieces.length;
+  return (
+    <p
+      ref={ref}
+      style={{
+        margin: 0,
+        fontSize: "clamp(24px, 4.6vw, 40px)",
+        fontWeight: 600,
+        lineHeight: 1.45,
+        letterSpacing: "-0.01em",
+        color: INK,
+        textAlign: "center",
+        maxWidth: 760,
+        marginInline: "auto",
+      }}
+    >
+      {pieces.map((w, i) => (
+        <Word key={`${i}-${w}`} word={w} progress={scrollYProgress} start={i / n} end={Math.min(1, (i + 1.6) / n)} />
+      ))}
+    </p>
+  );
+}
+
+function DeviceImg({ src, alt, priority = false, sizes }: { src: string; alt: string; priority?: boolean; sizes: string }) {
+  return (
+    <Image
+      src={src}
+      alt={alt}
+      width={1400}
+      height={992}
+      sizes={sizes}
+      priority={priority}
+      style={{ width: "100%", height: "auto", display: "block", filter: DEVICE_SHADOW }}
+    />
+  );
+}
+
+// ─── Section 1: hero ────────────────────────────────────────────────────────
+function Hero() {
+  const t = useTranslations("memberPilotIntro");
+  const ref = useRef<HTMLDivElement>(null);
+  const { scrollYProgress } = useScroll({ target: ref, offset: ["start start", "end start"] });
+  const opacity = useTransform(scrollYProgress, [0, 0.7], [1, 0]);
+  const y = useTransform(scrollYProgress, [0, 1], [0, -60]);
+  return (
+    <div
+      ref={ref}
+      style={{ minHeight: "88vh", display: "flex", alignItems: "center", justifyContent: "center", textAlign: "center", padding: "0 8px" }}
+    >
+      <motion.div style={{ opacity, y }}>
+        <div style={{ display: "inline-flex", alignItems: "center", gap: 10 }}>
+          <Kicker>{t("kicker")}</Kicker>
+          <span
+            style={{
+              fontSize: 10,
+              letterSpacing: "0.14em",
+              padding: "3px 9px",
+              borderRadius: 999,
+              border: `1px solid ${GREEN}`,
+              color: GREEN,
+            }}
+          >
+            BETA
+          </span>
+        </div>
+        <h1
+          style={{
+            margin: "28px 0 0",
+            fontSize: "clamp(40px, 9vw, 84px)",
+            fontWeight: 700,
+            lineHeight: 1.08,
+            letterSpacing: "-0.025em",
+            color: INK,
+          }}
+        >
+          {t("heroTitle1")}
+          <br />
+          {t("heroTitle2")}
+        </h1>
+        <p style={{ margin: "28px auto 0", maxWidth: 520, fontSize: "clamp(16px, 2.4vw, 20px)", lineHeight: 1.7, color: SUBTLE }}>
+          {t("heroBody")}
+        </p>
+        <p style={{ margin: "14px auto 0", fontSize: 13, letterSpacing: "0.04em", color: GREEN }}>{t("betaNote")}</p>
+        <div style={{ marginTop: 56, color: SUBTLE, fontSize: 12, letterSpacing: "0.1em" }}>
+          {t("scroll")}
+          <motion.div
+            aria-hidden
+            animate={{ y: [0, 6, 0] }}
+            transition={{ duration: 1.8, repeat: Infinity, ease: "easeInOut" }}
+            style={{ marginTop: 8 }}
+          >
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M6 9l6 6 6-6" />
+            </svg>
+          </motion.div>
+        </div>
+      </motion.div>
+    </div>
+  );
+}
+
+// ─── Section 2: wall stage ──────────────────────────────────────────────────
+function Caption({ index, progress }: { index: number; progress: MotionValue<number> }) {
+  const t = useTranslations("memberPilotIntro");
+  const a = 0.34 + index * 0.17;
+  const opacity = useTransform(progress, [a - 0.04, a + 0.02, a + 0.13, a + 0.17], index === 3 ? [0, 1, 1, 1] : [0, 1, 1, 0]);
+  const y = useTransform(progress, [a - 0.04, a + 0.02], [18, 0]);
+  const n = index + 1;
+  return (
+    <motion.div
+      style={{ position: "absolute", left: 0, right: 0, bottom: 0, textAlign: "center", opacity, y, padding: "0 20px" }}
+    >
+      <div style={{ fontFamily: HEADING, fontSize: 11, letterSpacing: "0.2em", color: GREEN }}>{`0${n} / 04`}</div>
+      <div style={{ marginTop: 10, fontSize: "clamp(22px, 4.4vw, 34px)", fontWeight: 700, letterSpacing: "-0.015em", color: INK }}>
+        {t(`cap${n}Title` as "cap1Title")}
+      </div>
+      <div style={{ marginTop: 8, fontSize: "clamp(14px, 2.2vw, 16px)", color: "rgba(255,255,255,0.78)", lineHeight: 1.6 }}>
+        {t(`cap${n}Body` as "cap1Body")}
+      </div>
+    </motion.div>
+  );
+}
+
+function ScreenLayer({ id, index, progress }: { id: ScreenId; index: number; progress: MotionValue<number> }) {
+  const t = useTranslations("memberPilotIntro");
+  const a = 0.3 + index * 0.17;
+  const keys = index === 0 ? [0, 0.3, a + 0.16, a + 0.2] : [a - 0.04, a + 0.02, a + 0.16, a + 0.2];
+  const vals = index === 0 ? [1, 1, 1, 0] : index === 3 ? [0, 1, 1, 1] : [0, 1, 1, 0];
+  const opacity = useTransform(progress, keys, vals);
+  return (
+    <motion.div style={{ position: "absolute", inset: 0, opacity }}>
+      <DeviceImg src={SCREEN_SRC[id]} alt={index === 0 ? t("stageLabel") : ""} priority={index === 0} sizes="(max-width: 900px) 92vw, 860px" />
+    </motion.div>
+  );
+}
+
+function WallStage() {
+  const reduce = useReducedMotion();
+  const ref = useRef<HTMLDivElement>(null);
+  const { scrollYProgress } = useScroll({ target: ref, offset: ["start start", "end end"] });
+  const zoom = useTransform(scrollYProgress, [0, 0.32], [reduce ? 1 : 2.4, 1]);
+  const dim = useTransform(scrollYProgress, [0, 0.4], [0, 0.55]);
+  const glow = useTransform(scrollYProgress, [0.12, 0.42], [0, 1]);
+  const lift = useTransform(scrollYProgress, [0, 0.32], [reduce ? 0 : 30, 0]);
+  return (
+    <div ref={ref} style={{ height: "340vh", position: "relative" }}>
+      <div
+        style={{
+          position: "sticky",
+          top: 0,
+          height: "100svh",
+          overflow: "hidden",
+          borderRadius: 28,
+          border: `1px solid ${BORDER}`,
+          background: "#000",
+        }}
+      >
+        <motion.div style={{ position: "absolute", inset: 0, scale: zoom, transformOrigin: "50% 42%" }}>
+          <Image
+            src="/pilot-intro/wall.webp"
+            alt=""
+            fill
+            sizes="(max-width: 1200px) 100vw, 1200px"
+            style={{ objectFit: "cover", objectPosition: "50% 45%" }}
+          />
+          {/* soft light spill from the screen onto the fabric panels */}
+          <motion.div
+            aria-hidden
+            style={{
+              position: "absolute",
+              left: "8%",
+              right: "8%",
+              top: "6%",
+              height: "68%",
+              opacity: glow,
+              background: "radial-gradient(ellipse at 50% 50%, rgba(34,197,94,0.35) 0%, rgba(34,120,70,0.16) 45%, rgba(0,0,0,0) 72%)",
+              filter: "blur(44px)",
+            }}
+          />
+          <div
+            style={{
+              position: "absolute",
+              left: "50%",
+              top: "40%",
+              width: "min(88%, 880px)",
+              transform: "translate(-50%, -50%)",
+              aspectRatio: "1400 / 992",
+            }}
+          >
+            <motion.div style={{ position: "absolute", inset: 0, y: lift }}>
+              {SCREENS.map((id, i) => (
+                <ScreenLayer key={id} id={id} index={i} progress={scrollYProgress} />
+              ))}
+            </motion.div>
+          </div>
+        </motion.div>
+        {/* darken the room as the story starts */}
+        <motion.div aria-hidden style={{ position: "absolute", inset: 0, background: "#000", opacity: dim, pointerEvents: "none" }} />
+        <div
+          aria-hidden
+          style={{
+            position: "absolute",
+            inset: 0,
+            background: "radial-gradient(ellipse 70% 70% at 50% 42%, rgba(0,0,0,0) 40%, rgba(0,0,0,0.7) 100%)",
+            pointerEvents: "none",
+          }}
+        />
+        <div
+          aria-hidden
+          style={{ position: "absolute", left: 0, right: 0, bottom: 0, height: "34%", background: "linear-gradient(180deg, rgba(0,0,0,0), rgba(0,0,0,0.88))", pointerEvents: "none" }}
+        />
+        <div style={{ position: "absolute", left: 0, right: 0, bottom: "clamp(28px, 7vh, 64px)", height: 120 }}>
+          {[0, 1, 2, 3].map((i) => (
+            <Caption key={i} index={i} progress={scrollYProgress} />
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ─── Section 3: two linked rooms ────────────────────────────────────────────
+function Rooms() {
+  const t = useTranslations("memberPilotIntro");
+  const reduce = useReducedMotion();
+  const ref = useRef<HTMLDivElement>(null);
+  const { scrollYProgress } = useScroll({ target: ref, offset: ["start 0.9", "center 0.5"] });
+  const line = useTransform(scrollYProgress, [0.1, 0.8], [0, 1]);
+  const left = useTransform(scrollYProgress, [0, 0.7], [reduce ? 0 : -48, 0]);
+  const right = useTransform(scrollYProgress, [0, 0.7], [reduce ? 0 : 48, 0]);
+  const fade = useTransform(scrollYProgress, [0, 0.5], [reduce ? 1 : 0, 1]);
+  const pill = useTransform(scrollYProgress, [0.55, 0.9], [0, 1]);
+  return (
+    <div ref={ref} style={{ textAlign: "center" }}>
+      <Reveal>
+        <Kicker>{t("roomsKicker")}</Kicker>
+        <BigTitle>{t("roomsTitle")}</BigTitle>
+        <p style={{ margin: "24px auto 0", maxWidth: 560, fontSize: "clamp(15px, 2.2vw, 18px)", lineHeight: 1.75, color: SUBTLE }}>
+          {t("roomsBody")}
+        </p>
+      </Reveal>
+      <div style={{ position: "relative", marginTop: 64 }}>
+        <div
+          aria-hidden
+          style={{
+            position: "absolute",
+            left: "10%",
+            right: "10%",
+            top: "50%",
+            height: 280,
+            transform: "translateY(-50%)",
+            background: "radial-gradient(ellipse at 50% 50%, rgba(34,197,94,0.18) 0%, rgba(0,0,0,0) 65%)",
+            filter: "blur(40px)",
+            pointerEvents: "none",
+          }}
+        />
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 300px), 1fr))", gap: "clamp(40px, 9vw, 96px)", position: "relative" }}>
+          <motion.div style={{ x: left, opacity: fade }}>
+            <DeviceImg src={SCREEN_SRC.scoring} alt={t("roomA")} sizes="(max-width: 700px) 90vw, 440px" />
+            <div style={{ marginTop: 20, fontFamily: HEADING, fontSize: 12, letterSpacing: "0.2em", color: INK }}>{t("roomA")}</div>
+          </motion.div>
+          <motion.div style={{ x: right, opacity: fade }}>
+            <DeviceImg src={SCREEN_SRC.winner} alt={t("roomB")} sizes="(max-width: 700px) 90vw, 440px" />
+            <div style={{ marginTop: 20, fontFamily: HEADING, fontSize: 12, letterSpacing: "0.2em", color: INK }}>{t("roomB")}</div>
+          </motion.div>
+        </div>
+      </div>
+      <div style={{ marginTop: 56, position: "relative", height: 36, display: "flex", alignItems: "center", justifyContent: "center" }}>
+        <motion.div
+          aria-hidden
+          style={{
+            position: "absolute",
+            left: "6%",
+            right: "6%",
+            height: 2,
+            scaleX: line,
+            transformOrigin: "50% 50%",
+            background: `linear-gradient(90deg, rgba(34,197,94,0), ${GREEN}, rgba(34,197,94,0))`,
+            boxShadow: "0 0 18px rgba(34,197,94,0.8)",
+          }}
+        />
+        <motion.span
+          style={{
+            opacity: pill,
+            position: "relative",
+            display: "inline-flex",
+            alignItems: "center",
+            gap: 8,
+            padding: "7px 16px",
+            borderRadius: 999,
+            fontSize: 12,
+            letterSpacing: "0.16em",
+            color: GREEN,
+            background: "#000",
+            border: `1px solid ${GREEN}`,
+          }}
+        >
+          <motion.span
+            aria-hidden
+            animate={reduce ? undefined : { opacity: [1, 0.3, 1] }}
+            transition={{ duration: 1.6, repeat: Infinity }}
+            style={{ width: 7, height: 7, borderRadius: 999, background: GREEN }}
+          />
+          {t("live")}
+        </motion.span>
+      </div>
+      <Reveal delay={0.1}>
+        <a
+          href="/book"
+          style={{
+            display: "inline-block",
+            marginTop: 40,
+            padding: "14px 32px",
+            borderRadius: 999,
+            background: GREEN,
+            color: "#04130a",
+            fontSize: 16,
+            fontWeight: 700,
+            textDecoration: "none",
+          }}
+        >
+          {t("cta")}
+        </a>
+      </Reveal>
+    </div>
+  );
+}
+
+// ─── Section 4: feature cards ───────────────────────────────────────────────
+function Features() {
+  const t = useTranslations("memberPilotIntro");
+  const items = [
+    { n: "01", title: t("f1Title"), body: t("f1Body") },
+    { n: "02", title: t("f2Title"), body: t("f2Body") },
+    { n: "03", title: t("f3Title"), body: t("f3Body") },
+  ];
+  return (
+    <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 240px), 1fr))", gap: 16 }}>
+      {items.map((it, i) => (
+        <motion.div
+          key={it.n}
+          initial={{ opacity: 0, y: 40 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, margin: "-10% 0px" }}
+          transition={{ duration: 0.8, ease: EASE, delay: i * 0.1 }}
+          whileHover={{ y: -4 }}
+          style={{
+            padding: "28px 24px 32px",
+            borderRadius: 24,
+            background: GLASS_BG,
+            backdropFilter: GLASS_BLUR,
+            WebkitBackdropFilter: GLASS_BLUR,
+            border: `1px solid ${BORDER}`,
+            boxShadow: "0 1px 2px rgba(0,0,0,0.4), 0 12px 24px rgba(0,0,0,0.35), 0 32px 56px rgba(0,0,0,0.3)",
+            minHeight: 200,
+          }}
+        >
+          <div style={{ fontFamily: HEADING, fontSize: 12, letterSpacing: "0.2em", color: GREEN }}>{it.n}</div>
+          <div style={{ marginTop: 40, fontSize: 22, fontWeight: 700, letterSpacing: "-0.01em", color: INK }}>{it.title}</div>
+          <div style={{ marginTop: 10, fontSize: 15, lineHeight: 1.7, color: SUBTLE }}>{it.body}</div>
+        </motion.div>
+      ))}
+    </div>
+  );
+}
+
+export default function PilotIntro() {
+  const t = useTranslations("memberPilotIntro");
+  return (
+    <div style={{ fontFamily: FONT_FAMILY, color: INK, paddingBottom: sectionPad }}>
+      <div style={{ fontSize: 11, color: SUBTLE, textAlign: "center", paddingTop: 8 }}>{t("adminOnly")}</div>
+      <Hero />
+      <WallStage />
+      <div style={{ paddingTop: sectionPad }}>
+        <Rooms />
+      </div>
+      <div style={{ paddingTop: sectionPad }}>
+        <ScrollWords text={t("wordsText")} />
+      </div>
+      <div style={{ paddingTop: "clamp(64px, 12vh, 120px)" }}>
+        <Features />
+      </div>
+    </div>
+  );
+}
