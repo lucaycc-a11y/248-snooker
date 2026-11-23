@@ -4371,6 +4371,11 @@
     "rivals_empty": "Your head-to-head records appear after your first match.",
     "rival_matches": "{matches} matches",
     "poster_share": "Share poster",
-    "me": "Me"
+    "me": "Me",
+    "clips_title": "My highlights",
+    "clips_hint": "Kept for 30 days. Download as a Space Pilot framed video.",
+    "clips_empty": "Scan a clip QR after a match to save highlights here.",
+    "clip_frame_45": "Frame 4:5",
+    "clip_frame_916": "Frame 9:16"
   }
 }

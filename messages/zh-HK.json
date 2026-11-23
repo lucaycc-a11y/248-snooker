@@ -3598,6 +3598,11 @@
     "rivals_empty": "打完對戰就會出現對手紀錄。",
     "rival_matches": "共 {matches} 場",
     "poster_share": "分享海報",
-    "me": "我"
+    "me": "我",
+    "clips_title": "我的精華",
+    "clips_hint": "保存 30 日。可以下載成 Space Pilot Frame 影片。",
+    "clips_empty": "比賽有精彩片段，掃描手機鏡頭或 iPad 上嘅 QR，就可以存入呢度。",
+    "clip_frame_45": "Frame 4:5",
+    "clip_frame_916": "Frame 9:16"
   }
 }

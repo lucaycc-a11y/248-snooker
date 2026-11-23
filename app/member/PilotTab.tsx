@@ -4,6 +4,7 @@ import { useCallback, useEffect, useState } from "react";
 import { useTranslations } from "next-intl";
 import type { PilotMatch, PilotStats } from "@/lib/member/pilot-rpc";
 import PilotInsights from "./PilotInsights";
+import PilotClips from "./PilotClips";
 import { renderPosterBlob } from "./pilot-poster";
 
 type PilotPhoto = { id: string; kind: string; createdAt: string; url: string | null };
@@ -179,6 +180,8 @@ export default function PilotTab() {
       ) : null}
 
       <PilotInsights />
+
+      <PilotClips />
 
       <section style={CARD_STYLE} aria-label={t("records")}>
         <h3 style={{ margin: "0 0 12px", fontSize: 16 }}>{t("records")}</h3>

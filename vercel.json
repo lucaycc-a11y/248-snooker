@@ -7,6 +7,10 @@
     {
       "path": "/api/cron/violation-cases",
       "schedule": "0 1 * * *"
+    },
+    {
+      "path": "/api/cron/pilot-clips-cleanup",
+      "schedule": "15 19 * * *"
     }
   ]
 }

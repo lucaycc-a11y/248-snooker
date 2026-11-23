@@ -4371,6 +4371,11 @@
     "rivals_empty": "打完对战就会出现对手记录。",
     "rival_matches": "共 {matches} 场",
     "poster_share": "分享海报",
-    "me": "我"
+    "me": "我",
+    "clips_title": "我的精华",
+    "clips_hint": "保存 30 天。可以下载成 Space Pilot Frame 视频。",
+    "clips_empty": "比赛有精彩片段，扫描 QR 就可以存入这里。",
+    "clip_frame_45": "Frame 4:5",
+    "clip_frame_916": "Frame 9:16"
   }
 }
