@@ -12,10 +12,26 @@ export function BottomLinks() {
   const t = useTranslations('member')
   const tp = useTranslations('memberPilot')
   const [version, setVersion] = useState<string>('')
+  // Space Pilot is an admin-only beta: stays locked until the API says otherwise.
+  const [pilotEnabled, setPilotEnabled] = useState(false)
 
   useEffect(() => {
     loadVersion()
+    void loadPilotAccess()
   }, [])
+
+  const loadPilotAccess = async () => {
+    try {
+      const res = await fetch('/api/member/pilot', { cache: 'no-store' })
+      if (!res.ok) return
+      const json: unknown = await res.json().catch(() => null)
+      if (typeof json === 'object' && json !== null && (json as Record<string, unknown>).enabled === true) {
+        setPilotEnabled(true)
+      }
+    } catch {
+      /* stay locked */
+    }
+  }
 
   const loadVersion = async () => {
     try {
@@ -38,6 +54,8 @@ export function BottomLinks() {
           icon={Trophy}
           title={tp('menu_title')}
           subtitle={tp('menu_subtitle')}
+          disabled={!pilotEnabled}
+          badge={tp('beta')}
         />
         <BottomLink
           href="/member/settings"
@@ -84,9 +102,36 @@ type BottomLinkProps = {
   icon: LucideIcon
   title: string
   subtitle: string
+  disabled?: boolean
+  badge?: string
 }
 
-function BottomLink({ href, icon: Icon, title, subtitle }: BottomLinkProps) {
+function BottomLink({ href, icon: Icon, title, subtitle, disabled = false, badge }: BottomLinkProps) {
+  if (disabled) {
+    return (
+      <div
+        aria-disabled="true"
+        className="lg-glass flex cursor-not-allowed select-none items-center justify-between rounded-xl border border-white/10 p-4 opacity-40 grayscale"
+      >
+        <div className="flex items-center gap-3">
+          <div className="flex h-10 w-10 items-center justify-center rounded-full bg-white/5">
+            <Icon className="h-5 w-5 text-white" strokeWidth={1.5} />
+          </div>
+          <div>
+            <p className="flex items-center gap-2 font-medium text-white">
+              {title}
+              {badge && (
+                <span className="rounded-full border border-white/30 px-2 py-0.5 text-[10px] font-semibold tracking-wider text-white/80">
+                  {badge}
+                </span>
+              )}
+            </p>
+            <p className="text-xs text-white/50">{subtitle}</p>
+          </div>
+        </div>
+      </div>
+    )
+  }
   return (
     <a
       href={href}
