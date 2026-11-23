@@ -6,6 +6,13 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 const RPC_URL = 'https://wqmciwieiqvnswvspdyz.supabase.co/rest/v1/rpc/pilot_set_recording'
 const PUBLISHABLE_KEY = 'sb_publishable_KAycCemv78UlO3k6W1VWBA_LA2WreFg'
 
+const UPLOAD_URL = 'https://wqmciwieiqvnswvspdyz.supabase.co/functions/v1/cam-upload-url'
+const MAX_BYTES = 500 * 1024 * 1024
+const AUTO_STOP_BYTES = 450 * 1024 * 1024
+
+type UploadState = 'idle' | 'uploading' | 'done' | 'failed' | 'toolarge'
+type UrlResult = { ok: true; signedUrl: string } | { ok: false; message: string }
+
 type RpcResult = { ok: true } | { ok: false; message: string }
 
 function isRecord(v: unknown): v is Record<string, unknown> {
@@ -44,6 +51,46 @@ async function callRpc(room: string, pin: string, recording: boolean, keepalive 
   }
 }
 
+function uploadMessageFor(code: string): string {
+  if (code.includes('BAD_PIN')) return 'PIN 不正確'
+  if (code.includes('ROOM_NOT_FOUND')) return '找不到房間，請重新掃描 iPad 上的 QR'
+  if (code.includes('TOO_LARGE')) return '檔案超過 500 MB，請下載保存'
+  return '上傳失敗，請重試'
+}
+
+async function requestUploadUrl(room: string, pin: string, contentType: string, size: number): Promise<UrlResult> {
+  try {
+    const res = await fetch(UPLOAD_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', apikey: PUBLISHABLE_KEY },
+      body: JSON.stringify({ room, pin, content_type: contentType, size }),
+    })
+    const body: unknown = await res.json().catch(() => null)
+    if (res.ok && isRecord(body) && typeof body.signedUrl === 'string') {
+      return { ok: true, signedUrl: body.signedUrl }
+    }
+    const code = isRecord(body) && typeof body.message === 'string' ? body.message : ''
+    return { ok: false, message: uploadMessageFor(code) }
+  } catch {
+    return { ok: false, message: '連線失敗，上傳失敗，請重試' }
+  }
+}
+
+function putWithProgress(url: string, blob: Blob, contentType: string, onProgress: (pct: number) => void): Promise<boolean> {
+  return new Promise((resolve) => {
+    const xhr = new XMLHttpRequest()
+    xhr.open('PUT', url)
+    xhr.setRequestHeader('Content-Type', contentType)
+    xhr.upload.onprogress = (e) => {
+      if (e.lengthComputable) onProgress(Math.min(99, Math.round((e.loaded / e.total) * 100)))
+    }
+    xhr.onload = () => resolve(xhr.status >= 200 && xhr.status < 300)
+    xhr.onerror = () => resolve(false)
+    xhr.onabort = () => resolve(false)
+    xhr.send(blob)
+  })
+}
+
 function pickMime(): string | undefined {
   if (typeof MediaRecorder === 'undefined') return undefined
   const list = ['video/mp4', 'video/webm;codecs=vp9,opus', 'video/webm;codecs=vp8,opus', 'video/webm']
@@ -72,6 +119,9 @@ export default function CamPage() {
   const [busy, setBusy] = useState(false)
   const [downloadUrl, setDownloadUrl] = useState('')
   const [downloadExt, setDownloadExt] = useState('webm')
+  const [uploadState, setUploadState] = useState<UploadState>('idle')
+  const [progress, setProgress] = useState(0)
+  const [uploadError, setUploadError] = useState('')
 
   const videoRef = useRef<HTMLVideoElement>(null)
   const streamRef = useRef<MediaStream | null>(null)
@@ -80,6 +130,11 @@ export default function CamPage() {
   const flagOnRef = useRef(false) // server believes recording=true
   const roomRef = useRef('')
   const pinRef = useRef('')
+  const blobRef = useRef<Blob | null>(null)
+  const bytesRef = useRef(0)
+  const stopResolveRef = useRef<((b: Blob) => void) | null>(null)
+  const uploadStateRef = useRef<UploadState>('idle')
+  const stopRef = useRef<() => void>(() => undefined)
 
   useEffect(() => {
     const r = new URLSearchParams(window.location.search).get('room')
@@ -89,6 +144,19 @@ export default function CamPage() {
   }, [])
 
   useEffect(() => { pinRef.current = pin }, [pin])
+  useEffect(() => { uploadStateRef.current = uploadState }, [uploadState])
+
+  // Warn before leaving while an upload is running or has failed (footage would be lost).
+  useEffect(() => {
+    const warn = (e: BeforeUnloadEvent) => {
+      if (uploadStateRef.current === 'uploading' || uploadStateRef.current === 'failed') {
+        e.preventDefault()
+        e.returnValue = ''
+      }
+    }
+    window.addEventListener('beforeunload', warn)
+    return () => window.removeEventListener('beforeunload', warn)
+  }, [])
 
   useEffect(() => {
     if (!recording) return
@@ -148,6 +216,33 @@ export default function CamPage() {
     return r.ok
   }, [])
 
+  const upload = useCallback(async (blob: Blob) => {
+    setUploadError('')
+    if (blob.size > MAX_BYTES) {
+      setUploadState('toolarge')
+      setUploadError('檔案超過 500 MB，請下載保存')
+      return
+    }
+    const baseType = (blob.type || 'video/webm').split(';')[0].trim()
+    setProgress(0)
+    setUploadState('uploading')
+    const r = await requestUploadUrl(roomRef.current, pinRef.current, baseType, blob.size)
+    if (!r.ok) {
+      setUploadState('failed')
+      setUploadError(r.message)
+      return
+    }
+    const ok = await putWithProgress(r.signedUrl, blob, baseType, setProgress)
+    if (ok) {
+      setProgress(100)
+      setUploadState('done')
+      blobRef.current = null
+    } else {
+      setUploadState('failed')
+      setUploadError('上傳失敗，請重試')
+    }
+  }, [])
+
   const start = useCallback(async () => {
     if (!room || !streamRef.current || busy) return
     setError('')
@@ -167,12 +262,28 @@ export default function CamPage() {
       chunksRef.current = []
       const mime = pickMime()
       const rec = new MediaRecorder(streamRef.current, mime ? { mimeType: mime } : undefined)
-      rec.ondataavailable = (e) => { if (e.data.size > 0) chunksRef.current.push(e.data) }
+      bytesRef.current = 0
+      blobRef.current = null
+      setUploadState('idle')
+      setUploadError('')
+      rec.ondataavailable = (e) => {
+        if (e.data.size > 0) {
+          chunksRef.current.push(e.data)
+          bytesRef.current += e.data.size
+          if (bytesRef.current >= AUTO_STOP_BYTES && rec.state === 'recording') {
+            setError('錄影檔案接近 500 MB 上限，已自動停止錄影')
+            stopRef.current()
+          }
+        }
+      }
       rec.onstop = () => {
         const type = rec.mimeType || mime || 'video/webm'
         const blob = new Blob(chunksRef.current, { type })
+        blobRef.current = blob
         setDownloadExt(type.includes('mp4') ? 'mp4' : 'webm')
         setDownloadUrl(URL.createObjectURL(blob))
+        stopResolveRef.current?.(blob)
+        stopResolveRef.current = null
       }
       rec.start(1000)
       recorderRef.current = rec
@@ -190,11 +301,27 @@ export default function CamPage() {
     if (busy) return
     setBusy(true)
     const rec = recorderRef.current
-    if (rec && rec.state !== 'inactive') rec.stop()
+    let blobP: Promise<Blob> | null = null
+    if (rec && rec.state !== 'inactive') {
+      blobP = new Promise<Blob>((resolve) => { stopResolveRef.current = resolve })
+      rec.stop()
+    }
     setRecording(false)
     await releaseFlag()
+    if (blobP) {
+      const blob = await blobP
+      setBusy(false)
+      await upload(blob)
+      return
+    }
     setBusy(false)
-  }, [busy, releaseFlag])
+  }, [busy, releaseFlag, upload])
+
+  useEffect(() => { stopRef.current = () => { void stop() } }, [stop])
+
+  const retryUpload = useCallback(async () => {
+    if (blobRef.current) await upload(blobRef.current)
+  }, [upload])
 
   const retry = useCallback(async () => {
     setBusy(true)
@@ -239,6 +366,25 @@ export default function CamPage() {
         ) : null}
       </div>
 
+      {recording ? <p style={{ margin: 0, textAlign: 'center', fontSize: 14, color: 'rgba(255,255,255,0.8)' }}>此房間設有錄影</p> : null}
+      {uploadState !== 'idle' ? (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+          {uploadState === 'uploading' ? (
+            <>
+              <p style={{ margin: 0, fontSize: 14 }}>上傳中 {progress}%</p>
+              <div style={{ height: 8, borderRadius: 999, background: 'rgba(255,255,255,0.15)', overflow: 'hidden' }}>
+                <div style={{ width: `${progress}%`, height: '100%', background: '#fff', transition: 'width .2s' }} />
+              </div>
+            </>
+          ) : null}
+          {uploadState === 'done' ? <p style={{ margin: 0, fontSize: 14, color: '#7ee787' }}>上傳完成</p> : null}
+          {uploadState === 'failed' ? <p role="alert" style={{ margin: 0, fontSize: 14, color: '#ff8a80' }}>{uploadError || '上傳失敗，請重試'}</p> : null}
+          {uploadState === 'toolarge' ? <p role="alert" style={{ margin: 0, fontSize: 14, color: '#ffd27a' }}>檔案超過 500 MB，請下載保存</p> : null}
+          {uploadState === 'failed' ? (
+            <button type="button" onClick={retryUpload} style={{ ...pill, background: '#fff', color: '#000' }}>重試上傳</button>
+          ) : null}
+        </div>
+      ) : null}
       {error ? <p role="alert" style={{ margin: 0, color: '#ff8a80', fontSize: 14 }}>{error}</p> : null}
       {stopFailed ? (
         <button type="button" onClick={retry} disabled={busy} style={{ ...pill, background: '#ffd27a', color: '#000' }}>重試通知 iPad 結束錄影</button>
