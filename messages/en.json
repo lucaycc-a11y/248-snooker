@@ -274,7 +274,8 @@
       "refund_policy": "Returns and refunds",
       "delivery_policy": "Delivery policy",
       "brand_statement": "Brand and logo statement",
-      "cookie_policy": "Cookie policy"
+      "cookie_policy": "Cookie policy",
+      "space_pilot": "Space Pilot data and AI training"
     }
   },
   "pricingPage": {

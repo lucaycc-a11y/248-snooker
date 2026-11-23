@@ -47,6 +47,7 @@ export default function LegalContent({
     { id: "refund_policy", label: nav.refund_policy },
     { id: "delivery_policy", label: nav.delivery_policy },
     { id: "brand_statement", label: nav.brand_statement },
+    { id: "space_pilot", label: nav.space_pilot },
   ]
 
   const selectDoc = (docId: LegalDocId) => {

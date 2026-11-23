@@ -24,6 +24,9 @@ import { brandStatementEn } from './brand-statement.en'
 import { cookiePolicyZhHK } from './cookie-policy.zh-HK'
 import { cookiePolicyZhCN } from './cookie-policy.zh-CN'
 import { cookiePolicyEn } from './cookie-policy.en'
+import { spacePilotZhHK } from './space-pilot.zh-HK'
+import { spacePilotZhCN } from './space-pilot.zh-CN'
+import { spacePilotEn } from './space-pilot.en'
 
 // Registry of the 7 legal documents × 3 locales = 21 static files. zh-HK is
 // the canonical source; zh-CN and en are faithful 1:1 translations (same
@@ -38,7 +41,7 @@ import { cookiePolicyEn } from './cookie-policy.en'
 // zh-HK is currently enabled. Legal documents remain accessible via direct URL
 // but closed locales redirect to zh-HK at the middleware level.
 
-export type LegalDocId = 'terms' | 'website_terms' | 'privacy' | 'accessibility' | 'refund_policy' | 'delivery_policy' | 'brand_statement' | 'cookie_policy'
+export type LegalDocId = 'terms' | 'website_terms' | 'privacy' | 'accessibility' | 'refund_policy' | 'delivery_policy' | 'brand_statement' | 'cookie_policy' | 'space_pilot'
 
 const REGISTRY: Record<LegalDocId, Record<Locale, LegalDocument>> = {
   terms: {
@@ -81,6 +84,11 @@ const REGISTRY: Record<LegalDocId, Record<Locale, LegalDocument>> = {
     'zh-CN': cookiePolicyZhCN,
     en: cookiePolicyEn,
   },
+  space_pilot: {
+    'zh-HK': spacePilotZhHK,
+    'zh-CN': spacePilotZhCN,
+    en: spacePilotEn,
+  },
 }
 
 export function getLegalDocument(docId: LegalDocId, locale: Locale): LegalDocument {
@@ -97,5 +105,6 @@ export function getAllLegalDocuments(locale: Locale): Record<LegalDocId, LegalDo
     delivery_policy: getLegalDocument('delivery_policy', locale),
     brand_statement: getLegalDocument('brand_statement', locale),
     cookie_policy: getLegalDocument('cookie_policy', locale),
+    space_pilot: getLegalDocument('space_pilot', locale),
   }
 }
