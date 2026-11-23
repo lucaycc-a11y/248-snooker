@@ -260,8 +260,8 @@ function Hero({ page = false }: { page?: boolean }) {
 function Caption({ index, progress }: { index: number; progress: MotionValue<number> }) {
   const t = useTranslations("memberPilotIntro");
   const a = 0.34 + index * 0.17;
-  const opacity = useTransform(progress, [a - 0.04, a + 0.02, a + 0.13, a + 0.17], index === 3 ? [0, 1, 1, 1] : [0, 1, 1, 0]);
-  const y = useTransform(progress, [a - 0.04, a + 0.02], [18, 0]);
+  const opacity = useTransform(progress, [a - 0.03, a + 0.01, a + 0.11, a + 0.14], index === 3 ? [0, 1, 1, 1] : [0, 1, 1, 0]);
+  const y = useTransform(progress, [a - 0.03, a + 0.01], [18, 0]);
   const n = index + 1;
   return (
     <motion.div
@@ -351,10 +351,19 @@ function WallStage({ page = false, bleed = false }: { page?: boolean; bleed?: bo
           <div
             style={{
               position: "absolute",
-              left: "50%",
-              top: "40%",
-              width: "min(88%, 880px)",
-              transform: "translate(-50%, -50%)",
+              left: 0,
+              right: 0,
+              top: 104,
+              bottom: 236,
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+            }}
+          >
+          <div
+            style={{
+              position: "relative",
+              width: "min(88vw, 880px, calc((100svh - 340px) * 1.411))",
               aspectRatio: "1400 / 992",
               perspective: 1400,
             }}
@@ -365,6 +374,7 @@ function WallStage({ page = false, bleed = false }: { page?: boolean; bleed?: bo
                 <ScreenLayer key={id} id={id} index={i} progress={scrollYProgress} />
               ))}
             </motion.div>
+          </div>
           </div>
         </motion.div>
         <div
