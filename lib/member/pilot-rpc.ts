@@ -147,3 +147,108 @@ export function parseInsights(data: unknown): PilotInsights | null {
     recap: { matches: num(rc.matches), wins: num(rc.wins), bestMonth: monthOrNull(rc.best_month), busiestMonth: monthOrNull(rc.busiest_month) },
   }
 }
+
+// ── Rotations (輪流賽) ───────────────────────────────────────────────────────
+
+export type RotationStyle = 'winnerStays' | 'roundRobin' | 'other'
+
+export type RotationPlayer = {
+  side: number
+  name: string
+  userId: string | null
+  isMe: boolean
+  score: number
+  isWinner: boolean
+}
+
+export type RotationMatch = {
+  id: string
+  seq: number
+  startedAt: string
+  scoreA: number
+  scoreB: number
+  players: RotationPlayer[]
+}
+
+export type PilotRotation = {
+  id: string
+  style: RotationStyle
+  startedAt: string
+  roomName: string
+  matches: RotationMatch[]
+}
+
+export type RotationRow = {
+  key: string
+  name: string
+  isMe: boolean
+  wins: number
+  losses: number
+  rank: number
+  mvp: boolean
+}
+
+function parseRotationPlayer(v: unknown): RotationPlayer | null {
+  if (!isRecord(v)) return null
+  const name = str(v.name).trim()
+  return {
+    side: num(v.side),
+    name: name || '—',
+    userId: typeof v.user_id === 'string' ? v.user_id : null,
+    isMe: v.is_me === true,
+    score: num(v.score),
+    isWinner: v.is_winner === true,
+  }
+}
+
+export function parseRotations(data: unknown): { enabled: boolean; rotations: PilotRotation[] } {
+  if (!isRecord(data) || data.enabled !== true) return { enabled: false, rotations: [] }
+  const rows = Array.isArray(data.rotations) ? data.rotations : []
+  const rotations: PilotRotation[] = []
+  for (const row of rows) {
+    if (!isRecord(row) || typeof row.id !== 'string') continue
+    const matches: RotationMatch[] = []
+    for (const m of Array.isArray(row.matches) ? row.matches : []) {
+      if (!isRecord(m) || typeof m.id !== 'string') continue
+      const players = (Array.isArray(m.players) ? m.players : [])
+        .map(parseRotationPlayer)
+        .filter((p): p is RotationPlayer => p !== null)
+      matches.push({ id: m.id, seq: num(m.seq), startedAt: str(m.started_at), scoreA: num(m.score_a), scoreB: num(m.score_b), players })
+    }
+    matches.sort((a, b) => a.seq - b.seq || a.startedAt.localeCompare(b.startedAt))
+    const style: RotationStyle = row.style === 'winnerStays' || row.style === 'roundRobin' ? row.style : 'other'
+    rotations.push({ id: row.id, style, startedAt: str(row.started_at), roomName: str(row.room_name), matches })
+  }
+  return { enabled: true, rotations }
+}
+
+/** Standings: wins / losses per player; equal wins share a rank; rank 1 (including ties) is MVP. */
+export function rotationStandings(rotation: PilotRotation): RotationRow[] {
+  const map = new Map<string, RotationRow>()
+  for (const m of rotation.matches) {
+    for (const p of m.players) {
+      const key = p.userId ?? `g:${p.name}`
+      const row = map.get(key) ?? { key, name: p.name, isMe: false, wins: 0, losses: 0, rank: 0, mvp: false }
+      if (p.isMe) row.isMe = true
+      if (p.isWinner) row.wins += 1
+      else row.losses += 1
+      map.set(key, row)
+    }
+  }
+  const rows = [...map.values()].sort((a, b) => b.wins - a.wins || a.losses - b.losses || a.name.localeCompare(b.name))
+  let rank = 0
+  rows.forEach((r, i) => {
+    if (i === 0 || r.wins !== rows[i - 1].wins) rank = i + 1
+    r.rank = rank
+    r.mvp = rank === 1 && r.wins > 0
+  })
+  return rows
+}
+
+/** Round robin progress: played matches vs n·(n−1)/2 for n players. */
+export function roundRobinProgress(rotation: PilotRotation): { played: number; total: number } {
+  const players = new Set<string>()
+  for (const m of rotation.matches) for (const p of m.players) players.add(p.userId ?? `g:${p.name}`)
+  const n = players.size
+  return { played: rotation.matches.length, total: (n * (n - 1)) / 2 }
+}

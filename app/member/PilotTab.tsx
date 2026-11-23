@@ -4,6 +4,7 @@ import { useCallback, useEffect, useState } from "react";
 import { useTranslations } from "next-intl";
 import type { PilotMatch, PilotStats } from "@/lib/member/pilot-rpc";
 import PilotInsights from "./PilotInsights";
+import PilotRotations from "./PilotRotations";
 import PilotClips from "./PilotClips";
 import { renderPosterBlob } from "./pilot-poster";
 
@@ -180,6 +181,7 @@ export default function PilotTab() {
       ) : null}
 
       <PilotInsights />
+      <PilotRotations />
 
       <PilotClips />
 
