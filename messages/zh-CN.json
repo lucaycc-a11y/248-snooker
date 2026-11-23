@@ -4360,6 +4360,17 @@
     "photo_alt": "Space Pilot 照片",
     "delete": "删除",
     "delete_yes": "确定删除",
-    "delete_no": "取消"
+    "delete_no": "取消",
+    "progress_title": "{year} 进步曲线",
+    "progress_empty": "今年还没有完成的对战，打完就能看到曲线。",
+    "progress_chart_label": "每月胜率",
+    "recap_line": "今年 {matches} 场，赢 {wins} 场，胜率 {rate}%。",
+    "recap_best": "最强月份：{month} 月。",
+    "recap_busiest": "最活跃月份：{month} 月。",
+    "rivals_title": "对手记录（Rival）",
+    "rivals_empty": "打完对战就会出现对手记录。",
+    "rival_matches": "共 {matches} 场",
+    "poster_share": "分享海报",
+    "me": "我"
   }
 }

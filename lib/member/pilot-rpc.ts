@@ -100,3 +100,54 @@ export function parseStats(data: unknown): PilotStats | null {
         : null,
   }
 }
+
+export type PilotRival = {
+  name: string
+  matches: number
+  myWins: number
+  theirWins: number
+  lastPlayed: string
+}
+
+export type PilotMonth = { month: number; matches: number; wins: number; winRate: number }
+
+export type PilotInsights = {
+  enabled: boolean
+  year: number
+  rivals: PilotRival[]
+  monthly: PilotMonth[]
+  recap: { matches: number; wins: number; bestMonth: number | null; busiestMonth: number | null }
+}
+
+function num(v: unknown): number {
+  return typeof v === 'number' && Number.isFinite(v) ? v : 0
+}
+
+function monthOrNull(v: unknown): number | null {
+  return typeof v === 'number' && v >= 1 && v <= 12 ? v : null
+}
+
+export function parseInsights(data: unknown): PilotInsights | null {
+  if (typeof data !== 'object' || data === null) return null
+  const d = data as Record<string, unknown>
+  if (d.enabled !== true) return null
+  const rivals = (Array.isArray(d.rivals) ? d.rivals : []).flatMap((r): PilotRival[] => {
+    if (typeof r !== 'object' || r === null) return []
+    const o = r as Record<string, unknown>
+    if (typeof o.name !== 'string') return []
+    return [{ name: o.name, matches: num(o.matches), myWins: num(o.my_wins), theirWins: num(o.their_wins), lastPlayed: typeof o.last_played === 'string' ? o.last_played : '' }]
+  })
+  const monthly = (Array.isArray(d.monthly) ? d.monthly : []).flatMap((m): PilotMonth[] => {
+    if (typeof m !== 'object' || m === null) return []
+    const o = m as Record<string, unknown>
+    return [{ month: num(o.month), matches: num(o.matches), wins: num(o.wins), winRate: num(o.win_rate) }]
+  })
+  const rc = typeof d.recap === 'object' && d.recap !== null ? (d.recap as Record<string, unknown>) : {}
+  return {
+    enabled: true,
+    year: num(d.year),
+    rivals,
+    monthly,
+    recap: { matches: num(rc.matches), wins: num(rc.wins), bestMonth: monthOrNull(rc.best_month), busiestMonth: monthOrNull(rc.busiest_month) },
+  }
+}

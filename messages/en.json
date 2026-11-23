@@ -4360,6 +4360,17 @@
     "photo_alt": "Space Pilot photo",
     "delete": "Delete",
     "delete_yes": "Delete",
-    "delete_no": "Cancel"
+    "delete_no": "Cancel",
+    "progress_title": "{year} progress",
+    "progress_empty": "No finished matches this year yet. Play one to see your curve.",
+    "progress_chart_label": "Monthly win rate",
+    "recap_line": "{matches} matches this year, {wins} wins, {rate}% win rate.",
+    "recap_best": "Best month: {month}.",
+    "recap_busiest": "Busiest month: {month}.",
+    "rivals_title": "Rivals",
+    "rivals_empty": "Your head-to-head records appear after your first match.",
+    "rival_matches": "{matches} matches",
+    "poster_share": "Share poster",
+    "me": "Me"
   }
 }

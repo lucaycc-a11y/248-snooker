@@ -3398,9 +3398,18 @@
               "label": "比賽球",
               "title": "Super Aramith Pro",
               "specs": [
-                ["品牌", "Aramith（比利時）"],
-                ["型號", "TV Pro-Cup"],
-                ["球組", "The Professional Tournament Set"]
+                [
+                  "品牌",
+                  "Aramith（比利時）"
+                ],
+                [
+                  "型號",
+                  "TV Pro-Cup"
+                ],
+                [
+                  "球組",
+                  "The Professional Tournament Set"
+                ]
               ]
             },
             "chalk": {
@@ -3578,6 +3587,17 @@
     "photo_alt": "Space Pilot 相片",
     "delete": "刪除",
     "delete_yes": "確定刪除",
-    "delete_no": "取消"
+    "delete_no": "取消",
+    "progress_title": "{year} 進步曲線",
+    "progress_empty": "今年未有完成嘅對戰，打完就會見到曲線。",
+    "progress_chart_label": "每月勝率",
+    "recap_line": "今年 {matches} 場，贏 {wins} 場，勝率 {rate}%。",
+    "recap_best": "最強月份：{month} 月。",
+    "recap_busiest": "最活躍月份：{month} 月。",
+    "rivals_title": "對手紀錄（Rival）",
+    "rivals_empty": "打完對戰就會出現對手紀錄。",
+    "rival_matches": "共 {matches} 場",
+    "poster_share": "分享海報",
+    "me": "我"
   }
 }

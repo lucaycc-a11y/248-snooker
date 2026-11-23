@@ -3,6 +3,8 @@
 import { useCallback, useEffect, useState } from "react";
 import { useTranslations } from "next-intl";
 import type { PilotMatch, PilotStats } from "@/lib/member/pilot-rpc";
+import PilotInsights from "./PilotInsights";
+import { renderPosterBlob } from "./pilot-poster";
 
 type PilotPhoto = { id: string; kind: string; createdAt: string; url: string | null };
 
@@ -70,6 +72,30 @@ export default function PilotTab() {
   useEffect(() => {
     void load();
   }, [load]);
+
+  async function sharePoster(m: PilotMatch) {
+    const blob = await renderPosterBlob(
+      m,
+      { won: t("won"), lost: t("lost"), game: m.game === "nineBall" ? t("game_nine") : t("game_eight"), me: t("me") },
+      t("me"),
+    );
+    if (!blob) return;
+    const file = new File([blob], `space-pilot-${m.id.slice(0, 8)}.png`, { type: "image/png" });
+    try {
+      if (typeof navigator.canShare === "function" && navigator.canShare({ files: [file] })) {
+        await navigator.share({ files: [file], title: "Space Pilot" });
+        return;
+      }
+    } catch {
+      return; // user cancelled the share sheet
+    }
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = file.name;
+    a.click();
+    URL.revokeObjectURL(url);
+  }
 
   async function removePhoto(id: string) {
     setConfirmId(null);
@@ -152,6 +178,8 @@ export default function PilotTab() {
         </div>
       ) : null}
 
+      <PilotInsights />
+
       <section style={CARD_STYLE} aria-label={t("records")}>
         <h3 style={{ margin: "0 0 12px", fontSize: 16 }}>{t("records")}</h3>
         {data.matches.length === 0 ? (
@@ -177,6 +205,11 @@ export default function PilotTab() {
                   </div>
                 </div>
                 <time style={{ fontSize: 12, color: "rgba(255,255,255,0.55)" }} dateTime={m.startedAt}>{formatDate(m.startedAt)}</time>
+                {m.finished ? (
+                  <button type="button" onClick={() => void sharePoster(m)} aria-label={t("poster_share")} style={{ minHeight: 36, padding: "0 12px", borderRadius: 10, fontSize: 12 }}>
+                    {t("poster_share")}
+                  </button>
+                ) : null}
               </li>
             ))}
           </ul>
