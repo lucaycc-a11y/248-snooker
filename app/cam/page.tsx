@@ -77,11 +77,27 @@ function CamInner() {
     setBusy((n) => n + 1)
     try {
       const { ext } = mimeRef.current
+      // AI title (MiMo; plain rules if it is unavailable). Never blocks the upload for long.
+      let label = ev.label
+      try {
+        const ai = await fetch('/api/pilot/ai/analyze', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ code, kind: ev.kind, label: ev.label, scoreA: ev.scoreA, scoreB: ev.scoreB, players: liveRef.current.players, game: '' }),
+          signal: AbortSignal.timeout(8000),
+        })
+        const j: unknown = await ai.json().catch(() => null)
+        if (ai.ok && typeof j === 'object' && j !== null && typeof (j as Record<string, unknown>).title === 'string') {
+          label = (j as Record<string, string>).title
+        }
+      } catch {
+        /* keep the rule label */
+      }
       const res = await fetch('/api/pilot/cam/upload', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          code, kind: ev.kind, label: ev.label, matchKey: matchKeyRef.current, scoreA: ev.scoreA, scoreB: ev.scoreB,
+          code, kind: ev.kind, label, matchKey: matchKeyRef.current, scoreA: ev.scoreA, scoreB: ev.scoreB,
           players: liveRef.current.players, durationMs: seg.end - seg.start, ext,
         }),
       })
@@ -98,7 +114,7 @@ function CamInner() {
         setNotice('影片上傳失敗。')
         return
       }
-      setUploads((list) => [{ id: o.path as string, shareToken: o.shareToken as string, label: ev.label }, ...list].slice(0, 8))
+      setUploads((list) => [{ id: o.path as string, shareToken: o.shareToken as string, label }, ...list].slice(0, 8))
     } finally {
       setBusy((n) => n - 1)
     }
