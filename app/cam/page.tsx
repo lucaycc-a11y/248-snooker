@@ -1,6 +1,7 @@
 'use client'
 
 import { useCallback, useEffect, useRef, useState } from 'react'
+import { PhoneLive, pollRpc, sendOfferRpc } from '@/lib/pilot/cam-live'
 
 // Publishable key: public by design (safe in client code). The PIN is typed by the user and never stored here.
 const RPC_URL = 'https://wqmciwieiqvnswvspdyz.supabase.co/rest/v1/rpc/pilot_set_recording'
@@ -122,6 +123,8 @@ export default function CamPage() {
   const [uploadState, setUploadState] = useState<UploadState>('idle')
   const [progress, setProgress] = useState(0)
   const [uploadError, setUploadError] = useState('')
+  const [viewing, setViewing] = useState(false)
+  const [liveError, setLiveError] = useState('')
 
   const videoRef = useRef<HTMLVideoElement>(null)
   const streamRef = useRef<MediaStream | null>(null)
@@ -135,6 +138,8 @@ export default function CamPage() {
   const stopResolveRef = useRef<((b: Blob) => void) | null>(null)
   const uploadStateRef = useRef<UploadState>('idle')
   const stopRef = useRef<() => void>(() => undefined)
+  const startRef = useRef<() => void>(() => undefined)
+  const startingRef = useRef(false)
 
   useEffect(() => {
     const r = new URLSearchParams(window.location.search).get('room')
@@ -244,15 +249,19 @@ export default function CamPage() {
   }, [])
 
   const start = useCallback(async () => {
-    if (!room || !streamRef.current || busy) return
+    if (!room || !streamRef.current || busy || startingRef.current) return
+    if (recorderRef.current && recorderRef.current.state !== 'inactive') return
+    startingRef.current = true
     setError('')
     if (!/^\d{4}$/.test(pin)) {
       setError('請輸入 4 位數字 PIN')
+      startingRef.current = false
       return
     }
     setBusy(true)
     const r = await callRpc(room, pin, true)
     if (!r.ok) {
+      startingRef.current = false
       setBusy(false)
       setError(r.message)
       return
@@ -294,8 +303,11 @@ export default function CamPage() {
       setError('無法開始錄影，此瀏覽器可能不支援')
       await releaseFlag()
     }
+    startingRef.current = false
     setBusy(false)
   }, [room, pin, busy, downloadUrl, releaseFlag])
+
+  useEffect(() => { startRef.current = () => { void start() } }, [start])
 
   const stop = useCallback(async () => {
     if (busy) return
@@ -322,6 +334,51 @@ export default function CamPage() {
   const retryUpload = useCallback(async () => {
     if (blobRef.current) await upload(blobRef.current)
   }, [upload])
+
+  // Live view + remote control: poll while the camera is open and a PIN has been typed.
+  useEffect(() => {
+    if (!cameraOn || !/^\d{4}$/.test(pin) || !roomRef.current) return
+    const r = roomRef.current
+    const live = new PhoneLive({
+      poll: () => pollRpc(r, pinRef.current),
+      sendOffer: (sdp) => sendOfferRpc(r, pinRef.current, sdp),
+      createPc: () => new RTCPeerConnection({ iceServers: [{ urls: 'stun:stun.l.google.com:19302' }] }),
+      getStream: () => streamRef.current,
+      onCommand: (cmd) => {
+        const running = recorderRef.current !== null && recorderRef.current.state !== 'inactive'
+        if (cmd === 'record' && !running) startRef.current()
+        if (cmd === 'stop' && running) stopRef.current()
+      },
+      onViewing: setViewing,
+      onError: (message) => setLiveError(message),
+    })
+    setLiveError('')
+    live.start()
+    return () => { live.stop(); setViewing(false) }
+  }, [cameraOn, pin])
+
+  // Keep the phone awake while the camera is open (failures are ignored).
+  useEffect(() => {
+    if (!cameraOn) return
+    let lock: WakeLockSentinel | null = null
+    let cancelled = false
+    const acquire = async () => {
+      try {
+        const l = await navigator.wakeLock?.request('screen')
+        if (!l) return
+        if (cancelled) { void l.release().catch(() => undefined); return }
+        lock = l
+      } catch { /* not supported or denied */ }
+    }
+    void acquire()
+    const onVisible = () => { if (document.visibilityState === 'visible') void acquire() }
+    document.addEventListener('visibilitychange', onVisible)
+    return () => {
+      cancelled = true
+      document.removeEventListener('visibilitychange', onVisible)
+      void lock?.release().catch(() => undefined)
+    }
+  }, [cameraOn])
 
   const retry = useCallback(async () => {
     setBusy(true)
@@ -385,6 +442,12 @@ export default function CamPage() {
           ) : null}
         </div>
       ) : null}
+      {cameraOn ? (
+        <p style={{ margin: 0, textAlign: 'center', fontSize: 13, color: viewing ? '#7ee787' : 'rgba(255,255,255,0.6)' }}>
+          {viewing ? 'iPad 正在觀看' : '等待 iPad 連線'}
+        </p>
+      ) : null}
+      {liveError ? <p style={{ margin: 0, textAlign: 'center', fontSize: 12, color: '#ffd27a' }}>{liveError}</p> : null}
       {error ? <p role="alert" style={{ margin: 0, color: '#ff8a80', fontSize: 14 }}>{error}</p> : null}
       {stopFailed ? (
         <button type="button" onClick={retry} disabled={busy} style={{ ...pill, background: '#ffd27a', color: '#000' }}>重試通知 iPad 結束錄影</button>
