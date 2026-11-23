@@ -119,10 +119,6 @@ export type PilotInsights = {
   recap: { matches: number; wins: number; bestMonth: number | null; busiestMonth: number | null }
 }
 
-function num(v: unknown): number {
-  return typeof v === 'number' && Number.isFinite(v) ? v : 0
-}
-
 function monthOrNull(v: unknown): number | null {
   return typeof v === 'number' && v >= 1 && v <= 12 ? v : null
 }
