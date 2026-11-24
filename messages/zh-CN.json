@@ -2042,7 +2042,8 @@
     "stat_label_text": "AI 赛制推荐与即时计分系统",
     "stat_main": "敬请期待",
     "stat_footnote": "功能开发中，详情将于日后公布",
-    "section_body": "空格"
+    "section_body": "空格",
+    "admin_cta": "探索 Space Pilot（Beta）"
   },
   "membershipHub": {
     "tabs": [

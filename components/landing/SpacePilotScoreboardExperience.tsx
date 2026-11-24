@@ -5,6 +5,8 @@ import { motion, useReducedMotion, useScroll, useSpring, useTransform } from "fr
 import { useRef } from "react"
 import { useTranslations } from "next-intl"
 import { Emphasis } from "@/components/ui/Emphasis"
+import { Link } from "@/i18n/navigation"
+import { useIsAdmin } from "@/lib/feature/use-is-admin"
 
 // Screenshot real dimensions: 4269 × 2400
 const SCREEN_IMAGE = "/gallery/spacepliot.webp"
@@ -19,6 +21,7 @@ type Props = {
 
 export default function SpacePilotScoreboardExperience({ variant = "full", compact = false }: Props) {
   const t = useTranslations("spacePilot")
+  const isAdmin = useIsAdmin() // Space Pilot page is admin-only while in beta
   const sectionRef = useRef<HTMLElement>(null)
   const reducedMotion = useReducedMotion()
 
@@ -257,6 +260,21 @@ export default function SpacePilotScoreboardExperience({ variant = "full", compa
             />
 
           </div>
+
+          {isAdmin && (
+            <div className="mt-12 flex justify-center md:mt-16">
+              <Link
+                href="/spacepilot"
+                data-cms-key="spacePilot.admin_cta"
+                className="inline-flex min-h-[44px] items-center gap-2 rounded-full bg-[#22C55E] px-7 py-3 text-[15px] font-semibold text-[#04130a] transition-transform duration-200 hover:scale-[1.03] active:scale-[0.98]"
+              >
+                {t("admin_cta")}
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                  <path d="M6 12l4-4-4-4" />
+                </svg>
+              </Link>
+            </div>
+          )}
         </div>
       </div>
     </section>

@@ -1958,7 +1958,8 @@
     "stat_label_text": "AI-powered match recommendations and live scoring",
     "stat_main": "Coming soon",
     "stat_footnote": "In development. Details to follow.",
-    "section_body": "placeholder"
+    "section_body": "placeholder",
+    "admin_cta": "Explore Space Pilot (Beta)"
   },
   "membershipHub": {
     "tabs": [
