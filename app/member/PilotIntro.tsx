@@ -61,6 +61,8 @@ const SCREEN_SRC: Record<ScreenId, string> = {
   winner: "/pilot-intro/ipad-winner.webp",
 };
 
+const ROOM_A_SRC = "/pilot-intro/ipad-room-infinity.webp";
+
 const sectionPad = "clamp(96px, 18vh, 200px)";
 
 function Kicker({ children }: { children: string }) {
@@ -566,7 +568,7 @@ function Rooms() {
         />
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 300px), 1fr))", gap: "clamp(40px, 9vw, 96px)", position: "relative" }}>
           <motion.div style={{ x: left, y: riseA, scale: popScale, opacity: fade, willChange: "transform, opacity" }}>
-            <DeviceImg src={SCREEN_SRC.scoring} alt={t("roomA")} sizes="(max-width: 700px) 90vw, 440px" />
+            <DeviceImg src={ROOM_A_SRC} alt={t("roomA")} sizes="(max-width: 700px) 90vw, 440px" />
             <div style={{ marginTop: 20, fontFamily: HEADING, fontSize: 12, letterSpacing: "0.2em", color: INK }}>{t("roomA")}</div>
           </motion.div>
           <motion.div style={{ x: right, y: riseB, scale: popScale, opacity: fade, willChange: "transform, opacity" }}>
@@ -614,6 +616,7 @@ function Rooms() {
           {t("live")}
         </motion.span>
       </div>
+      <p style={{ margin: "14px auto 0", maxWidth: 480, fontSize: 12, lineHeight: 1.6, color: SUBTLE }}>{t("roomsNote")}</p>
       <Reveal delay={0.1}>
         <a
           href="/book"
