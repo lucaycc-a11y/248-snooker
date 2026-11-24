@@ -267,27 +267,21 @@ function Hero({ page = false }: { page?: boolean }) {
 }
 
 // Page hero: gradient headline, Space Pilot backdrop, and the iPad rising from the bottom edge.
-function HeroPage() {
+function HeroCopy({ intro }: { intro: MotionValue<number> }) {
   const t = useTranslations("memberPilotIntro");
   const reduce = useReducedMotion();
-  const ref = useRef<HTMLDivElement>(null);
-  const { scrollYProgress } = useScroll({ target: ref, offset: ["start start", "end start"] });
-  const textOpacity = useTransform(scrollYProgress, [0, 0.55], [1, 0]);
-  const textY = useTransform(scrollYProgress, [0, 1], [0, -90]);
-  const textScale = useTransform(scrollYProgress, [0, 1], [1, 0.95]);
-  const padY = useTransform(scrollYProgress, [0, 1], [0, reduce ? 0 : -160], { ease: ZOOM_EASE });
-  const padTilt = useTransform(scrollYProgress, [0, 0.8], [reduce ? 0 : 16, 0], { ease: ZOOM_EASE });
+  const opacity = useTransform(intro, [0, 0.5], [1, 0]);
+  const y = useTransform(intro, [0, 1], [0, -90]);
+  const scale = useTransform(intro, [0, 1], [1, 0.95]);
   const rise = (n: number) =>
     reduce
       ? {}
       : { initial: { opacity: 0, y: 28 }, animate: { opacity: 1, y: 0 }, transition: { duration: 1.1, ease: EASE, delay: 0.1 + n * 0.14 } };
   return (
-    <div ref={ref} style={{ position: "relative", minHeight: "100svh", display: "flex", flexDirection: "column", alignItems: "center", textAlign: "center", overflow: "hidden" }}>
-      <PilotBackdrop progress={scrollYProgress} />
-      <motion.div
-        style={{ position: "relative", flex: 1, display: "flex", alignItems: "center", justifyContent: "center", padding: "104px 20px 24px", opacity: textOpacity, y: textY, scale: textScale, willChange: "transform, opacity" }}
-      >
-        <div>
+    <motion.div
+      style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center", textAlign: "center", padding: "104px 20px 36svh", opacity, y, scale, willChange: "transform, opacity", pointerEvents: "none" }}
+    >
+      <div>
           <motion.div {...rise(0)} style={{ display: "inline-flex", alignItems: "center", gap: 10 }}>
             <Kicker>{t("kicker")}</Kicker>
             <span style={{ fontSize: 10, letterSpacing: "0.14em", padding: "3px 9px", borderRadius: 999, border: `1px solid ${GREEN}`, color: GREEN }}>BETA</span>
@@ -326,33 +320,8 @@ function HeroPage() {
             />
             {t("betaNote")}
           </motion.div>
-        </div>
-      </motion.div>
-      <motion.div
-        initial={reduce ? false : { opacity: 0, y: 90 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 1.5, ease: EASE, delay: 0.55 }}
-        style={{ position: "relative", width: "min(94vw, 1000px)", flexShrink: 0 }}
-      >
-        <div
-          aria-hidden
-          style={{ position: "absolute", left: "-8%", right: "-8%", top: "-30%", height: "90%", background: "radial-gradient(ellipse 50% 50% at 50% 55%, rgba(34,197,94,0.28) 0%, rgba(124,58,237,0.18) 50%, rgba(0,0,0,0) 78%)" }}
-        />
-        <motion.div style={{ position: "relative", y: padY, rotateX: padTilt, transformPerspective: 1400, transformOrigin: "50% 100%", willChange: "transform" }}>
-          <div style={{ height: "30svh", minHeight: 170, overflow: "hidden" }}>
-            <Image
-              src={SCREEN_SRC.dashboard}
-              alt={t("stageLabel")}
-              width={1400}
-              height={992}
-              sizes="(max-width: 1000px) 94vw, 1000px"
-              priority
-              style={{ width: "100%", height: "auto", display: "block" }}
-            />
-          </div>
-        </motion.div>
-      </motion.div>
-    </div>
+      </div>
+    </motion.div>
   );
 }
 
@@ -399,16 +368,27 @@ function StepDot({ index, progress }: { index: number; progress: MotionValue<num
 }
 
 function WallStage({ page = false, bleed = false }: { page?: boolean; bleed?: boolean }) {
+  // Standalone page: the hero lives inside this sticky stage, so the iPad rises out of the hero and the backdrop turns into the wall.
+  const intro = page && !bleed;
+  const H = intro ? 0.2 : 0;
   const reduce = useReducedMotion();
   const ref = useRef<HTMLDivElement>(null);
-  const { scrollYProgress } = useScroll({ target: ref, offset: ["start start", "end end"] });
-  const zoom = useTransform(scrollYProgress, [0, 0.32], [reduce ? 1 : 2.4, 1], { ease: ZOOM_EASE });
+  const { scrollYProgress: rawProgress } = useScroll({ target: ref, offset: ["start start", "end end"] });
+  const scrollYProgress = useTransform(rawProgress, [H, 1], [0, 1], { clamp: true });
+  const introP = useTransform(rawProgress, [0, Math.max(H, 0.001)], [intro ? 0 : 1, 1], { clamp: true });
+  const wallFade = useTransform(introP, [0.3, 0.9], [0, 1]);
+  const backdropFade = useTransform(introP, [0.25, 0.85], [1, 0]);
+  const padRise = useTransform(introP, [0, 1], [reduce ? 0 : 62, 0], { ease: ZOOM_EASE });
+  const padRiseY = useTransform(padRise, (v) => `${v}svh`);
+  const introTilt = useTransform(introP, [0, 1], [reduce ? 0 : 14, 0], { ease: ZOOM_EASE });
+  const zoom = useTransform(scrollYProgress, [0, 0.32], [reduce ? 1 : intro ? 1.12 : 2.4, 1], { ease: ZOOM_EASE });
   const dim = useTransform(scrollYProgress, [0, 0.4], [0, 0.42]);
   const glow = useTransform(scrollYProgress, [0.1, 0.42], [0, 1]);
   const lift = useTransform(scrollYProgress, [0, 0.32], [reduce ? 0 : 30, 0], { ease: ZOOM_EASE });
-  const tilt = useTransform(scrollYProgress, [0, 0.32], [reduce ? 0 : 9, 0], { ease: ZOOM_EASE });
+  const tiltBase = useTransform(scrollYProgress, [0, 0.32], [reduce ? 0 : intro ? 0 : 9, 0], { ease: ZOOM_EASE });
+  const tilt = useTransform(() => tiltBase.get() + introTilt.get());
   return (
-    <div ref={ref} style={{ height: "340vh", position: "relative", ...(bleed ? { width: "100vw", marginLeft: "calc(50% - 50vw)" } : {}) }}>
+    <div ref={ref} style={{ height: intro ? "440vh" : "340vh", position: "relative", ...(bleed ? { width: "100vw", marginLeft: "calc(50% - 50vw)" } : {}) }}>
       <div
         style={{
           position: "sticky",
@@ -421,7 +401,13 @@ function WallStage({ page = false, bleed = false }: { page?: boolean; bleed?: bo
           contain: "paint",
         }}
       >
+        {intro && (
+          <motion.div aria-hidden style={{ position: "absolute", inset: 0, opacity: backdropFade }}>
+            <PilotBackdrop progress={introP} />
+          </motion.div>
+        )}
         <motion.div style={{ position: "absolute", inset: 0, scale: zoom, transformOrigin: "50% 42%", willChange: "transform" }}>
+          <motion.div aria-hidden style={{ position: "absolute", inset: 0, opacity: intro ? wallFade : 1 }}>
           <Image
             src="/pilot-intro/wall.webp"
             alt=""
@@ -448,6 +434,7 @@ function WallStage({ page = false, bleed = false }: { page?: boolean; bleed?: bo
               background: "radial-gradient(ellipse 52% 46% at 50% 40%, rgba(34,197,94,0.30) 0%, rgba(124,58,237,0.14) 48%, rgba(0,0,0,0) 76%)",
             }}
           />
+          </motion.div>
           <div
             style={{
               position: "absolute",
@@ -468,7 +455,7 @@ function WallStage({ page = false, bleed = false }: { page?: boolean; bleed?: bo
               perspective: 1400,
             }}
           >
-            <motion.div style={{ position: "absolute", inset: 0, y: lift, rotateX: tilt, willChange: "transform" }}>
+            <motion.div style={{ position: "absolute", inset: 0, y: intro ? padRiseY : lift, rotateX: tilt, willChange: "transform" }}>
               <DeviceShadow />
               {SCREENS.map((id, i) => (
                 <ScreenLayer key={id} id={id} index={i} progress={scrollYProgress} />
@@ -477,9 +464,10 @@ function WallStage({ page = false, bleed = false }: { page?: boolean; bleed?: bo
           </div>
           </div>
         </motion.div>
-        <div
+        {intro && <HeroCopy intro={introP} />}
+        <motion.div
           aria-hidden
-          style={{ position: "absolute", left: 0, right: 0, bottom: 0, height: "34%", background: "linear-gradient(180deg, rgba(0,0,0,0), rgba(0,0,0,0.88))", pointerEvents: "none" }}
+          style={{ position: "absolute", left: 0, right: 0, bottom: 0, height: "34%", background: "linear-gradient(180deg, rgba(0,0,0,0), rgba(0,0,0,0.88))", pointerEvents: "none", opacity: intro ? wallFade : 1 }}
         />
         <div aria-hidden style={{ position: "absolute", right: 14, top: "50%", transform: "translateY(-50%)", display: "flex", flexDirection: "column", gap: 8 }}>
           {[0, 1, 2, 3].map((i) => (
@@ -720,7 +708,6 @@ export default function PilotIntro({ variant = "member" }: { variant?: "member" 
   if (variant === "page") {
     return (
       <div style={{ fontFamily: FONT_FAMILY, color: INK }}>
-        <HeroPage />
         <WallStage page />
         <div style={{ maxWidth: 1120, margin: "0 auto", padding: `${sectionPad} 20px ${sectionPad}` }}>
           <Rooms />
