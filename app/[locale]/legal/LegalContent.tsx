@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useMemo, useState } from "react"
 import { useRouter, usePathname } from "next/navigation"
 import { motion, AnimatePresence } from "framer-motion"
 import { useTranslations } from "next-intl"
@@ -52,6 +52,43 @@ export default function LegalContent({
     { id: "brand_statement", label: nav.brand_statement },
   ]
 
+  const [query, setQuery] = useState("")
+  const q = query.trim().toLowerCase()
+  const hits = useMemo(() => {
+    if (q.length < 1) return []
+    const out: { id: LegalDocId; section: number; title: string; snippet: string }[] = []
+    for (const tab of tabs) {
+      const doc = documents[tab.id]
+      const pool = [
+        { section: -1, title: doc.title, text: [doc.subtitle, doc.intro, doc.callout?.body].filter(Boolean).join("\n") },
+        ...doc.sections.map((sec, i) => ({ section: i, title: sec.title, text: sec.body })),
+      ]
+      for (const item of pool) {
+        const hay = `${item.title}\n${item.text}`
+        const at = hay.toLowerCase().indexOf(q)
+        if (at < 0) continue
+        const body = item.text
+        const bi = body.toLowerCase().indexOf(q)
+        const start = Math.max(0, (bi < 0 ? 0 : bi) - 24)
+        const snippet = (start > 0 ? "…" : "") + body.slice(start, start + 90).replace(/\n+/g, " ") + (body.length > start + 90 ? "…" : "")
+        out.push({ id: tab.id, section: item.section, title: item.title, snippet })
+        if (out.length >= 12) return out
+      }
+    }
+    return out
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [q, documents])
+
+  const openHit = (hit: { id: LegalDocId; section: number }) => {
+    selectDoc(hit.id)
+    setQuery("")
+    window.setTimeout(() => {
+      const el = hit.section >= 0 ? document.getElementById(`section-${hit.section + 1}`) : null
+      if (el) el.scrollIntoView({ behavior: "smooth", block: "start" })
+      else window.scrollTo({ top: 0, behavior: "smooth" })
+    }, 400)
+  }
+
   const selectDoc = (docId: LegalDocId) => {
     setActiveDoc(docId)
     const url = docId === "terms" ? pathname : `${pathname}?doc=${docId}`
@@ -70,6 +107,37 @@ export default function LegalContent({
           >
             {pageTitle}
           </motion.h1>
+          <div style={{ marginTop: 28, position: "relative" }}>
+            <input
+              type="search"
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              placeholder={t("search_placeholder")}
+              aria-label={t("search_placeholder")}
+              data-cms-key="legalPage.search_placeholder"
+              style={{ width: "100%", boxSizing: "border-box", padding: "14px 18px", borderRadius: 14, border: "1px solid rgba(255,255,255,0.18)", background: "rgba(255,255,255,0.08)", color: "#fff", fontSize: 16, outline: "none", fontFamily: FONT_FAMILY }}
+            />
+            {q && (
+              <div style={{ position: "absolute", left: 0, right: 0, top: "calc(100% + 8px)", zIndex: 20, background: "#fff", color: DARK, borderRadius: 14, boxShadow: "0 18px 50px rgba(0,0,0,0.35)", overflow: "hidden", maxHeight: "50vh", overflowY: "auto" }}>
+                {hits.length === 0 ? (
+                  <div style={{ padding: "16px 18px", fontSize: 15, color: SUBTLE }} data-cms-key="legalPage.search_empty">{t("search_empty")}</div>
+                ) : (
+                  hits.map((h, i) => (
+                    <button
+                      key={`${h.id}-${h.section}-${i}`}
+                      type="button"
+                      onClick={() => openHit(h)}
+                      style={{ display: "block", width: "100%", textAlign: "left", appearance: "none", background: "transparent", border: "none", borderTop: i ? `1px solid ${DIVIDER}` : "none", padding: "12px 18px", cursor: "pointer", fontFamily: FONT_FAMILY }}
+                    >
+                      <div style={{ fontSize: 12, color: GREEN, fontWeight: 600 }}>{nav[h.id]}</div>
+                      <div style={{ fontSize: 15, fontWeight: 600, marginTop: 2 }}>{h.title}</div>
+                      <div style={{ fontSize: 13, color: SUBTLE, marginTop: 2 }}>{h.snippet}</div>
+                    </button>
+                  ))
+                )}
+              </div>
+            )}
+          </div>
         </div>
       </section>
 

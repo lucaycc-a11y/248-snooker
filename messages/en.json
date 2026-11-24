@@ -2999,7 +2999,9 @@
   "legalPage": {
     "date_year": "",
     "date_month": "/",
-    "date_day": "/"
+    "date_day": "/",
+    "search_placeholder": "Search policies, e.g. refund, recording, privacy",
+    "search_empty": "No matching results"
   },
   "homeBooking": {
     "title": "How it works",

@@ -2999,7 +2999,9 @@
   "legalPage": {
     "date_year": "年",
     "date_month": "月",
-    "date_day": "日"
+    "date_day": "日",
+    "search_placeholder": "搜索条款，例如：退款、录像、隐私",
+    "search_empty": "找不到相关内容"
   },
   "homeBooking": {
     "title": "预订流程",

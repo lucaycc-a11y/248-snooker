@@ -2991,7 +2991,9 @@
   "legalPage": {
     "date_year": "年",
     "date_month": "月",
-    "date_day": "日"
+    "date_day": "日",
+    "search_placeholder": "搜尋條款，例如：退款、錄影、私隱",
+    "search_empty": "找不到相關內容"
   },
   "homeBooking": {
     "title": "如何使用",
