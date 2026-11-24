@@ -222,7 +222,7 @@ export default function MembershipNew() {
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-16">
           {cards.map((card, i) => (
-            <Reveal key={i} delay={i * 0.12} y={56} className="flex">
+            <Reveal key={i} delay={i * 0.12} y={56} className="flex [&>button]:w-full">
               <MembershipCard {...card} />
             </Reveal>
           ))}

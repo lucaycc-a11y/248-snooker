@@ -1,9 +1,10 @@
 "use client"
 
-import { useEffect, useRef, useState } from "react"
+import { useEffect, useRef, useState, type CSSProperties } from "react"
 import { useTranslations } from "next-intl"
 import type { PricingPeriod } from "@/lib/data/pricing"
 import { AppleButton } from "@/components/ui/AppleButton"
+import { Reveal } from "@/components/shared/Reveal"
 
 /**
  * Universal pricing cards component — reusable across Home (light) and Venue (dark).
@@ -94,24 +95,65 @@ const THEME = {
 
 /* ── Price formatter: split $ from digits for Good Times font ─── */
 
+// Counts the price up from 0 once the card has entered (rAF, easeOutCubic). The final number is rendered
+// invisibly underneath so the digits never change the card's width while counting.
+function useCountUp(target: number, start: boolean, delayMs: number): number {
+  const [shown, setShown] = useState(target)
+  useEffect(() => {
+    if (!start) return
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+      setShown(target)
+      return
+    }
+    let raf = 0
+    let timer = 0
+    const run = () => {
+      const t0 = performance.now()
+      const tick = (now: number) => {
+        const p = Math.min(1, (now - t0) / 1100)
+        setShown(Math.round(target * (1 - Math.pow(1 - p, 3))))
+        if (p < 1) raf = requestAnimationFrame(tick)
+      }
+      raf = requestAnimationFrame(tick)
+    }
+    setShown(0)
+    timer = window.setTimeout(run, delayMs)
+    return () => {
+      window.clearTimeout(timer)
+      cancelAnimationFrame(raf)
+    }
+  }, [start, target, delayMs])
+  return shown
+}
+
 function PriceDisplay({
   value,
   unit,
   theme,
+  entered,
+  delay,
 }: {
   value: number
   unit: string
   theme: "light" | "dark"
+  entered: boolean
+  delay: number
 }) {
   const rounded = Math.round(value)
+  const shown = useCountUp(rounded, entered, 250 + delay * 1000)
   const colors = THEME[theme]
   return (
     <div className="pricing-price">
       <span className="pricing-price-currency" style={{ color: colors.priceCurrency }}>
         $
       </span>
-      <span className="pricing-price-digits" style={{ color: colors.priceDigits }}>
-        {rounded}
+      <span style={{ display: "inline-grid" }}>
+        <span className="pricing-price-digits" aria-hidden="true" style={{ gridArea: "1 / 1", visibility: "hidden" }}>
+          {rounded}
+        </span>
+        <span className="pricing-price-digits" aria-label={String(rounded)} style={{ gridArea: "1 / 1", color: colors.priceDigits, textAlign: "right" }}>
+          {shown}
+        </span>
       </span>
       <span className="pricing-price-unit" style={{ color: colors.priceUnit }}>
         {unit}
@@ -173,19 +215,21 @@ export default function PricingCards({
     >
       <div className="pricing-inner">
         {/* ── Header ──────────────────────────────────────────── */}
-        {eyebrow && (
-          <p className="pricing-eyebrow" style={{ color: colors.eyebrow }}>
-            {eyebrow}
-          </p>
-        )}
-        <h2 id="pricing-title" className="pricing-title" style={{ color: colors.title }}>
-          {heading}
-        </h2>
-        {subheading && (
-          <p className="pricing-subtitle" style={{ color: colors.subtitle }}>
-            {subheading}
-          </p>
-        )}
+        <Reveal y={32} scale={1}>
+          {eyebrow && (
+            <p className="pricing-eyebrow" style={{ color: colors.eyebrow }}>
+              {eyebrow}
+            </p>
+          )}
+          <h2 id="pricing-title" className="pricing-title" style={{ color: colors.title }}>
+            {heading}
+          </h2>
+          {subheading && (
+            <p className="pricing-subtitle" style={{ color: colors.subtitle }}>
+              {subheading}
+            </p>
+          )}
+        </Reveal>
 
         {/* ── Card grid (desktop 3-col / mobile vertical stack) ── */}
         <div className="pricing-grid" role="list" aria-label="Pricing periods">
@@ -287,15 +331,26 @@ export default function PricingCards({
           align-items: center;
           /* Entrance animation */
           opacity: 0;
-          transform: translateY(32px) scale(0.97);
+          transform: translateY(64px) scale(0.95);
           transition:
-            opacity 0.65s cubic-bezier(0.16, 1, 0.3, 1),
-            transform 0.65s cubic-bezier(0.16, 1, 0.3, 1),
+            opacity 0.9s cubic-bezier(0.16, 1, 0.3, 1),
+            transform 0.9s cubic-bezier(0.16, 1, 0.3, 1),
             border-color 0.3s ease;
           will-change: transform, opacity;
           overflow: visible;
         }
         .pricing-card--in {
+          opacity: 1;
+          transform: none;
+        }
+        /* Icon pops in just after its card */
+        .pricing-card .pricing-icon-wrap {
+          opacity: 0;
+          transform: scale(0.55);
+          transition: opacity 0.6s cubic-bezier(0.16, 1, 0.3, 1), transform 0.7s cubic-bezier(0.34, 1.56, 0.64, 1);
+          transition-delay: calc(0.3s + var(--pc-delay, 0s));
+        }
+        .pricing-card--in .pricing-icon-wrap {
           opacity: 1;
           transform: none;
         }
@@ -438,6 +493,11 @@ export default function PricingCards({
           .pricing-card:hover {
             transform: none;
           }
+          .pricing-card .pricing-icon-wrap {
+            opacity: 1;
+            transform: none;
+            transition: none;
+          }
         }
       `}</style>
     </section>
@@ -479,6 +539,7 @@ function PricingCard({
           isFeatured ? slot.accent : colors.cardBorder
         }`,
         transitionDelay: entered ? "0s" : `${delay}s`,
+        ...({ "--pc-delay": `${delay}s` } as CSSProperties),
       }}
       onMouseEnter={(e) => {
         if (!isFeatured) {
@@ -521,7 +582,7 @@ function PricingCard({
       </p>
 
       {/* Price with Good Times font for digits */}
-      <PriceDisplay value={slot.price} unit={slot.unit} theme={theme} />
+      <PriceDisplay value={slot.price} unit={slot.unit} theme={theme} entered={entered} delay={delay} />
 
       {/* Combo (連訂) rate line — fills the spacer so cards stay aligned */}
       <div className="pricing-spacer">
