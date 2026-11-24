@@ -7,6 +7,7 @@ import PilotIntro from "@/app/member/PilotIntro";
 import { createClient } from "@/lib/supabase/server";
 import { pageAlternates } from "@/lib/seo/site";
 import { safeJsonLd } from "@/lib/seo/jsonLd";
+import { SmoothScroll } from "@/components/ui/smooth-scroll";
 import { PILOT_FAQ_IDS, SPACEPILOT_PUBLIC } from "@/lib/seo/spacepilot";
 
 // Beta: admin-only until Space Pilot opens to a small group of players.
@@ -134,6 +135,7 @@ export default async function SpacePilotPage({
   return (
     <main className="relative overflow-x-clip bg-black">
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: safeJsonLd(jsonLd) }} />
+      <SmoothScroll />
       <Nav />
       <PilotIntro variant="page" />
       <Footer />
