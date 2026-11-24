@@ -31,11 +31,17 @@ export async function GET() {
   return NextResponse.json(res.data)
 }
 
-// POST /api/admin/pilot { device, kind } — END_MATCH, ALARM (red screen) or GRACE_10 (10 free minutes).
+// POST /api/admin/pilot { device, kind } — END_MATCH, ALARM (red screen), GRACE_10 (10 free minutes) or LOGOUT (revoke the iPad).
 export async function POST(request: Request) {
   const body = (await request.json().catch(() => null)) as { device?: unknown; kind?: unknown } | null
   const device = typeof body?.device === 'string' ? body.device : ''
   const kind = body?.kind
+  if (kind === 'LOGOUT' && /^[0-9a-f-]{36}$/i.test(device)) {
+    // Signs the iPad out: its device token is revoked, so an admin has to bind it again (member code + PIN).
+    const res = await adminRpc('pilot_admin_revoke_device', { p_device: device })
+    if (res.status !== 200) return NextResponse.json({ error: 'failed' }, { status: res.status })
+    return NextResponse.json({ ok: true })
+  }
   if (!/^[0-9a-f-]{36}$/i.test(device) || !isKind(kind)) {
     return NextResponse.json({ error: 'bad_request' }, { status: 400 })
   }
