@@ -340,19 +340,7 @@ function HeroCopy({ intro }: { intro: MotionValue<number> }) {
           <motion.p {...rise(2)} style={{ margin: "10px auto 0", fontSize: 14, letterSpacing: "0.02em", color: GREEN }}>
             {t("exclusiveNote")}
           </motion.p>
-          <motion.div
-            {...rise(3)}
-            style={{ marginTop: 22, display: "inline-flex", alignItems: "center", gap: 8, padding: "7px 14px", borderRadius: 999, background: "rgba(34,197,94,0.1)", border: "1px solid rgba(34,197,94,0.35)", fontSize: 13, color: GREEN }}
-          >
-            <motion.span
-              aria-hidden
-              animate={reduce ? undefined : { opacity: [1, 0.3, 1] }}
-              transition={{ duration: 1.8, repeat: Infinity }}
-              style={{ width: 6, height: 6, borderRadius: 999, background: GREEN }}
-            />
-            {t("betaNote")}
-          </motion.div>
-          <motion.div {...rise(4)} style={{ marginTop: 20 }}>
+          <motion.div {...rise(3)} style={{ marginTop: 28 }}>
             <MemberCtaButton />
           </motion.div>
       </div>
