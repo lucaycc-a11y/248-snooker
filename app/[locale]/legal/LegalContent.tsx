@@ -39,15 +39,17 @@ export default function LegalContent({
   const [activeDoc, setActiveDoc] = useState<LegalDocId>(initialDoc)
   const [y, m, d] = lastUpdated.split("-").map(Number)
   const formattedUpdated = y && m && d ? `${y}${t('date_year')}${m}${t('date_month')}${d}${t('date_day')}` : lastUpdated
+  // Grouped: venue → booking & payment → privacy & data → site → brand.
   const tabs: { id: LegalDocId; label: string }[] = [
     { id: "terms", label: nav.terms },
-    { id: "website_terms", label: nav.website_terms },
-    { id: "privacy", label: nav.privacy },
-    { id: "accessibility", label: nav.accessibility },
     { id: "refund_policy", label: nav.refund_policy },
     { id: "delivery_policy", label: nav.delivery_policy },
+    { id: "privacy", label: nav.privacy },
+    { id: "cookie_policy", label: nav.cookie_policy },
+    { id: "space_pilot", label: "Space Pilot" },
+    { id: "website_terms", label: nav.website_terms },
+    { id: "accessibility", label: nav.accessibility },
     { id: "brand_statement", label: nav.brand_statement },
-    { id: "space_pilot", label: nav.space_pilot },
   ]
 
   const selectDoc = (docId: LegalDocId) => {

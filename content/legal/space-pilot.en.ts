@@ -34,6 +34,10 @@ export const spacePilotEn: LegalDocument = {
       body: "By scanning your member code and starting a match you confirm that you have read this notice. Persons under 18 must have a parent or guardian's consent to use recording.",
     },
     {
+      title: "Service Nature, Support and No Refunds",
+      body: "Space Pilot is a scoring and highlights feature provided at SPACE8 as an add-on. It is currently in beta and free for members, with no separate charge.\n1. If you run into any problem using Space Pilot (for example incorrect scores, highlights that fail to generate or save, or a temporary outage), please contact customer support (official WhatsApp 6180 8022 or Info@space8.com.hk). We will do our best to help or correct the record;\n2. Because Space Pilot is provided at no separate charge, problems with it or its suspension do not entitle you to a refund, discount or compensation, and do not affect the venue or membership fees you have already paid;\n3. We may change, suspend or discontinue all or part of Space Pilot at any time;\n4. Automatic records and AI analysis are for reference only; in a dispute, the actual result of the match at the venue prevails.\n\nThis clause does not affect any statutory rights you have under applicable law.",
+    },
+    {
       title: "Changes and contact",
       body: "We may update this notice; the revised version will be posted on this page with its update date. For questions or to exercise the rights above, contact SPACE8 via the official WhatsApp (6180 8022) or email (Info@space8.com.hk), marked for the attention of the \"Data Protection Officer\".",
     },
