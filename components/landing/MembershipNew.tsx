@@ -3,6 +3,7 @@
 import { useTranslations } from "next-intl";
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { Reveal } from "@/components/shared/Reveal";
 
 interface MembershipCardProps {
   badge?: string;
@@ -210,29 +211,33 @@ export default function MembershipNew() {
   return (
     <section className="relative py-24 px-6 bg-gradient-to-b from-black via-gray-950 to-black">
       <div className="max-w-7xl mx-auto">
-        <div className="flex flex-col gap-4 mb-16 text-center">
+        <Reveal y={28} scale={1} className="flex flex-col gap-4 mb-16 text-center">
           <h2 className="text-5xl font-black text-white tracking-tight">
             {t("heading")}
           </h2>
           <p className="text-lg text-gray-300 max-w-2xl mx-auto leading-relaxed">
             {t("subtitle")}
           </p>
-        </div>
+        </Reveal>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-16">
           {cards.map((card, i) => (
-            <MembershipCard key={i} {...card} />
+            <Reveal key={i} delay={i * 0.12} y={56} className="flex">
+              <MembershipCard {...card} />
+            </Reveal>
           ))}
         </div>
 
         <div className="max-w-3xl mx-auto space-y-12">
-          <h3 className="text-2xl font-bold text-white text-center">
-            {t("howToUse")}
-          </h3>
+          <Reveal y={24} scale={1}>
+            <h3 className="text-2xl font-bold text-white text-center">
+              {t("howToUse")}
+            </h3>
+          </Reveal>
 
           <ol className="space-y-8">
             {[0, 1, 2].map((i) => (
-              <li key={i} className="flex gap-6">
+              <Reveal as="li" key={i} delay={i * 0.1} y={32} scale={1} className="flex gap-6">
                 <span className="flex-shrink-0 flex items-center justify-center w-12 h-12 rounded-full bg-white text-black text-xl font-bold">
                   {i + 1}
                 </span>
@@ -244,7 +249,7 @@ export default function MembershipNew() {
                     {t(`steps.${i}.description`)}
                   </p>
                 </div>
-              </li>
+              </Reveal>
             ))}
           </ol>
 
@@ -252,7 +257,7 @@ export default function MembershipNew() {
             {t("footnote")}
           </p>
 
-          <div className="flex justify-center">
+          <Reveal y={24} className="flex justify-center">
             <a
               href="/member"
               className="inline-flex items-center gap-3 px-8 py-4 bg-white text-black text-lg font-semibold rounded-full hover:bg-gray-100 transition-colors shadow-lg hover:shadow-xl"
@@ -269,7 +274,7 @@ export default function MembershipNew() {
                 <path d="M5 12h14M12 5l7 7-7 7" />
               </svg>
             </a>
-          </div>
+          </Reveal>
         </div>
       </div>
     </section>

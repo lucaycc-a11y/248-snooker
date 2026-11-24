@@ -3,6 +3,7 @@
 import { useTranslations } from "next-intl";
 import { AppleCardsCarousel } from "@/components/ui/apple-cards-carousel";
 import { Link } from "@/i18n/navigation";
+import { Reveal } from "@/components/shared/Reveal";
 
 const FACILITY_IMAGES = [
   "/images/pool-table-closeup-中八桌球-香港新蒲崗.webp",
@@ -73,14 +74,16 @@ export default function HomeFacilitiesNew() {
 
   return (
     <div className="relative">
-      <AppleCardsCarousel
-        heading={t("intro")}
-        items={items}
-        theme="dark"
-        className="pb-16"
-      />
+      <Reveal y={64} scale={0.98}>
+        <AppleCardsCarousel
+          heading={t("intro")}
+          items={items}
+          theme="dark"
+          className="pb-16"
+        />
+      </Reveal>
 
-      <div className="flex justify-center pb-24">
+      <Reveal y={24} scale={1} className="flex justify-center pb-24">
         <Link
           href="/venue"
           className="inline-flex items-center gap-2 px-6 py-3 min-h-[44px] font-medium text-[15px] text-white/90 border border-white/20 rounded-full hover:bg-white/5 hover:border-white/30 transition-all duration-200"
@@ -99,7 +102,7 @@ export default function HomeFacilitiesNew() {
             <path d="M6 12l4-4-4-4" />
           </svg>
         </Link>
-      </div>
+      </Reveal>
     </div>
   );
 }

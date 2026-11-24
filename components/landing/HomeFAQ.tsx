@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useTranslations } from "next-intl";
 import { Link } from "@/i18n/navigation";
+import { Reveal } from "@/components/shared/Reveal";
 import { getFaqItems, stripMarkdownLinks, type FaqItem } from "./faqData";
 
 const FONT_FAMILY =
@@ -65,7 +66,7 @@ export default function HomeFAQ({
       }}
     >
       <div className="faq-inner" style={{ maxWidth: 860, margin: "0 auto" }}>
-        <div className="faq-head" style={{ marginBottom: 52 }}>
+        <Reveal className="faq-head" style={{ marginBottom: 52 }} y={28} scale={1}>
           <h2 className="faq-title" style={{
             fontFamily: FONT_FAMILY,
             fontWeight: 900,
@@ -83,15 +84,18 @@ export default function HomeFAQ({
           }}>
             {t("subtitle")}
           </p>
-        </div>
+        </Reveal>
 
         <div className="faq-list" ref={listRef} style={{ borderTop: "1px solid rgba(17,17,16,0.14)" }}>
-          {items.map((item) => {
+          {items.map((item, idx) => {
             const isOpen = openId === item.id;
 
             return (
-              <div
+              <Reveal
                 key={item.id}
+                delay={Math.min(idx, 5) * 0.07}
+                y={26}
+                scale={1}
                 className={`faq-item ${isOpen ? "is-open" : ""}`}
                 style={{ borderBottom: "1px solid rgba(17,17,16,0.14)" }}
               >
@@ -148,7 +152,7 @@ export default function HomeFAQ({
                     <AnswerText answer={item.answer} />
                   </div>
                 </div>
-              </div>
+              </Reveal>
             );
           })}
         </div>
