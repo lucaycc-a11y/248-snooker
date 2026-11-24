@@ -306,6 +306,9 @@ function HeroCopy({ intro }: { intro: MotionValue<number> }) {
             {t("heroTitle2")}
           </motion.h1>
           <motion.p {...rise(2)} style={{ margin: "22px auto 0", maxWidth: 520, fontSize: "clamp(16px, 2.2vw, 20px)", lineHeight: 1.7, color: SUBTLE }}>
+            {t("heroBody")}
+          </motion.p>
+          <motion.p {...rise(2)} style={{ margin: "10px auto 0", fontSize: 14, letterSpacing: "0.02em", color: GREEN }}>
             {t("exclusiveNote")}
           </motion.p>
           <motion.div
