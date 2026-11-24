@@ -10,6 +10,7 @@ import {
   cubicBezier,
   type MotionValue,
 } from "framer-motion";
+import { PILOT_FAQ_IDS } from "@/lib/seo/spacepilot";
 import { useTranslations } from "next-intl";
 
 // Space Pilot intro for the member page (admin-only preview tab).
@@ -644,8 +645,7 @@ function Features() {
   const t = useTranslations("memberPilotIntro");
   const items = [
     { n: "01", title: t("f1Title"), body: t("f1Body") },
-    { n: "02", title: t("f2Title"), body: t("f2Body"), beta: true },
-    { n: "03", title: t("f3Title"), body: t("f3Body") },
+    { n: "02", title: t("f3Title"), body: t("f3Body") },
   ];
   return (
     <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 240px), 1fr))", gap: 16 }}>
@@ -728,7 +728,7 @@ function FaqItem({ q, a, open, onToggle }: { q: string; a: string; open: boolean
 function Faq() {
   const t = useTranslations("memberPilotIntro");
   const [openIdx, setOpenIdx] = useState<number | null>(0);
-  const items = [1, 2, 3, 4, 5, 6, 7, 8].map((n) => ({ q: t(`faq${n}q` as "faq1q"), a: t(`faq${n}a` as "faq1a") }));
+  const items = PILOT_FAQ_IDS.map((n) => ({ q: t(`faq${n}q` as "faq1q"), a: t(`faq${n}a` as "faq1a") }));
   return (
     <div style={{ maxWidth: 760, margin: "0 auto" }}>
       <Reveal>
