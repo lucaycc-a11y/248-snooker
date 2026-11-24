@@ -4383,7 +4383,10 @@
     "faq5a": "房内录像功能仍在 Beta 测试中，赛后可在会员页回看与分享。数据如何收集、保存及使用，请参阅数据收集声明。",
     "faq6q": "我的数据会用来训练 AI 吗？",
     "faq6a": "不会。我们不会使用客户数据训练 AI。",
-    "exclusiveNote": "Space8 独家 · 会员免费使用"
+    "exclusiveNote": "Space8 独家 · 会员免费使用",
+    "memberCta": "进入我的 Space Pilot",
+    "memberCtaTitle": "查看你的战绩",
+    "memberCtaBody": "登录会员，实时查看对战记录、胜率、精彩片段与相片。"
   },
   "memberPilot": {
     "rotTitle": "轮流赛",

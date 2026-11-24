@@ -1,5 +1,6 @@
 "use client";
 
+import { pilotCached, pilotFetch } from "@/lib/member/pilot-fetch";
 import { useEffect, useState } from "react";
 import { useLocale, useTranslations } from "next-intl";
 import {
@@ -183,10 +184,11 @@ export default function PilotRotations() {
 
   useEffect(() => {
     let alive = true;
+    const cachedRot = parseRotations(pilotCached("/api/member/pilot/rotations"));
+    if (cachedRot.enabled) setRotations(cachedRot.rotations);
     void (async () => {
       try {
-        const res = await fetch("/api/member/pilot/rotations", { cache: "no-store" });
-        const json: unknown = await res.json().catch(() => null);
+        const json = await pilotFetch("/api/member/pilot/rotations");
         const parsed = parseRotations(json);
         if (alive && parsed.enabled) setRotations(parsed.rotations);
       } catch {

@@ -3610,7 +3610,10 @@
     "faq5a": "房內錄影功能仍在 Beta 測試中，賽後可在會員頁重溫與分享。資料如何收集、保存及使用，請參閱資料收集聲明。",
     "faq6q": "我的資料會用來訓練 AI 嗎？",
     "faq6a": "不會。我們不會使用客戶資料訓練 AI。",
-    "exclusiveNote": "Space8 獨家 · 會員免費使用"
+    "exclusiveNote": "Space8 獨家 · 會員免費使用",
+    "memberCta": "進入我的 Space Pilot",
+    "memberCtaTitle": "查看你的戰績",
+    "memberCtaBody": "登入會員，即時查看對戰紀錄、勝率、精彩片段與相片。"
   },
   "memberPilot": {
     "rotTitle": "輪流賽",

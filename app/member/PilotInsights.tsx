@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useTranslations } from "next-intl";
 import type { PilotInsights as Insights } from "@/lib/member/pilot-rpc";
+import { pilotCached, pilotFetch } from "@/lib/member/pilot-fetch";
 
 const FONT_STYLE: React.CSSProperties = { fontFamily: "'Good Times', 'Noto Sans TC', system-ui, sans-serif" };
 const CARD_STYLE: React.CSSProperties = {
@@ -54,11 +55,12 @@ export default function PilotInsights() {
 
   useEffect(() => {
     let alive = true;
+    const cached = pilotCached("/api/member/pilot/insights");
+    if (isInsights(cached)) setData(cached);
     void (async () => {
       try {
-        const res = await fetch("/api/member/pilot/insights", { cache: "no-store" });
-        const json: unknown = await res.json().catch(() => null);
-        if (alive && res.ok && isInsights(json)) setData(json);
+        const json = await pilotFetch("/api/member/pilot/insights");
+        if (alive && isInsights(json)) setData(json);
       } catch {
         /* insights are optional */
       }

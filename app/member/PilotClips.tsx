@@ -1,5 +1,6 @@
 "use client";
 
+import { pilotCached, pilotFetch } from "@/lib/member/pilot-fetch";
 import { useCallback, useEffect, useState } from "react";
 import { useTranslations } from "next-intl";
 import { exportFramed, frameFileExt, type FrameKind } from "@/lib/pilot/frame-export";
@@ -37,15 +38,18 @@ export default function PilotClips() {
 
   const load = useCallback(async () => {
     try {
-      const res = await fetch("/api/member/pilot/clips", { cache: "no-store" });
-      const json: unknown = await res.json().catch(() => null);
-      if (res.ok) setClips(parseClips(json));
+      const json = await pilotFetch("/api/member/pilot/clips");
+      setClips(parseClips(json));
     } catch {
       /* optional section */
     }
   }, []);
 
-  useEffect(() => { void load(); }, [load]);
+  useEffect(() => {
+    const cached = pilotCached("/api/member/pilot/clips");
+    if (cached) setClips(parseClips(cached));
+    void load();
+  }, [load]);
 
   async function remove(id: string) {
     const res = await fetch(`/api/member/pilot/clips?id=${encodeURIComponent(id)}`, { method: "DELETE" });

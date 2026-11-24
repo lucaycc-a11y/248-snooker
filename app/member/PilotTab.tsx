@@ -7,6 +7,7 @@ import PilotInsights from "./PilotInsights";
 import PilotRotations from "./PilotRotations";
 import PilotClips from "./PilotClips";
 import { renderPosterBlob } from "./pilot-poster";
+import { pilotCached, pilotFetch, prefetchPilot } from "@/lib/member/pilot-fetch";
 
 type PilotPhoto = { id: string; kind: string; createdAt: string; url: string | null };
 
@@ -58,20 +59,26 @@ export default function PilotTab() {
 
   const load = useCallback(async () => {
     try {
-      const res = await fetch("/api/member/pilot", { cache: "no-store" });
-      const json: unknown = await res.json().catch(() => null);
-      if (!res.ok || !isPayload(json)) {
-        setState("error");
+      const json = await pilotFetch("/api/member/pilot");
+      if (!isPayload(json)) {
+        setState((prev) => (prev === "ready" ? prev : "error"));
         return;
       }
       setData(json);
       setState("ready");
     } catch {
-      setState("error");
+      setState((prev) => (prev === "ready" ? prev : "error"));
     }
   }, []);
 
   useEffect(() => {
+    // Start every Space Pilot request at once, and paint last visit's data immediately.
+    prefetchPilot();
+    const cached = pilotCached("/api/member/pilot");
+    if (isPayload(cached)) {
+      setData(cached);
+      setState("ready");
+    }
     void load();
   }, [load]);
 
@@ -108,7 +115,18 @@ export default function PilotTab() {
   }
 
   if (state === "loading") {
-    return <p style={{ color: "rgba(255,255,255,0.6)" }}>{t("loading")}</p>;
+    return (
+      <div aria-busy="true" aria-label={t("loading")} style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(110px, 1fr))", gap: 12 }}>
+          {[0, 1, 2, 3].map((i) => (
+            <div key={i} className="animate-pulse" style={{ height: 84, borderRadius: 20, background: "rgba(255,255,255,0.06)" }} />
+          ))}
+        </div>
+        {[120, 220].map((h) => (
+          <div key={h} className="animate-pulse" style={{ height: h, borderRadius: 20, background: "rgba(255,255,255,0.06)" }} />
+        ))}
+      </div>
+    );
   }
   if (state === "error" || !data) {
     return (
@@ -232,7 +250,7 @@ export default function PilotTab() {
               <figure key={p.id} style={{ margin: 0, position: "relative", borderRadius: 14, overflow: "hidden", background: "#000" }}>
                 {p.url ? (
                   // eslint-disable-next-line @next/next/no-img-element
-                  <img src={p.url} alt={t("photo_alt")} style={{ display: "block", width: "100%", aspectRatio: "1 / 1", objectFit: "cover" }} />
+                  <img src={p.url} alt={t("photo_alt")} loading="lazy" decoding="async" style={{ display: "block", width: "100%", aspectRatio: "1 / 1", objectFit: "cover" }} />
                 ) : null}
                 <figcaption style={{ position: "absolute", left: 0, right: 0, bottom: 0, padding: 8, display: "flex", justifyContent: "space-between", alignItems: "center", background: "linear-gradient(transparent, rgba(0,0,0,0.7))", fontSize: 11 }}>
                   <span>{formatDate(p.createdAt)}</span>

@@ -267,19 +267,48 @@ function Hero({ page = false }: { page?: boolean }) {
 }
 
 // Page hero: gradient headline, Space Pilot backdrop, and the iPad rising from the bottom edge.
+// Plain link: /member/pilot is not a localized route.
+function MemberCtaButton() {
+  const t = useTranslations("memberPilotIntro");
+  return (
+    <a
+      href="/member/pilot"
+      data-cms-key="memberPilotIntro.memberCta"
+      style={{ display: "inline-flex", alignItems: "center", gap: 8, minHeight: 48, padding: "0 26px", borderRadius: 999, background: "#22C55E", color: "#04130A", fontSize: 16, fontWeight: 600, textDecoration: "none" }}
+    >
+      {t("memberCta")}
+      <span aria-hidden>→</span>
+    </a>
+  );
+}
+
+function MemberCtaSection() {
+  const t = useTranslations("memberPilotIntro");
+  return (
+    <Reveal>
+      <div style={{ textAlign: "center", padding: "clamp(36px, 7vw, 64px) 20px", borderRadius: 28, border: `1px solid ${BORDER}`, background: "linear-gradient(180deg, rgba(34,197,94,0.10), rgba(124,58,237,0.08))" }}>
+        <BigTitle>{t("memberCtaTitle")}</BigTitle>
+        <p style={{ margin: "18px auto 28px", maxWidth: 480, fontSize: "clamp(15px, 2.2vw, 18px)", lineHeight: 1.7, color: SUBTLE }}>{t("memberCtaBody")}</p>
+        <MemberCtaButton />
+      </div>
+    </Reveal>
+  );
+}
+
 function HeroCopy({ intro }: { intro: MotionValue<number> }) {
   const t = useTranslations("memberPilotIntro");
   const reduce = useReducedMotion();
   const opacity = useTransform(intro, [0, 0.5], [1, 0]);
   const y = useTransform(intro, [0, 1], [0, -90]);
   const scale = useTransform(intro, [0, 1], [1, 0.95]);
+  const pointerEvents = useTransform(intro, (v) => (v < 0.35 ? "auto" : "none"));
   const rise = (n: number) =>
     reduce
       ? {}
       : { initial: { opacity: 0, y: 28 }, animate: { opacity: 1, y: 0 }, transition: { duration: 1.1, ease: EASE, delay: 0.1 + n * 0.14 } };
   return (
     <motion.div
-      style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center", textAlign: "center", padding: "104px 20px 36svh", opacity, y, scale, willChange: "transform, opacity", pointerEvents: "none" }}
+      style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center", textAlign: "center", padding: "104px 20px 36svh", opacity, y, scale, willChange: "transform, opacity", pointerEvents }}
     >
       <div>
           <motion.div {...rise(0)} style={{ display: "inline-flex", alignItems: "center", gap: 10 }}>
@@ -322,6 +351,9 @@ function HeroCopy({ intro }: { intro: MotionValue<number> }) {
               style={{ width: 6, height: 6, borderRadius: 999, background: GREEN }}
             />
             {t("betaNote")}
+          </motion.div>
+          <motion.div {...rise(4)} style={{ marginTop: 20 }}>
+            <MemberCtaButton />
           </motion.div>
       </div>
     </motion.div>
@@ -720,6 +752,9 @@ export default function PilotIntro({ variant = "member" }: { variant?: "member" 
           </div>
           <div style={{ paddingTop: "clamp(64px, 12vh, 120px)" }}>
             <Features />
+          </div>
+          <div style={{ paddingTop: sectionPad }}>
+            <MemberCtaSection />
           </div>
           <div style={{ paddingTop: sectionPad }}>
             <Faq />
