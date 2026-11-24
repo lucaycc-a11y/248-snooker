@@ -51,6 +51,7 @@ export function ProfileCompletion({
   verifiedPhone,
   missingContact,
   onComplete,
+  onSkipPhone,
   labels,
 }: {
   initialName?: string
@@ -65,6 +66,8 @@ export function ProfileCompletion({
    *  field is shown. Undefined = show all fields (legacy fallback). */
   missingContact?: "phone" | "email"
   onComplete: (memberCode?: string) => void
+  /** Space Pilot QR join only: continue with a verified email and no phone. Returns true on success. */
+  onSkipPhone?: (name: string) => Promise<boolean>
   labels: {
     title: string
     subtitle: string
@@ -83,6 +86,9 @@ export function ProfileCompletion({
     phone_send_code: string
     /** Link back to editing the number from the OTP sub-step, e.g. "Change number". */
     phone_change_number: string
+    /** Optional (Space Pilot join): skip the phone step. */
+    skip_phone?: string
+    skip_phone_note?: string
   }
 }) {
   const t = useTranslations("auth")
@@ -554,6 +560,29 @@ export function ProfileCompletion({
       >
         {saving ? labels.saving : submitLabel}
       </button>
+
+      {onSkipPhone && !phoneConfirmed && labels.skip_phone ? (
+        <div style={{ marginTop: 14, textAlign: "center" }}>
+          <button
+            type="button"
+            disabled={saving || (showName && name.trim().length < 1)}
+            onClick={async () => {
+              setSaving(true)
+              setErrMsg(null)
+              const ok = await onSkipPhone(name.trim())
+              setSaving(false)
+              if (!ok) setErrMsg(labels.err_generic)
+            }}
+            data-cms-key="auth.profile.skip_phone"
+            style={{ background: "transparent", border: "none", color: "rgba(255,255,255,0.75)", fontSize: 14, textDecoration: "underline", cursor: "pointer", padding: 8 }}
+          >
+            {labels.skip_phone}
+          </button>
+          {labels.skip_phone_note ? (
+            <p style={{ margin: "4px 0 0", fontSize: 12, color: "rgba(255,255,255,0.5)" }}>{labels.skip_phone_note}</p>
+          ) : null}
+        </div>
+      ) : null}
     </div>
   )
 }

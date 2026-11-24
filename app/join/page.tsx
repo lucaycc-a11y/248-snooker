@@ -140,6 +140,7 @@ function JoinPageInner() {
               </p>
             )}
             <AuthCard
+              joinCode={code || undefined}
               returnUrl={code ? `/join?c=${code}` : `/join?room=${room}&session=${session}`}
               onAuthComplete={onAuthComplete}
             />

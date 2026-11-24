@@ -56,9 +56,12 @@ function maskContact(contact: string, type: OtpChannel): string {
 export function AuthCard({
   returnUrl,
   onAuthComplete,
+  joinCode,
 }: {
   returnUrl: string
   onAuthComplete: () => void
+  /** Space Pilot QR code (/join). Only then may a new account skip the phone step. */
+  joinCode?: string
 }) {
   const t = useTranslations("auth")
   const tLogin = useTranslations("login")
@@ -706,6 +709,24 @@ export function AuthCard({
         verifiedEmail={verifiedEmail}
         verifiedPhone={verifiedPhone}
         missingContact={missingContact}
+        onSkipPhone={
+          joinCode
+            ? async (name) => {
+                try {
+                  const res = await fetch("/api/profile/skip-phone", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ name, code: joinCode }),
+                  })
+                  if (!res.ok) return false
+                  onAuthComplete()
+                  return true
+                } catch {
+                  return false
+                }
+              }
+            : undefined
+        }
         onComplete={(memberCode) => {
           if (memberCode) {
             setQrMemberCode(memberCode)
@@ -728,8 +749,15 @@ export function AuthCard({
           phone_verified_badge: t("profile_phone_verified_badge"),
           phone_send_code: t("profile_phone_send_code"),
           phone_change_number: t("profile_phone_change_number"),
+          skip_phone: joinCode ? t("profile_skip_phone") : undefined,
+          skip_phone_note: joinCode ? t("profile_skip_phone_note") : undefined,
         }}
       />
+      {returnUrl.startsWith("/book") ? (
+        <p data-cms-key="auth.profile_book_note" style={{ margin: "14px 0 0", fontSize: 13, textAlign: "center", color: "rgba(255,255,255,0.7)" }}>
+          {t("profile_book_note")}
+        </p>
+      ) : null}
       {qrMemberCode && (
         <QRGuideModal
           memberCode={qrMemberCode}

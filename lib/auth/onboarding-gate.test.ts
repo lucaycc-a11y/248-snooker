@@ -25,7 +25,19 @@ function deps(opts: {
 }
 
 const INCOMPLETE: OnboardingRow = { onboarding_status: 'pending_second_identity', profile_complete: false }
+const EMAIL_ONLY: OnboardingRow = { onboarding_status: 'email_only', profile_complete: false }
 const COMPLETE: OnboardingRow = { onboarding_status: 'complete', profile_complete: true }
+
+describe('checkOnboardingGate email_only', () => {
+  it('lets an email-only user into /member', async () => {
+    expect(await checkOnboardingGate('/member', '', deps({ row: EMAIL_ONLY }))).toBeNull()
+  })
+
+  it('sends an email-only user from /book to /login to verify a phone', async () => {
+    const target = await checkOnboardingGate('/book', '', deps({ row: EMAIL_ONLY }))
+    expect(target).toBe('/login?returnUrl=%2Fbook')
+  })
+})
 
 describe('checkOnboardingGate', () => {
   it('lets a complete user through', async () => {

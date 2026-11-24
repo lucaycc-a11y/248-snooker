@@ -197,7 +197,10 @@
     "change_phone_go_to_settings": "前往设定页面",
     "err_email_in_retention": "该电子邮件地址已被使用，请直接登录。如您曾删除帐户，请于 6 个月后再注册。",
     "err_phone_in_retention": "该手机号码已被使用，请直接登录。如您曾删除帐户，请于 6 个月后再注册。",
-    "err_apple_id_in_retention": "该 Apple ID 已被使用，请直接登录。如您曾删除帐户，请于 6 个月后再注册。"
+    "err_apple_id_in_retention": "该 Apple ID 已被使用，请直接登录。如您曾删除帐户，请于 6 个月后再注册。",
+    "profile_skip_phone": "略过手机，先用 Space Pilot",
+    "profile_skip_phone_note": "之后预约前，须先完成手机 OTP 验证。",
+    "profile_book_note": "预约需要先完成手机 OTP 验证，请补充你的手机号码。"
   },
   "login": {
     "brand": "SPACE8",
@@ -4464,5 +4467,9 @@
     "void": "作废",
     "void_confirm": "作废此场？将从所有人的记录移除。",
     "restore_hidden": "还原已隐藏的对战（{count}）"
+  },
+  "memberPhoneBanner": {
+    "text": "预约需要先完成手机 OTP 验证，请补充你的手机号码。",
+    "cta": "完成手机验证后才可预约"
   }
 }

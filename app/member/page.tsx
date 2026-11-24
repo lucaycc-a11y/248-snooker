@@ -2,6 +2,7 @@ import { getMemberDashboardData } from '@/lib/data/getMemberRedesign'
 import { MemberPageClient } from './MemberPageClient'
 import { MemberAuthGuard } from './components/MemberAuthGuard'
 import { logSiteError } from '@/lib/errors/log'
+import PhoneRequiredBanner from './PhoneRequiredBanner'
 
 // ════════════════════════════════════════════════════════════════════════════
 // Member Page — Full Rebuild (Mobile-First, Single Scroll)
@@ -60,5 +61,10 @@ export default async function MemberPage() {
     }
   )
 
-  return <MemberPageClient initialData={data} />
+  return (
+    <>
+      <PhoneRequiredBanner />
+      <MemberPageClient initialData={data} />
+    </>
+  )
 }

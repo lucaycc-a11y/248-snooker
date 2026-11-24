@@ -45,6 +45,14 @@ export function isOnboardingGatedPath(pathname: string): boolean {
   return ['/member', '/book'].some((root) => p === root || p.startsWith(`${root}/`))
 }
 
+/**
+ * An email-verified account that skipped the phone step (Space Pilot QR join). It may use /member,
+ * but not /book: booking needs the full profile with an OTP-verified phone.
+ */
+export function isEmailOnly(row: OnboardingRow | null): boolean {
+  return row?.onboarding_status === 'email_only' && row?.profile_complete !== true
+}
+
 export function isOnboardingComplete(row: OnboardingRow | null): boolean {
   return row?.onboarding_status === 'complete' || row?.profile_complete === true
 }
@@ -65,7 +73,10 @@ export async function checkOnboardingGate(
     // Signed out: /member and /book handle their own login step.
     if (!userId) return null
     if (await deps.isActiveAdmin(userId)) return null
-    if (isOnboardingComplete(await deps.getOnboarding(userId))) return null
+    const row = await deps.getOnboarding(userId)
+    if (isOnboardingComplete(row)) return null
+    // Email-only accounts may browse /member; only /book needs the verified phone.
+    if (isEmailOnly(row) && stripLocale(pathname).startsWith('/member')) return null
 
     const params = new URLSearchParams({ returnUrl: `${pathname}${search}` })
     return `/login?${params.toString()}`
