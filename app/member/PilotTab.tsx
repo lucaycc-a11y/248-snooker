@@ -20,6 +20,7 @@ type PilotPayload = {
 };
 
 type LoadState = "loading" | "ready" | "error";
+type SubTab = "overview" | "matches" | "media";
 
 // Good Times for everything on this tab (Chinese falls back to Noto Sans TC, which Good Times lacks).
 const FONT_STYLE: React.CSSProperties = { fontFamily: "'Good Times', 'Noto Sans TC', system-ui, sans-serif" };
@@ -57,6 +58,7 @@ export default function PilotTab() {
   const [state, setState] = useState<LoadState>("loading");
   const [data, setData] = useState<PilotPayload | null>(null);
   const [confirmId, setConfirmId] = useState<string | null>(null);
+  const [tab, setTab] = useState<SubTab>("overview");
 
   const load = useCallback(async () => {
     try {
@@ -172,6 +174,31 @@ export default function PilotTab() {
         </span>
       </div>
 
+      <div
+        role="tablist"
+        aria-label={t("title")}
+        style={{ position: "sticky", top: 70, zIndex: 20, display: "flex", gap: 4, padding: 4, borderRadius: 14, background: "rgba(20,24,32,0.85)", border: "1px solid rgba(255,255,255,0.10)", backdropFilter: "blur(12px)", WebkitBackdropFilter: "blur(12px)" }}
+      >
+        {([
+          ["overview", t("tab_overview")],
+          ["matches", t("tab_matches")],
+          ["media", t("tab_media")],
+        ] as const).map(([id, label]) => (
+          <button
+            key={id}
+            type="button"
+            role="tab"
+            aria-selected={tab === id}
+            onClick={() => setTab(id)}
+            style={{ flex: 1, minHeight: 40, borderRadius: 10, border: "none", fontSize: 14, fontWeight: tab === id ? 700 : 500, color: tab === id ? "#fff" : "rgba(255,255,255,0.6)", background: tab === id ? "rgba(255,255,255,0.14)" : "transparent", cursor: "pointer", transition: "background .2s, color .2s" }}
+          >
+            {label}
+          </button>
+        ))}
+      </div>
+
+      {tab === "overview" ? (
+      <>
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(110px, 1fr))", gap: 12 }}>
         {[
           { label: t("stat_matches"), value: String(stats.matches) },
@@ -201,9 +228,12 @@ export default function PilotTab() {
 
       <PilotCoach />
       <PilotInsights />
-      <PilotRotations />
+      </>
+      ) : null}
 
-      <PilotClips />
+      {tab === "matches" ? (
+      <>
+      <PilotRotations />
 
       <section style={CARD_STYLE} aria-label={t("records")}>
         <h3 style={{ margin: "0 0 12px", fontSize: 16 }}>{t("records")}</h3>
@@ -241,6 +271,13 @@ export default function PilotTab() {
         )}
       </section>
 
+      </>
+      ) : null}
+
+      {tab === "media" ? (
+      <>
+      <PilotClips />
+
       <section style={CARD_STYLE} aria-label={t("photos")}>
         <h3 style={{ margin: "0 0 4px", fontSize: 16 }}>{t("photos")}</h3>
         <p style={{ margin: "0 0 12px", fontSize: 12, color: "rgba(255,255,255,0.6)" }}>{t("photos_private")}</p>
@@ -270,6 +307,8 @@ export default function PilotTab() {
           </div>
         )}
       </section>
+      </>
+      ) : null}
     </div>
   );
 }

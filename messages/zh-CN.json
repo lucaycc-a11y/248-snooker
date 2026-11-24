@@ -4455,6 +4455,9 @@
     "coach_title": "AI 战绩分析",
     "coach_loading": "分析中…",
     "coach_refresh": "重新分析",
-    "coach_note": "由 AI 根据你的对战数据生成，仅供参考。对手姓名不会发送给 AI。"
+    "coach_note": "由 AI 根据你的对战数据生成，仅供参考。对手姓名不会发送给 AI。",
+    "tab_overview": "总览",
+    "tab_matches": "对战",
+    "tab_media": "精华与相片"
   }
 }

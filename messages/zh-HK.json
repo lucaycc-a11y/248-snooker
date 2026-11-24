@@ -3682,6 +3682,9 @@
     "coach_title": "AI 戰績分析",
     "coach_loading": "分析中…",
     "coach_refresh": "重新分析",
-    "coach_note": "由 AI 根據你的對戰數據生成，僅供參考。對手姓名不會傳送給 AI。"
+    "coach_note": "由 AI 根據你的對戰數據生成，僅供參考。對手姓名不會傳送給 AI。",
+    "tab_overview": "總覽",
+    "tab_matches": "對戰",
+    "tab_media": "精華與相片"
   }
 }
