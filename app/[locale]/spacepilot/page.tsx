@@ -23,22 +23,22 @@ const SEO: Record<string, { title: string; description: string; keywords: string
   "zh-HK": {
     title: "Space Pilot 智能桌球計分 Beta｜SPACE8 新蒲崗獨家・會員免費",
     description:
-      "Space Pilot 是 SPACE8 新蒲崗球室獨家的智能桌球計分系統：牆上 iPad 即時計分、自動記錄賽果，賽後整理戰績並提供 AI 分析。會員免費使用。",
-    keywords: ["Space Pilot", "桌球計分", "智能桌球計分", "桌球計分 App", "自助桌球", "新蒲崗桌球", "中式八球", "桌球戰績", "AI 戰績分析", "輪流賽", "SPACE8"],
+      "Space Pilot 是 SPACE8 新蒲崗球室獨家的智能桌球計分系統：牆上 iPad 即時計分，支援中八、九球及團隊賽，自動記錄賽果並提供 AI 戰績分析。會員免費使用。",
+    keywords: ["Space Pilot", "桌球計分", "九球計分", "智能桌球計分", "桌球計分 App", "自助桌球", "新蒲崗桌球", "中式八球", "桌球戰績", "AI 戰績分析", "輪流賽", "SPACE8"],
     home: "主頁",
   },
   "zh-CN": {
     title: "Space Pilot 智能台球计分 Beta｜SPACE8 新蒲岗独家・会员免费",
     description:
-      "Space Pilot 是 SPACE8 新蒲岗球室独家的智能台球计分系统：墙上 iPad 实时计分、自动记录赛果，赛后整理战绩并提供 AI 分析。会员免费使用。",
-    keywords: ["Space Pilot", "台球计分", "智能台球计分", "自助台球", "新蒲岗台球", "中式八球", "台球战绩", "AI 战绩分析", "SPACE8"],
+      "Space Pilot 是 SPACE8 新蒲岗球室独家的智能台球计分系统：墙上 iPad 实时计分，支持中八、九球及团队赛，自动记录赛果并提供 AI 战绩分析。会员免费使用。",
+    keywords: ["Space Pilot", "台球计分", "九球计分", "智能台球计分", "自助台球", "新蒲岗台球", "中式八球", "台球战绩", "AI 战绩分析", "SPACE8"],
     home: "主页",
   },
   en: {
     title: "Space Pilot Smart Pool Scoring (Beta) | Exclusive to SPACE8, Free for Members",
     description:
-      "Space Pilot is SPACE8's exclusive smart pool scoring system in San Po Kong, Hong Kong: live scoring on a wall iPad, automatic results, in-room replays and AI match analysis. Free for members.",
-    keywords: ["Space Pilot", "pool scoring app", "smart scoreboard", "Chinese eight-ball", "self-service pool Hong Kong", "San Po Kong pool", "match stats", "AI match analysis", "SPACE8"],
+      "Space Pilot is SPACE8's exclusive smart pool scoring system in San Po Kong, Hong Kong: live scoring on a wall iPad for 8-ball, 9-ball and team matches, automatic results and AI match analysis. Free for members.",
+    keywords: ["Space Pilot", "pool scoring app", "9-ball scoring", "smart scoreboard", "Chinese eight-ball", "self-service pool Hong Kong", "San Po Kong pool", "match stats", "AI match analysis", "SPACE8"],
     home: "Home",
   },
 };
@@ -102,7 +102,7 @@ export default async function SpacePilotPage({
         url: pageUrl,
         inLanguage: locale,
         isAccessibleForFree: true,
-        featureList: [t("f1Title"), t("f3Title"), t("cap3Title"), t("cap4Title")],
+        featureList: [t("f0Title"), t("f1Title"), t("f3Title"), t("cap3Title"), t("cap4Title")],
         provider: { "@type": "SportsActivityLocation", name: "SPACE8", url: BASE },
         offers: {
           "@type": "Offer",

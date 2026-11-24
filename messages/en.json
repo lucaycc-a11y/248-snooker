@@ -4399,7 +4399,11 @@
     "faq7a": "No. Space Pilot is exclusive to SPACE8 and free for members. Friends can scan the QR code on the iPad to join on the spot and have their results recorded.",
     "faq8q": "Does Space Pilot give AI match analysis?",
     "faq8a": "Yes. After 3 or more matches, your member page writes a short summary and practice tips based on your win rate, streaks and head-to-head record.",
-    "roomsNote": "Illustrative screens with demo data; the two rooms were captured separately."
+    "roomsNote": "Illustrative screens with demo data; the two rooms were captured separately.",
+    "f0Title": "Multiple game modes",
+    "f0Body": "8-ball and 9-ball (Racks or Race), played 1 vs 1, as a Team or in a Rotation.",
+    "faq9q": "Which game modes does Space Pilot support?",
+    "faq9a": "8-ball and 9-ball (Racks or Race), played 1 vs 1, as a Team (doubles) or in a Rotation. Choose the players and a target number of racks or points before you start."
   },
   "memberPilot": {
     "rotTitle": "Rotations",

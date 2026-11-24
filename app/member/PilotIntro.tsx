@@ -644,8 +644,9 @@ function Rooms() {
 function Features() {
   const t = useTranslations("memberPilotIntro");
   const items = [
-    { n: "01", title: t("f1Title"), body: t("f1Body") },
-    { n: "02", title: t("f3Title"), body: t("f3Body") },
+    { n: "01", title: t("f0Title"), body: t("f0Body") },
+    { n: "02", title: t("f1Title"), body: t("f1Body") },
+    { n: "03", title: t("f3Title"), body: t("f3Body") },
   ];
   return (
     <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 240px), 1fr))", gap: 16 }}>
