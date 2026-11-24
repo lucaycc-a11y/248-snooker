@@ -4380,7 +4380,8 @@
     "faq5q": "What are Highlights?",
     "faq5a": "In-room recording is still in beta. Clips can be replayed and shared from your member page afterwards. See the data collection notice for how data is collected, kept and used.",
     "faq6q": "Is my data used to train AI?",
-    "faq6a": "No. We do not use customer data to train AI."
+    "faq6a": "No. We do not use customer data to train AI.",
+    "exclusiveNote": "Exclusive to Space8 · Free for members"
   },
   "memberPilot": {
     "rotTitle": "Rotations",
