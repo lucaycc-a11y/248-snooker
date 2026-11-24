@@ -3685,6 +3685,11 @@
     "coach_note": "由 AI 根據你的對戰數據生成，僅供參考。對手姓名不會傳送給 AI。",
     "tab_overview": "總覽",
     "tab_matches": "對戰",
-    "tab_media": "精華與相片"
+    "tab_media": "精華與相片",
+    "hide": "隱藏",
+    "hide_confirm": "從你的紀錄隱藏？對手不受影響，可隨時還原。",
+    "void": "作廢",
+    "void_confirm": "作廢此場？將從所有人的紀錄移除。",
+    "restore_hidden": "還原已隱藏的對戰（{count}）"
   }
 }

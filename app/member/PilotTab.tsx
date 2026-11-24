@@ -8,7 +8,8 @@ import PilotInsights from "./PilotInsights";
 import PilotRotations from "./PilotRotations";
 import PilotClips from "./PilotClips";
 import { renderPosterBlob } from "./pilot-poster";
-import { pilotCached, pilotFetch, prefetchPilot } from "@/lib/member/pilot-fetch";
+import { PILOT_URLS, pilotCached, pilotFetch, prefetchPilot } from "@/lib/member/pilot-fetch";
+import { useIsAdmin } from "@/lib/feature/use-is-admin";
 
 type PilotPhoto = { id: string; kind: string; createdAt: string; url: string | null };
 
@@ -17,6 +18,7 @@ type PilotPayload = {
   stats?: PilotStats | null;
   matches: PilotMatch[];
   photos: PilotPhoto[];
+  hiddenCount?: number;
 };
 
 type LoadState = "loading" | "ready" | "error";
@@ -59,6 +61,9 @@ export default function PilotTab() {
   const [data, setData] = useState<PilotPayload | null>(null);
   const [confirmId, setConfirmId] = useState<string | null>(null);
   const [tab, setTab] = useState<SubTab>("overview");
+  const [rev, setRev] = useState(0);
+  const [matchConfirm, setMatchConfirm] = useState<{ id: string; kind: "hide" | "void" } | null>(null);
+  const isAdmin = useIsAdmin();
 
   const load = useCallback(async () => {
     try {
@@ -107,6 +112,20 @@ export default function PilotTab() {
     a.download = file.name;
     a.click();
     URL.revokeObjectURL(url);
+  }
+
+  async function matchAction(body: { action: "hide" | "void" | "unhide_all"; id?: string }) {
+    setMatchConfirm(null);
+    const res = await fetch("/api/member/pilot/matches", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body),
+    });
+    if (!res.ok) return;
+    // Stats, insights, rotations and the AI review all depend on the match list: refetch everything.
+    await Promise.allSettled(PILOT_URLS.map((u) => pilotFetch(u, true)));
+    await load();
+    setRev((n) => n + 1);
   }
 
   async function removePhoto(id: string) {
@@ -177,7 +196,7 @@ export default function PilotTab() {
       <div
         role="tablist"
         aria-label={t("title")}
-        style={{ position: "sticky", top: 70, zIndex: 20, display: "flex", gap: 4, padding: 4, borderRadius: 14, background: "rgba(20,24,32,0.85)", border: "1px solid rgba(255,255,255,0.10)", backdropFilter: "blur(12px)", WebkitBackdropFilter: "blur(12px)" }}
+        style={{ position: "sticky", top: 70, zIndex: 20, display: "flex", gap: 4, padding: 4, borderRadius: 14, background: "rgba(20,24,32,0.97)", border: "1px solid rgba(255,255,255,0.10)", backdropFilter: "blur(12px)", WebkitBackdropFilter: "blur(12px)" }}
       >
         {([
           ["overview", t("tab_overview")],
@@ -226,14 +245,14 @@ export default function PilotTab() {
         </div>
       ) : null}
 
-      <PilotCoach />
-      <PilotInsights />
+      <PilotCoach key={`PilotCoach-${rev}`} />
+      <PilotInsights key={`PilotInsights-${rev}`} />
       </>
       ) : null}
 
       {tab === "matches" ? (
       <>
-      <PilotRotations />
+      <PilotRotations key={`PilotRotations-${rev}`} />
 
       <section style={CARD_STYLE} aria-label={t("records")}>
         <h3 style={{ margin: "0 0 12px", fontSize: 16 }}>{t("records")}</h3>
@@ -265,10 +284,33 @@ export default function PilotTab() {
                     {t("poster_share")}
                   </button>
                 ) : null}
+                {matchConfirm?.id === m.id ? (
+                  <span style={{ display: "flex", flexDirection: "column", gap: 4, alignItems: "flex-end" }}>
+                    <span style={{ fontSize: 11, color: "rgba(255,255,255,0.7)", maxWidth: 150, textAlign: "right" }}>
+                      {matchConfirm.kind === "void" ? t("void_confirm") : t("hide_confirm")}
+                    </span>
+                    <span style={{ display: "flex", gap: 6 }}>
+                      <button type="button" onClick={() => void matchAction({ action: matchConfirm.kind, id: m.id })} style={{ minHeight: 32, padding: "0 10px", borderRadius: 8, background: "#e64646", color: "#fff", fontSize: 12 }}>{t("delete_yes")}</button>
+                      <button type="button" onClick={() => setMatchConfirm(null)} style={{ minHeight: 32, padding: "0 10px", borderRadius: 8, fontSize: 12 }}>{t("delete_no")}</button>
+                    </span>
+                  </span>
+                ) : (
+                  <span style={{ display: "flex", gap: 6 }}>
+                    <button type="button" onClick={() => setMatchConfirm({ id: m.id, kind: "hide" })} style={{ minHeight: 36, padding: "0 10px", borderRadius: 10, fontSize: 12 }}>{t("hide")}</button>
+                    {isAdmin ? (
+                      <button type="button" onClick={() => setMatchConfirm({ id: m.id, kind: "void" })} style={{ minHeight: 36, padding: "0 10px", borderRadius: 10, fontSize: 12, color: "#ff8a8a" }}>{t("void")}</button>
+                    ) : null}
+                  </span>
+                )}
               </li>
             ))}
           </ul>
         )}
+        {(data.hiddenCount ?? 0) > 0 ? (
+          <button type="button" onClick={() => void matchAction({ action: "unhide_all" })} style={{ marginTop: 12, background: "transparent", border: "none", padding: 0, fontSize: 12, color: "rgba(255,255,255,0.6)", textDecoration: "underline", cursor: "pointer" }}>
+            {t("restore_hidden", { count: data.hiddenCount ?? 0 })}
+          </button>
+        ) : null}
       </section>
 
       </>

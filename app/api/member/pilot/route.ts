@@ -50,8 +50,12 @@ export async function GET() {
   // Lifetime stats are optional: if they fail the rest of the tab still works.
   const stats = statsRes.error ? null : parseStats(statsRes.data)
 
+  const rawMatches = typeof matchesRes.data === 'object' && matchesRes.data !== null ? (matchesRes.data as Record<string, unknown>) : {}
+  const hiddenCount = typeof rawMatches.hidden_count === 'number' ? rawMatches.hidden_count : 0
+
   return NextResponse.json({
     enabled,
+    hiddenCount,
     stats,
     matches,
     photos: photos

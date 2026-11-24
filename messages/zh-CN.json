@@ -4458,6 +4458,11 @@
     "coach_note": "由 AI 根据你的对战数据生成，仅供参考。对手姓名不会发送给 AI。",
     "tab_overview": "总览",
     "tab_matches": "对战",
-    "tab_media": "精华与相片"
+    "tab_media": "精华与相片",
+    "hide": "隐藏",
+    "hide_confirm": "从你的记录隐藏？对手不受影响，可随时还原。",
+    "void": "作废",
+    "void_confirm": "作废此场？将从所有人的记录移除。",
+    "restore_hidden": "还原已隐藏的对战（{count}）"
   }
 }
