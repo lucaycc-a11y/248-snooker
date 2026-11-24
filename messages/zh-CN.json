@@ -4375,7 +4375,7 @@
     "faqTitle": "常见问题",
     "faqLegal": "查看 Space Pilot 数据收集声明",
     "faq1q": "什么是 Space Pilot？",
-    "faq1a": "Space Pilot 是挂在墙上的 iPad 计分系统。它实时计分、记录赛果，赛后自动整理成你的战绩，并保存到会员页。",
+    "faq1a": "Space Pilot 是 SPACE8 独家的智能台球计分系统。挂在墙上的 iPad 实时计分、记录赛果，赛后自动整理成你的战绩，并保存到会员页。",
     "faq2q": "现在谁可以使用？",
     "faq2a": "Space Pilot 目前处于 Beta 测试，仅开放给少量玩家，暂不公开。",
     "faq3q": "我的战绩会保存在哪里？",
@@ -4389,7 +4389,11 @@
     "exclusiveNote": "Space8 独家 · 会员免费使用",
     "memberCta": "进入我的 Space Pilot",
     "memberCtaTitle": "查看你的战绩",
-    "memberCtaBody": "登录会员，实时查看对战记录、胜率、精彩片段与相片。"
+    "memberCtaBody": "登录会员，实时查看对战记录、胜率、精彩片段与相片。",
+    "faq7q": "使用 Space Pilot 需要付费吗？",
+    "faq7a": "不需要。Space Pilot 为 SPACE8 独家功能，会员免费使用。朋友可扫描 iPad 上的二维码，即场加入并记录赛果。",
+    "faq8q": "Space Pilot 有 AI 战绩分析吗？",
+    "faq8a": "有。累积 3 场或以上对战后，会员页会根据你的胜率、连胜与对手记录，生成文字总结和练习建议。"
   },
   "memberPilot": {
     "rotTitle": "轮流赛",

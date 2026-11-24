@@ -4375,7 +4375,7 @@
     "faqTitle": "FAQ",
     "faqLegal": "Read the Space Pilot data collection notice",
     "faq1q": "What is Space Pilot?",
-    "faq1a": "Space Pilot is a scoring system on an iPad mounted on the wall. It keeps score live, records the result and turns it into your stats, saved to your member page.",
+    "faq1a": "Space Pilot is SPACE8's exclusive smart scoring system for pool. The iPad on the wall keeps score live, records each result and turns it into your stats, saved to your member page.",
     "faq2q": "Who can use it now?",
     "faq2a": "Space Pilot is in beta and open to a small group of players only. It is not public yet.",
     "faq3q": "Where are my stats saved?",
@@ -4389,7 +4389,11 @@
     "exclusiveNote": "Exclusive to Space8 · Free for members",
     "memberCta": "Open my Space Pilot",
     "memberCtaTitle": "See your stats",
-    "memberCtaBody": "Sign in as a member to view your match history, win rate, highlights and photos."
+    "memberCtaBody": "Sign in as a member to view your match history, win rate, highlights and photos.",
+    "faq7q": "Does Space Pilot cost extra?",
+    "faq7a": "No. Space Pilot is exclusive to SPACE8 and free for members. Friends can scan the QR code on the iPad to join on the spot and have their results recorded.",
+    "faq8q": "Does Space Pilot give AI match analysis?",
+    "faq8a": "Yes. After 3 or more matches, your member page writes a short summary and practice tips based on your win rate, streaks and head-to-head record."
   },
   "memberPilot": {
     "rotTitle": "Rotations",

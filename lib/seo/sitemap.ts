@@ -3,6 +3,7 @@ import { getSiteGate } from '@/lib/gate/config'
 import { ENABLED_LOCALES } from '@/i18n/enabled-locales'
 import { absoluteUrl, hreflangLanguages, SITE_URL } from '@/lib/seo/site'
 import { imagesForPage } from '@/lib/seo/imageManifest'
+import { SPACEPILOT_PUBLIC } from '@/lib/seo/spacepilot'
 
 // Built by hand instead of app/sitemap.ts: Next 14.2's MetadataRoute.Sitemap
 // serializer has no image support (an `images` field is silently dropped),
@@ -76,6 +77,7 @@ export async function buildSitemapEntries(): Promise<SitemapEntry[]> {
 
   return [
     ...STATIC_PAGES.map(([path, freq, priority]) => staticEntry(path, freq, priority)),
+    ...(SPACEPILOT_PUBLIC ? [staticEntry('/spacepilot', 'monthly', 0.8)] : []),
     ...postEntries,
   ]
 }

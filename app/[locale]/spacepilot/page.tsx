@@ -1,41 +1,44 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { setRequestLocale } from "next-intl/server";
+import { getTranslations, setRequestLocale } from "next-intl/server";
 import Nav from "@/components/layout/Nav";
 import Footer from "@/components/layout/Footer";
 import PilotIntro from "@/app/member/PilotIntro";
 import { createClient } from "@/lib/supabase/server";
 import { pageAlternates } from "@/lib/seo/site";
 import { safeJsonLd } from "@/lib/seo/jsonLd";
+import { SPACEPILOT_PUBLIC } from "@/lib/seo/spacepilot";
 
 // Beta: admin-only until Space Pilot opens to a small group of players.
 // The check runs on the server so non-admins get a 404, not just a hidden link.
 export const dynamic = "force-dynamic";
 
-// Flip to true when Space Pilot opens to the public (and remove the admin check below).
-// Until then the page 404s for non-admins, so it stays out of search results.
-const SPACEPILOT_PUBLIC = false;
+// SPACEPILOT_PUBLIC (lib/seo/spacepilot.ts): while false the page 404s for non-admins, is noindex
+// and stays out of the sitemap.
 
 const BASE = "https://space8.com.hk";
 
-const SEO: Record<string, { title: string; description: string; keywords: string[] }> = {
+const SEO: Record<string, { title: string; description: string; keywords: string[]; home: string }> = {
   "zh-HK": {
-    title: "Space Pilot｜SPACE8 獨家桌球智能計分系統，會員免費使用",
+    title: "Space Pilot 智能桌球計分｜SPACE8 新蒲崗獨家・會員免費",
     description:
-      "Space Pilot 係 SPACE8 獨家嘅桌球智能計分系統：牆上 iPad 即時計分、自動記錄賽果、賽後房內錄影同戰績分析。只限 SPACE8 新蒲崗球室，會員免費使用。",
-    keywords: ["Space Pilot", "桌球計分", "智能計分", "SPACE8", "新蒲崗桌球", "中式八球", "桌球錄影", "會員免費"],
+      "Space Pilot 是 SPACE8 新蒲崗球室獨家的智能桌球計分系統：牆上 iPad 即時計分、自動記錄賽果，賽後整理戰績並提供 AI 分析。會員免費使用。",
+    keywords: ["Space Pilot", "桌球計分", "智能桌球計分", "桌球計分 App", "自助桌球", "新蒲崗桌球", "中式八球", "桌球戰績", "AI 戰績分析", "桌球錄影", "輪流賽", "SPACE8"],
+    home: "主頁",
   },
   "zh-CN": {
-    title: "Space Pilot｜SPACE8 独家台球智能计分系统，会员免费使用",
+    title: "Space Pilot 智能台球计分｜SPACE8 新蒲岗独家・会员免费",
     description:
-      "Space Pilot 是 SPACE8 独家的台球智能计分系统：墙上 iPad 实时计分、自动记录赛果、赛后房内录像与战绩分析。仅限 SPACE8 新蒲岗球室，会员免费使用。",
-    keywords: ["Space Pilot", "台球计分", "智能计分", "SPACE8", "新蒲岗台球", "中式八球", "会员免费"],
+      "Space Pilot 是 SPACE8 新蒲岗球室独家的智能台球计分系统：墙上 iPad 实时计分、自动记录赛果，赛后整理战绩并提供 AI 分析。会员免费使用。",
+    keywords: ["Space Pilot", "台球计分", "智能台球计分", "自助台球", "新蒲岗台球", "中式八球", "台球战绩", "AI 战绩分析", "台球录像", "SPACE8"],
+    home: "主页",
   },
   en: {
-    title: "Space Pilot｜Smart Pool Scoring, Exclusive to SPACE8 — Free for Members",
+    title: "Space Pilot Smart Pool Scoring | Exclusive to SPACE8, Free for Members",
     description:
-      "Space Pilot is SPACE8's exclusive smart scoring system: a wall-mounted iPad keeps live score, records every result, and gives you in-room replays and stats. Only at SPACE8 San Po Kong, free for members.",
-    keywords: ["Space Pilot", "pool scoring", "smart scoreboard", "SPACE8", "San Po Kong", "Chinese eight-ball", "free for members"],
+      "Space Pilot is SPACE8's exclusive smart pool scoring system in San Po Kong, Hong Kong: live scoring on a wall iPad, automatic results, in-room replays and AI match analysis. Free for members.",
+    keywords: ["Space Pilot", "pool scoring app", "smart scoreboard", "Chinese eight-ball", "self-service pool Hong Kong", "San Po Kong pool", "match stats", "AI match analysis", "SPACE8"],
+    home: "Home",
   },
 };
 
@@ -82,15 +85,44 @@ export default async function SpacePilotPage({
   setRequestLocale(locale);
   if (!SPACEPILOT_PUBLIC && !(await isActiveAdmin())) notFound();
   const m = SEO[locale] ?? SEO["zh-HK"];
+  const t = await getTranslations({ locale, namespace: "memberPilotIntro" });
+  const prefix = locale === "zh-HK" ? "" : `/${locale}`;
+  const pageUrl = `${BASE}${prefix}/spacepilot`;
   const jsonLd = {
     "@context": "https://schema.org",
-    "@type": "SoftwareApplication",
-    name: "Space Pilot",
-    applicationCategory: "SportsApplication",
-    description: m.description,
-    url: `${BASE}${locale === "zh-HK" ? "" : `/${locale}`}/spacepilot`,
-    provider: { "@type": "SportsActivityLocation", name: "SPACE8", url: BASE },
-    offers: { "@type": "Offer", price: "0", priceCurrency: "HKD", description: "Free for SPACE8 members" },
+    "@graph": [
+      {
+        "@type": "SoftwareApplication",
+        "@id": `${pageUrl}#app`,
+        name: "Space Pilot",
+        applicationCategory: "SportsApplication",
+        operatingSystem: "iPadOS",
+        description: m.description,
+        url: pageUrl,
+        inLanguage: locale,
+        isAccessibleForFree: true,
+        featureList: [t("f1Title"), t("f2Title"), t("f3Title"), t("cap3Title"), t("cap4Title")],
+        provider: { "@type": "SportsActivityLocation", name: "SPACE8", url: BASE },
+        offers: { "@type": "Offer", price: "0", priceCurrency: "HKD", description: "Free for SPACE8 members" },
+      },
+      {
+        "@type": "FAQPage",
+        "@id": `${pageUrl}#faq`,
+        inLanguage: locale,
+        mainEntity: [1, 2, 3, 4, 5, 6, 7, 8].map((n) => ({
+          "@type": "Question",
+          name: t(`faq${n}q` as "faq1q"),
+          acceptedAnswer: { "@type": "Answer", text: t(`faq${n}a` as "faq1a") },
+        })),
+      },
+      {
+        "@type": "BreadcrumbList",
+        itemListElement: [
+          { "@type": "ListItem", position: 1, name: m.home, item: `${BASE}${prefix}` },
+          { "@type": "ListItem", position: 2, name: "Space Pilot", item: pageUrl },
+        ],
+      },
+    ],
   };
 
   return (

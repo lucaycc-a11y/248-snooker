@@ -706,7 +706,7 @@ function FaqItem({ q, a, open, onToggle }: { q: string; a: string; open: boolean
 function Faq() {
   const t = useTranslations("memberPilotIntro");
   const [openIdx, setOpenIdx] = useState<number | null>(0);
-  const items = [1, 2, 3, 4, 5, 6].map((n) => ({ q: t(`faq${n}q` as "faq1q"), a: t(`faq${n}a` as "faq1a") }));
+  const items = [1, 2, 3, 4, 5, 6, 7, 8].map((n) => ({ q: t(`faq${n}q` as "faq1q"), a: t(`faq${n}a` as "faq1a") }));
   return (
     <div style={{ maxWidth: 760, margin: "0 auto" }}>
       <Reveal>
