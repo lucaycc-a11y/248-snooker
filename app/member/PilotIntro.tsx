@@ -381,9 +381,11 @@ function WallStage({ page = false, bleed = false }: { page?: boolean; bleed?: bo
   const introP = useTransform(rawProgress, [0, Math.max(H, 0.001)], [intro ? 0 : 1, 1], { clamp: true });
   const wallFade = useTransform(introP, [0.3, 0.9], [0, 1]);
   const backdropFade = useTransform(introP, [0.25, 0.85], [1, 0]);
-  const padRise = useTransform(introP, [0, 1], [reduce ? 0 : 62, 0], { ease: ZOOM_EASE });
+  const padRise = useTransform(introP, [0, 1], [reduce ? 0 : 50, 0], { ease: ZOOM_EASE });
   const padRiseY = useTransform(padRise, (v) => `${v}svh`);
-  const introTilt = useTransform(introP, [0, 1], [reduce ? 0 : 14, 0], { ease: ZOOM_EASE });
+  const introTilt = useTransform(introP, [0, 1], [reduce ? 0 : 34, 0], { ease: ZOOM_EASE });
+  const introSpin = useTransform(introP, [0, 1], [reduce ? 0 : -9, 0], { ease: ZOOM_EASE });
+  const introScale = useTransform(introP, [0, 1], [reduce ? 1 : 1.3, 1], { ease: ZOOM_EASE });
   const zoom = useTransform(scrollYProgress, [0, 0.32], [reduce ? 1 : intro ? 1.12 : 2.4, 1], { ease: ZOOM_EASE });
   const dim = useTransform(scrollYProgress, [0, 0.4], [0, 0.42]);
   const glow = useTransform(scrollYProgress, [0.1, 0.42], [0, 1]);
@@ -396,7 +398,7 @@ function WallStage({ page = false, bleed = false }: { page?: boolean; bleed?: bo
         style={{
           position: "sticky",
           top: 0,
-          height: "100svh",
+          height: intro ? "100dvh" : "100svh",
           overflow: "hidden",
           borderRadius: page ? 0 : 28,
           border: page ? "none" : `1px solid ${BORDER}`,
@@ -455,10 +457,10 @@ function WallStage({ page = false, bleed = false }: { page?: boolean; bleed?: bo
               position: "relative",
               width: "min(88vw, 880px, calc((100svh - 340px) * 1.411))",
               aspectRatio: "1400 / 992",
-              perspective: 1400,
+              perspective: intro ? 1100 : 1400,
             }}
           >
-            <motion.div style={{ position: "absolute", inset: 0, y: intro ? padRiseY : lift, rotateX: tilt, willChange: "transform" }}>
+            <motion.div style={{ position: "absolute", inset: 0, y: intro ? padRiseY : lift, rotateX: tilt, ...(intro ? { rotateY: introSpin, scale: introScale } : {}), willChange: "transform" }}>
               <DeviceShadow />
               {SCREENS.map((id, i) => (
                 <ScreenLayer key={id} id={id} index={i} progress={scrollYProgress} />
