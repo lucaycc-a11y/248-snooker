@@ -21,6 +21,7 @@ import { liquidGlass } from '@/lib/ui/liquid-glass'
 import { AuthModal } from '@/components/auth/AuthModal'
 import { createClient } from '@/lib/supabase/client'
 import { resolveNavThemeFromElement } from '@/lib/nav-theme'
+import { SPACEPILOT_PUBLIC } from '@/lib/seo/spacepilot'
 
 const navItems = [
   { href: '/', key: 'home' },
@@ -63,10 +64,10 @@ export default function Nav() {
   const t = useTranslations('nav')
   const v802 = useV802() // admin-only while 8.0.2 is a test build
   const isAdmin = useIsAdmin()
-  // Space Pilot (beta) is admin-only until it opens to a small group of players.
+  // Space Pilot (beta) shows in the nav for everyone once SPACEPILOT_PUBLIC is on, else admin-only.
   const pilotItem = { href: '/spacepilot', key: 'spacepilot' } as const
-  // Space Pilot sits just above Membership, admin-only while in beta.
-  const links: ReadonlyArray<{ href: string; key: string }> = isAdmin
+  // Space Pilot sits just above Membership.
+  const links: ReadonlyArray<{ href: string; key: string }> = SPACEPILOT_PUBLIC || isAdmin
     ? [...navItems.filter((i) => i.key !== 'membership'), pilotItem, ...navItems.filter((i) => i.key === 'membership')]
     : navItems
 
