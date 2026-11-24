@@ -384,7 +384,6 @@ function WallStage({ page = false, bleed = false }: { page?: boolean; bleed?: bo
   const padRise = useTransform(introP, [0, 1], [reduce ? 0 : 50, 0], { ease: ZOOM_EASE });
   const padRiseY = useTransform(padRise, (v) => `${v}svh`);
   const introTilt = useTransform(introP, [0, 1], [reduce ? 0 : 34, 0], { ease: ZOOM_EASE });
-  const introSpin = useTransform(introP, [0, 1], [reduce ? 0 : -9, 0], { ease: ZOOM_EASE });
   const introScale = useTransform(introP, [0, 1], [reduce ? 1 : 1.3, 1], { ease: ZOOM_EASE });
   const zoom = useTransform(scrollYProgress, [0, 0.32], [reduce ? 1 : intro ? 1.12 : 2.4, 1], { ease: ZOOM_EASE });
   const dim = useTransform(scrollYProgress, [0, 0.4], [0, 0.42]);
@@ -460,7 +459,7 @@ function WallStage({ page = false, bleed = false }: { page?: boolean; bleed?: bo
               perspective: intro ? 1100 : 1400,
             }}
           >
-            <motion.div style={{ position: "absolute", inset: 0, y: intro ? padRiseY : lift, rotateX: tilt, ...(intro ? { rotateY: introSpin, scale: introScale } : {}), willChange: "transform" }}>
+            <motion.div style={{ position: "absolute", inset: 0, y: intro ? padRiseY : lift, rotateX: tilt, ...(intro ? { scale: introScale } : {}), willChange: "transform" }}>
               <DeviceShadow />
               {SCREENS.map((id, i) => (
                 <ScreenLayer key={id} id={id} index={i} progress={scrollYProgress} />
