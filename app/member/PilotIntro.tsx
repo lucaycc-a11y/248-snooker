@@ -25,6 +25,25 @@ const GLASS_BLUR = "blur(20px) saturate(180%)";
 const FONT_FAMILY =
   "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', 'PingFang HK', 'Noto Sans TC', 'Helvetica Neue', Helvetica, Arial, sans-serif";
 const HEADING = "'Good Times', 'Noto Sans TC', system-ui, sans-serif";
+
+// Room names are brand words: set them in the Good Times display face wherever they appear in body copy.
+const ROOM_NAMES = /(Space Infinity|Space Eternity)/gi;
+function BrandText({ text }: { text: string }) {
+  return (
+    <>
+      {text.split(ROOM_NAMES).map((part, i) =>
+        i % 2 === 1 ? (
+          <span key={i} style={{ fontFamily: HEADING, letterSpacing: "0.04em", color: INK, whiteSpace: "nowrap" }}>
+            {part}
+          </span>
+        ) : (
+          part
+        )
+      )}
+    </>
+  );
+}
+
 const EASE = [0.16, 1, 0.3, 1] as const;
 
 // Layered shadow: tight contact line + mid + soft ambient, like a device mounted on a wall.
@@ -528,7 +547,7 @@ function Rooms() {
         <Kicker>{t("roomsKicker")}</Kicker>
         <BigTitle>{t("roomsTitle")}</BigTitle>
         <p style={{ margin: "24px auto 0", maxWidth: 560, fontSize: "clamp(15px, 2.2vw, 18px)", lineHeight: 1.75, color: SUBTLE }}>
-          {t("roomsBody")}
+          <BrandText text={t("roomsBody")} />
         </p>
       </Reveal>
       <div style={{ position: "relative", marginTop: 64 }}>
@@ -697,7 +716,7 @@ function FaqItem({ q, a, open, onToggle }: { q: string; a: string; open: boolean
         transition={{ duration: 0.45, ease: EASE }}
         style={{ overflow: "hidden" }}
       >
-        <p style={{ margin: 0, padding: "0 32px 24px 0", fontSize: 16, lineHeight: 1.8, color: SUBTLE }}>{a}</p>
+        <p style={{ margin: 0, padding: "0 32px 24px 0", fontSize: 16, lineHeight: 1.8, color: SUBTLE }}><BrandText text={a} /></p>
       </motion.div>
     </div>
   );
