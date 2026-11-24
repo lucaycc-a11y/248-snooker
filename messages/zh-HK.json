@@ -3678,6 +3678,10 @@
     "clips_hint": "保存 30 日。可以下載成 Space Pilot Frame 影片。",
     "clips_empty": "比賽如有精彩片段，掃描手機鏡頭或 iPad 上的 QR，即可存入此處。",
     "clip_frame_45": "Frame 4:5",
-    "clip_frame_916": "Frame 9:16"
+    "clip_frame_916": "Frame 9:16",
+    "coach_title": "AI 戰績分析",
+    "coach_loading": "分析中…",
+    "coach_refresh": "重新分析",
+    "coach_note": "由 AI 根據你的對戰數據生成，僅供參考。對手姓名不會傳送給 AI。"
   }
 }

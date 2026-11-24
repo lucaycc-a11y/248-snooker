@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { useTranslations } from "next-intl";
 import type { PilotMatch, PilotStats } from "@/lib/member/pilot-rpc";
+import PilotCoach from "./PilotCoach";
 import PilotInsights from "./PilotInsights";
 import PilotRotations from "./PilotRotations";
 import PilotClips from "./PilotClips";
@@ -198,6 +199,7 @@ export default function PilotTab() {
         </div>
       ) : null}
 
+      <PilotCoach />
       <PilotInsights />
       <PilotRotations />
 

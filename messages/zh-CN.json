@@ -4451,6 +4451,10 @@
     "clips_hint": "保存 30 天。可以下载成 Space Pilot Frame 视频。",
     "clips_empty": "比赛有精彩片段，扫描 QR 就可以存入这里。",
     "clip_frame_45": "Frame 4:5",
-    "clip_frame_916": "Frame 9:16"
+    "clip_frame_916": "Frame 9:16",
+    "coach_title": "AI 战绩分析",
+    "coach_loading": "分析中…",
+    "coach_refresh": "重新分析",
+    "coach_note": "由 AI 根据你的对战数据生成，仅供参考。对手姓名不会发送给 AI。"
   }
 }
