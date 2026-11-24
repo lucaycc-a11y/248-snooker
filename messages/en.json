@@ -1121,6 +1121,10 @@
       "inbox": {
         "title": "Inbox",
         "subtitle": "View notifications"
+      },
+      "pilot": {
+        "title": "Space Pilot",
+        "subtitle": "Stats & clips"
       }
     },
     "wallet_explainer": {
@@ -1565,7 +1569,8 @@
     "add_calendar": "Add to calendar",
     "share": "Share",
     "hours": "hours",
-    "payment_method": "Payment method"
+    "payment_method": "Payment method",
+    "member_card_caption": "Show this membership card or scan its QR code at the door. Find it later in Member Center or your booking confirmation email."
   },
   "venueHero": {
     "eyebrow": "SPACE INFINITY",

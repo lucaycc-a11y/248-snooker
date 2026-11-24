@@ -1121,6 +1121,10 @@
       "inbox": {
         "title": "收件箱",
         "subtitle": "查看通知"
+      },
+      "pilot": {
+        "title": "Space Pilot",
+        "subtitle": "战绩与录像"
       }
     },
     "wallet_explainer": {
@@ -1296,7 +1300,7 @@
     "faq_location_q": "SPACE8 地址在哪里？如何前往？",
     "faq_location_a": "地址：新蒲岗大有街 32 号泰力工业中心。港铁钻石山站 A2 出口或启德站 Airside C 出口步行约 8–10 分钟，距离钻石山站 A2 出口约 500 米（建议路线）；亦可乘搭巴士或小巴至大有街附近下车。驾车人士建议使用新科技广场停车场（威信停车场）。",
     "faq_find_unit_q": "在大厦里怎样找到 SPACE8（楼层及单位）？",
-    "faq_find_unit_a": "预订成功后，确认邮件及「会员中心」会显示完整楼层、单位，并附三步到达指引及相片：1. 由大有街 32 号大厦正门进入；2. 如有需要，可由货车入口（侧面）进入；3. 到达 SPACE8 门口，用会员 QR Code 开门。如仍找不到，欢迎随时 WhatsApp 联系我们。",
+    "faq_find_unit_a": "预订成功后，确认邮件及「会员中心」会显示完整楼层、单位，并附三步到达指引及相片：1. 由大有街 32 号大厦正门进入；2. 如有需要，可由侧门入口进入；3. 到达 SPACE8 门口，用会员 QR Code 开门。如仍找不到，欢迎随时 WhatsApp 联系我们。",
     "faq_toilet_q": "SPACE8 有没有厕所？",
     "faq_toilet_a": "有，SPACE8 设有独立厕所，供预约的会员使用。",
     "faq_food_q": "可以在 SPACE8 吃东西吗？",
@@ -1649,7 +1653,8 @@
     "add_calendar": "添加到日历",
     "share": "分享",
     "hours": "小时",
-    "payment_method": "付款方式"
+    "payment_method": "付款方式",
+    "member_card_caption": "到场时出示此会员卡或扫描 QR Code 即可开门入场。之后可于会员中心或预约确认邮件查看。"
   },
   "venueHero": {
     "eyebrow": "SPACE INFINITY",

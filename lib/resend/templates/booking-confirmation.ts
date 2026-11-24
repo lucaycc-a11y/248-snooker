@@ -15,6 +15,53 @@ export const bookingConfirmationQrImageHtml = (cid: string) => `<table role="pre
                   Scan this QR code at the door for entry
                 </p>`
 
+/** Heading text above the QR block in the template. */
+export const BOOKING_QR_HEADING = '你的專屬會員QR code'
+export const BOOKING_MEMBER_CARD_HEADING = '你的專屬會員卡 Your Membership Card'
+
+const escapeHtml = (v: string) =>
+  v.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;')
+
+/** Markers around the QR tile so a failed-attachment retry can drop it cleanly. */
+export const MEMBER_CARD_QR_TILE_RE = /<!--qr-tile-->[\s\S]*?<!--\/qr-tile-->/g
+
+/**
+ * Membership-card block, substituted into {{qrImageHtml}} for admins only (while the
+ * new design is being tested). Same QR PNG (cid:) as the plain block. Table layout with
+ * a solid bgcolor fallback because many clients ignore CSS gradients.
+ */
+export const bookingConfirmationMemberCardHtml = (opts: { name: string; memberCode: string; cid: string }) => `<table role="presentation" align="center" width="340" cellpadding="0" cellspacing="0" border="0" bgcolor="#2f2466" style="margin:0 auto;width:340px;max-width:100%;border-radius:18px;background-color:#2f2466;background-image:linear-gradient(135deg,#4c2f8f 0%,#2a1f55 60%,#14401f 130%);">
+                  <tr>
+                    <td style="padding:18px 18px 16px;text-align:left;">
+                      <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+                        <tr><td colspan="2" style="color:#ffffff;font-size:12px;font-weight:700;letter-spacing:3px;padding-bottom:22px;">SPACE8</td></tr>
+                        <tr>
+                          <td valign="bottom" align="left">
+                            <div style="color:#ffffff;font-size:20px;font-weight:700;line-height:1.2;">${escapeHtml(opts.name)}</div>
+                            <div style="color:#ffffff;font-size:17px;font-weight:700;margin-top:6px;">優越會員</div>
+                            <div style="color:#c4b5fd;font-size:10px;letter-spacing:2px;margin-top:2px;">PREMIER</div>
+                            <div style="color:#c4b5fd;font-size:9px;margin-top:14px;">會員編號 Member ID</div>
+                            <div style="color:#ffffff;font-size:12px;font-family:monospace;letter-spacing:1px;margin-top:2px;">${escapeHtml(opts.memberCode)}</div>
+                          </td>
+                          <td valign="bottom" align="right" width="108">
+                            <!--qr-tile-->
+                            <table role="presentation" align="right" cellpadding="0" cellspacing="0" border="0" bgcolor="#ffffff" style="background-color:#ffffff;border-radius:10px;">
+                              <tr><td bgcolor="#ffffff" style="padding:6px;background-color:#ffffff;border-radius:10px;">
+                                <img src="cid:${opts.cid}" alt="Member QR" width="92" height="92" style="display:block;width:92px;height:92px;border:0;" />
+                              </td></tr>
+                            </table>
+                            <!--/qr-tile-->
+                          </td>
+                        </tr>
+                      </table>
+                    </td>
+                  </tr>
+                </table>
+                <p style="color:#a3a3a3;font-size:13px;margin:12px 0 0;line-height:1.5;">
+                  到場時出示此會員卡或掃描 QR Code 即可開門入場<br/>
+                  Show this membership card or scan the QR code at the door for entry
+                </p>`
+
 /** Shown instead of the QR when generation/attachment fails — never a broken <img>. */
 export const bookingConfirmationQrUnavailableHtml = `<p style="color:#a3a3a3;font-size:13px;margin:0;line-height:1.5;">
                   QR Code 暫時無法於電郵顯示，請前往會員頁查看<br/>
@@ -44,8 +91,8 @@ export const arrivalPhotosHtmlNew = `              <!-- Arrival guide photos (af
                 <img src="https://space8.com.hk/images/venue-entrance/main-entrance.jpg" alt="1. 大廈正門 Main Entrance" width="360" style="display:block;width:100%;max-width:360px;height:auto;border-radius:12px;margin:0 auto 6px;border:0;" />
                 <p style="color:#ffffff;font-size:13px;font-weight:700;margin:0 0 2px;">1. 大廈正門 Main Entrance</p>
                 <p style="color:#a3a3a3;font-size:12px;line-height:1.5;margin:0 0 16px;">從大有街 32 號入口進入。<br/>Enter from 32 Tai Yau Street.</p>
-                <img src="https://space8.com.hk/images/venue-entrance/side-entrance.jpg" alt="2. 貨車入口 Side Entrance" width="360" style="display:block;width:100%;max-width:360px;height:auto;border-radius:12px;margin:0 auto 6px;border:0;" />
-                <p style="color:#ffffff;font-size:13px;font-weight:700;margin:0 0 2px;">2. 貨車入口 Side Entrance</p>
+                <img src="https://space8.com.hk/images/venue-entrance/side-entrance.jpg" alt="2. 側門入口 Side Entrance" width="360" style="display:block;width:100%;max-width:360px;height:auto;border-radius:12px;margin:0 auto 6px;border:0;" />
+                <p style="color:#ffffff;font-size:13px;font-weight:700;margin:0 0 2px;">2. 側門入口 Side Entrance</p>
                 <p style="color:#a3a3a3;font-size:12px;line-height:1.5;margin:0 0 16px;">如有需要，可由側面入口進入。<br/>Use the side entrance if needed.</p>
                 <img src="https://space8.com.hk/images/venue-entrance/space8-door.jpg" alt="3. SPACE8 門口 SPACE8 Entrance" width="360" style="display:block;width:100%;max-width:360px;height:auto;border-radius:12px;margin:0 auto 6px;border:0;" />
                 <p style="color:#ffffff;font-size:13px;font-weight:700;margin:0 0 2px;">3. SPACE8 門口 SPACE8 Entrance</p>

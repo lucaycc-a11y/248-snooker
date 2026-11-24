@@ -1113,6 +1113,10 @@
       "inbox": {
         "title": "收件箱",
         "subtitle": "查看通知"
+      },
+      "pilot": {
+        "title": "Space Pilot",
+        "subtitle": "戰績與錄影"
       }
     },
     "wallet_explainer": {
@@ -1204,7 +1208,7 @@
     "faq_location_q": "SPACE8 地址在哪裡？如何前往？",
     "faq_location_a": "地址：新蒲崗大有街 32 號泰力工業中心。港鐵鑽石山站 A2 出口或啟德站 Airside C 出口步行約 8–10 分鐘，距離鑽石山站 A2 出口約 500 米（建議路線）；亦可乘搭巴士或小巴至大有街附近下車。駕車人士建議使用新科技廣場停車場（威信停車場）。",
     "faq_find_unit_q": "在大廈內如何找到 SPACE8（樓層及單位）？",
-    "faq_find_unit_a": "預訂成功後，確認電郵及「會員中心」會顯示完整樓層、單位，並附三步到達指引及相片：1. 由大有街 32 號大廈正門進入；2. 如有需要，可由貨車入口（側面）進入；3. 到達 SPACE8 門口，用會員 QR Code 開門。如仍找不到，歡迎隨時 WhatsApp 聯絡我們。",
+    "faq_find_unit_a": "預訂成功後，確認電郵及「會員中心」會顯示完整樓層、單位，並附三步到達指引及相片：1. 由大有街 32 號大廈正門進入；2. 如有需要，可由側門入口進入；3. 到達 SPACE8 門口，用會員 QR Code 開門。如仍找不到，歡迎隨時 WhatsApp 聯絡我們。",
     "faq_toilet_q": "SPACE8 設有廁所嗎？",
     "faq_toilet_a": "有，SPACE8 設有獨立廁所，供已預約的會員使用。",
     "faq_food_q": "可以在 SPACE8 飲食嗎？",
@@ -1557,7 +1561,8 @@
     "add_calendar": "加入日歷",
     "share": "分享",
     "hours": "小時",
-    "payment_method": "付款方式"
+    "payment_method": "付款方式",
+    "member_card_caption": "到場時出示此會員卡或掃描 QR Code 即可開門入場。之後可於會員中心或預約確認電郵查看。"
   },
   "gallery": {
     "title": "場地。逐一看。",

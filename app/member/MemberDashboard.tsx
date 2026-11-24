@@ -919,22 +919,13 @@ function OverviewTab({
   const t = useTranslations('memberPage');
   const locale = useLocale();
   const router = useRouter();
-  const [walletBalance, setWalletBalance] = useState<number | null>(null);
   const [unreadCount, setUnreadCount] = useState<number | null>(null);
 
-  // Fetch wallet balance and unread count
+  // Fetch unread count
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const [walletRes, inboxRes] = await Promise.all([
-          fetch('/api/member/wallet'),
-          fetch('/api/member/inbox/unread-count'),
-        ]);
-
-        if (walletRes.ok) {
-          const data: import('@/lib/member-contracts').WalletApiResponse = await walletRes.json();
-          setWalletBalance(data.balance ?? 0);
-        }
+        const inboxRes = await fetch('/api/member/inbox/unread-count');
 
         if (inboxRes.ok) {
           const data = await inboxRes.json();
@@ -964,16 +955,10 @@ function OverviewTab({
           onClick={() => router.push('/faq')}
         />
         <QuickActionTile
-          icon={
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <rect x="3" y="6" width="18" height="12" rx="2"/>
-              <path d="M3 10h18"/>
-            </svg>
-          }
-          title="Wallet"
-          subtitle="錢包"
-          badge={walletBalance !== null ? `HK$${walletBalance.toLocaleString()}` : undefined}
-          onClick={() => router.push('/member/wallet')}
+          icon={<Trophy size={20} strokeWidth={2} />}
+          title="Space Pilot"
+          subtitle="戰績與錄影"
+          onClick={() => onSwitchTab('pilot')}
         />
         <QuickActionTile
           icon={

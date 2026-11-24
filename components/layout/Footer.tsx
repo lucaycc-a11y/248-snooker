@@ -1,6 +1,5 @@
 'use client'
 
-import dynamic from 'next/dynamic'
 import { Link } from '@/i18n/navigation'
 import { Clock, Instagram, Mail, MapPin, MessageCircle, Phone } from 'lucide-react'
 import { tokens } from '@/app/styles/tokens'
@@ -11,29 +10,6 @@ import { MAPS_URL } from '@/lib/site/nap'
 
 const WHATSAPP_URL = SITE_CONTACT.whatsappUrl
 const INSTAGRAM_URL = 'https://instagram.com/space8.com.hk'
-
-// Free CARTO Dark Matter tile map — no API key, no billing account needed
-// (replaces the old Google Maps Static API thumbnail). Leaflet touches
-// `window` at import time, so it must be loaded client-only.
-const FooterMap = dynamic(
-  () => import('./FooterMap').then((mod) => mod.FooterMap),
-  {
-    ssr: false,
-    loading: () => (
-      <div
-        style={{
-          width: '100%',
-          maxWidth: '320px',
-          aspectRatio: '2 / 1',
-          borderRadius: '14px',
-          border: `1px solid ${tokens.colors.border}`,
-          background: tokens.colors.surface,
-          marginBottom: '14px',
-        }}
-      />
-    ),
-  },
-)
 
 export default function Footer() {
   const t = useTranslations()
@@ -180,7 +156,24 @@ export default function Footer() {
               {t('footer.contact_title')}
             </div>
             <div style={{ marginBottom: '20px' }}>
-              <FooterMap mapsUrl={MAPS_URL} ariaLabel={t('footer.map_cta')} />
+              <a
+                href={MAPS_URL}
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-label={t('footer.map_cta')}
+                style={{ display: 'block', width: '100%', maxWidth: '320px' }}
+              >
+                {/* Public map: building level only, no floor/unit (see lib/site/nap.ts). */}
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src="/images/venue/s8-map-dark-public.webp"
+                  alt={t('footer.address')}
+                  width={320}
+                  height={230}
+                  loading="lazy"
+                  style={{ display: 'block', width: '100%', height: 'auto', borderRadius: '14px', border: `1px solid ${tokens.colors.border}` }}
+                />
+              </a>
             </div>
             <div style={{ display: 'flex', gap: '10px', alignItems: 'flex-start', marginBottom: '16px' }}>
               <span className="si-pin"><MapPin size={16} strokeWidth={1.75} style={{ color: tokens.colors.textMuted, flexShrink: 0, marginTop: 2 }} /></span>

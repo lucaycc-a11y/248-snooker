@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, type ReactNode } from "react"
+import { useEffect, useState, type ReactNode } from "react"
 import { motion, AnimatePresence } from "framer-motion"
 import { CalendarPlus, Share2, Download, QrCode } from "lucide-react"
 import QRCodeLib from "qrcode"
@@ -10,6 +10,9 @@ import { Starfield } from "@/app/[locale]/Starfield"
 import { QRCode } from "@/components/shared/QRCode"
 import { getTableName } from "@/lib/booking/constants"
 import type { OrderTicket } from "@/app/[locale]/book/page"
+import { useIsAdmin } from "@/lib/feature/use-is-admin"
+import { MemberCardPremier } from "@/app/member/components/MemberCardPremier"
+import type { MemberProfile } from "@/lib/data/memberRedesignTypes"
 
 type TicketPrinterProps = {
   orderTicket: OrderTicket | null
@@ -291,6 +294,36 @@ function OrderedTicketCard({
 }) {
   const t = useTranslations("book")
   const t_ticket = useTranslations("ticket")
+  // Admin-only (while the new design is tested): show the membership card instead of the plain QR.
+  const isAdmin = useIsAdmin()
+  const [cardProfile, setCardProfile] = useState<MemberProfile | null>(null)
+  const memberCode = orderTicket.memberCode
+  useEffect(() => {
+    if (!isAdmin || !memberCode) return
+    let alive = true
+    fetch("/api/member/profile", { cache: "no-store" })
+      .then((r) => (r.ok ? r.json() : null))
+      .then((j: unknown) => {
+        if (!alive || typeof j !== "object" || j === null) return
+        const o = j as { display_name?: unknown; tier?: unknown; points?: unknown }
+        setCardProfile({
+          id: "",
+          display_name: typeof o.display_name === "string" ? o.display_name : null,
+          email: null,
+          phone: null,
+          tier: o.tier === "century" || o.tier === "maximum" ? o.tier : "amateur",
+          points: typeof o.points === "number" ? o.points : 0,
+          member_code: memberCode,
+          unread_notifications: 0,
+          gender: null,
+          birthday_set: false,
+        })
+      })
+      .catch(() => {})
+    return () => {
+      alive = false
+    }
+  }, [isAdmin, memberCode])
   // Format first line's date as header
   const firstLine = orderTicket.lines[0]
   const dateObj = firstLine ? new Date(`${firstLine.date}T00:00:00`) : new Date()
@@ -430,25 +463,41 @@ function OrderedTicketCard({
             marginBottom: 20,
           }}
         >
-          <QRCode card data={orderTicket.memberCode} size={QR_PX} />
-          <div
-            className="font-code"
-            style={{
-              fontSize: 12,
-              fontWeight: 600,
-              color: tokens.colors.text,
-              marginTop: 12,
-              letterSpacing: 1,
-            }}
-          >
-            {orderTicket.memberCode}
-          </div>
-          <div
-            data-cms-key="ticket.member_qr_caption"
-            style={{ fontSize: 12, color: tokens.colors.textMuted, marginTop: 6, textAlign: "center", lineHeight: 1.5, maxWidth: 280 }}
-          >
-            {t_ticket("member_qr_caption")}
-          </div>
+          {isAdmin && cardProfile ? (
+            <>
+              <div style={{ width: "100%", maxWidth: 340 }}>
+                <MemberCardPremier profile={cardProfile} />
+              </div>
+              <div
+                data-cms-key="ticket.member_card_caption"
+                style={{ fontSize: 12, color: tokens.colors.textMuted, marginTop: 10, textAlign: "center", lineHeight: 1.5, maxWidth: 280 }}
+              >
+                {t_ticket("member_card_caption")}
+              </div>
+            </>
+          ) : (
+            <>
+              <QRCode card data={orderTicket.memberCode} size={QR_PX} />
+              <div
+                className="font-code"
+                style={{
+                  fontSize: 12,
+                  fontWeight: 600,
+                  color: tokens.colors.text,
+                  marginTop: 12,
+                  letterSpacing: 1,
+                }}
+              >
+                {orderTicket.memberCode}
+              </div>
+              <div
+                data-cms-key="ticket.member_qr_caption"
+                style={{ fontSize: 12, color: tokens.colors.textMuted, marginTop: 6, textAlign: "center", lineHeight: 1.5, maxWidth: 280 }}
+              >
+                {t_ticket("member_qr_caption")}
+              </div>
+            </>
+          )}
         </motion.div>
       ) : (
         <div

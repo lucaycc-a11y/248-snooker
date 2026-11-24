@@ -8,13 +8,12 @@ import { useTranslations } from 'next-intl'
  *
  * 2×2 grid on mobile, 4 columns on desktop (≥640px)
  * All tiles identical size with consistent padding
- * Fetches from /api/member/wallet (balance), /api/member/points (lifetime),
+ * Fetches from /api/member/points (lifetime),
  * /api/member/inbox/unread-count
  * Refreshes on focus and credit notice, no 10s polling
  */
 
 type TileData = {
-  balance: number | null
   lifetime: number | null
   unreadCount: number | null
 }
@@ -22,20 +21,12 @@ type TileData = {
 export function HorizontalActionTiles() {
   const t = useTranslations('member.actions')
   const [data, setData] = useState<TileData>({
-    balance: null,
     lifetime: null,
     unreadCount: null,
   })
 
   async function loadData() {
     try {
-      // Fetch wallet balance
-      const walletRes = await fetch('/api/member/wallet')
-      if (walletRes.ok) {
-        const walletData = await walletRes.json()
-        setData((prev) => ({ ...prev, balance: walletData.balance ?? 0 }))
-      }
-
       // Fetch points lifetime
       const pointsRes = await fetch('/api/member/points')
       if (pointsRes.ok) {
@@ -71,9 +62,6 @@ export function HorizontalActionTiles() {
     }
   }, [])
 
-  const formatBalance = (bal: number | null) =>
-    bal !== null ? `HK$${bal.toLocaleString('en-HK')}` : ''
-
   const formatPoints = (pts: number | null) =>
     pts !== null ? pts.toLocaleString('en-HK') : ''
 
@@ -97,19 +85,15 @@ export function HorizontalActionTiles() {
           </span>
         </a>
 
-        {/* Wallet */}
-        <a className="tile" href="/member/wallet">
-          <svg className="i" aria-hidden="true">
-            <use href="#i-wallet" />
+        {/* Space Pilot (replaces the Wallet tile; wallet is reached from the Space Pts page) */}
+        <a className="tile" href="/member/pilot">
+          <svg className="i" viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M8 21h8M12 17v4M7 4h10v5a5 5 0 0 1-10 0V4zM17 5h3v2a3 3 0 0 1-3 3M7 5H4v2a3 3 0 0 0 3 3" />
           </svg>
-          <span className="top-r">
-            {data.balance !== null && (
-              <span className="chipb">{formatBalance(data.balance)}</span>
-            )}
-          </span>
+          <span className="top-r"></span>
           <span>
-            <span className="tt">Wallet</span>
-            <span className="ts">{t('wallet.subtitle')}</span>
+            <span className="tt" style={{ fontFamily: "'Good Times', sans-serif", letterSpacing: '0.04em' }}>Space Pilot</span>
+            <span className="ts">{t('pilot.subtitle')}</span>
           </span>
         </a>
 

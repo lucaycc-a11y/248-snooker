@@ -7,6 +7,10 @@ import { getStripe } from '@/lib/stripe/server'
 import {
   bookingConfirmationTemplate,
   bookingConfirmationQrImageHtml,
+  bookingConfirmationMemberCardHtml,
+  BOOKING_QR_HEADING,
+  BOOKING_MEMBER_CARD_HEADING,
+  MEMBER_CARD_QR_TILE_RE,
   bookingConfirmationQrUnavailableHtml,
 } from './templates/booking-confirmation'
 import { SITE_CONTACT } from '@/lib/site/contact'
@@ -267,6 +271,9 @@ async function renderBookingConfirmationHtml(bookingId: string): Promise<{
   // PNG sent as an inline (cid:) attachment. Gmail strips data: URIs and inline SVG,
   // and the payload must never appear in a public URL. On failure the email still
   // sends with a text fallback instead of a broken <img>, and the error is logged.
+  // Membership-card layout is admin-only for now; everyone else keeps the plain QR block.
+  const isAdminRecipient = await isAdminUserId(booking.user_id)
+  let useMemberCard = false
   let attachments: InlineAttachment[] = []
   let qrImageHtml: string
   try {
@@ -283,7 +290,12 @@ async function renderBookingConfirmationHtml(bookingId: string): Promise<{
       contentType: 'image/png',
       inlineContentId: QR_CONTENT_ID,
     }]
-    qrImageHtml = bookingConfirmationQrImageHtml(QR_CONTENT_ID)
+    if (isAdminRecipient) {
+      useMemberCard = true
+      qrImageHtml = bookingConfirmationMemberCardHtml({ name: customerName, memberCode: qrContent, cid: QR_CONTENT_ID })
+    } else {
+      qrImageHtml = bookingConfirmationQrImageHtml(QR_CONTENT_ID)
+    }
   } catch (qrErr) {
     const message = qrErr instanceof Error ? qrErr.message : String(qrErr)
     console.error('[template-send] QR PNG generation failed, sending without QR', { bookingId, error: message })
@@ -311,7 +323,7 @@ async function renderBookingConfirmationHtml(bookingId: string): Promise<{
   const currentYear = String(new Date().getFullYear())
 
   // ── Load template and substitute ───────────────────────────────────────────
-  const html = renderTemplate('booking-confirmation.html', {
+  let html = renderTemplate('booking-confirmation.html', {
     '{{customerName}}': customerName,
     '{{customerEmail}}': customerEmail,
     '{{venueDisplayName}}': venueDisplayName,
@@ -335,6 +347,9 @@ async function renderBookingConfirmationHtml(bookingId: string): Promise<{
     '{{googleMapsUrl}}': GOOGLE_MAPS_URL,
     '{{currentYear}}': currentYear,
   })
+
+  // Admin-only membership card: swap the heading to match (first occurrence is the heading).
+  if (useMemberCard) html = html.replace(BOOKING_QR_HEADING, BOOKING_MEMBER_CARD_HEADING)
 
   const subject = `預約確認 · Space8 · ${bookingDate} ${startTime}–${endTime}`
 
@@ -364,6 +379,8 @@ export async function sendBookingConfirmation(bookingId: string): Promise<{ emai
     console.error('[template-send] send with QR attachment failed, retrying without QR', { bookingId, error: firstError })
     await logQrFailure(userId, bookingId, `qr_attachment_failed: ${firstError}`)
     html = html.replace(bookingConfirmationQrImageHtml(QR_CONTENT_ID), bookingConfirmationQrUnavailableHtml)
+    // Membership-card variant: drop just the QR tile (the card itself still shows the member ID).
+    html = html.replace(MEMBER_CARD_QR_TILE_RE, '')
     attachments = []
     result = await resend.emails.send({ from, to, subject, html })
   }

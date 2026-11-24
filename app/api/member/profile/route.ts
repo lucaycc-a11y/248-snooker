@@ -23,7 +23,7 @@ export async function GET() {
 
   const { data: profile, error: profileError } = await supabase
     .from('users')
-    .select('member_code, points, tier')
+    .select('member_code, points, tier, display_name')
     .eq('id', user.id)
     .single()
 
@@ -35,5 +35,6 @@ export async function GET() {
     member_code: profile.member_code ?? '',
     points: profile.points ?? 0,
     tier: profile.tier ?? 'amateur',
+    display_name: profile.display_name ?? null,
   })
 }
