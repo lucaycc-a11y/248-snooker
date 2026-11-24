@@ -669,11 +669,6 @@ function Features() {
         >
           <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8 }}>
             <div style={{ fontFamily: HEADING, fontSize: 12, letterSpacing: "0.2em", color: GREEN }}>{it.n}</div>
-            {"beta" in it && it.beta && (
-              <span style={{ fontSize: 10, letterSpacing: "0.1em", padding: "3px 9px", borderRadius: 999, border: `1px solid ${GREEN}`, color: GREEN, whiteSpace: "nowrap" }}>
-                {t("betaTag")}
-              </span>
-            )}
           </div>
           <div style={{ marginTop: 40, fontSize: 22, fontWeight: 700, letterSpacing: "-0.01em", color: INK }}>{it.title}</div>
           <div style={{ marginTop: 10, fontSize: 15, lineHeight: 1.7, color: SUBTLE }}>{it.body}</div>
