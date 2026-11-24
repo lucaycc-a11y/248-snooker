@@ -308,7 +308,7 @@ function HeroCopy({ intro }: { intro: MotionValue<number> }) {
       : { initial: { opacity: 0, y: 28 }, animate: { opacity: 1, y: 0 }, transition: { duration: 1.1, ease: EASE, delay: 0.1 + n * 0.14 } };
   return (
     <motion.div
-      style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center", textAlign: "center", padding: "104px 20px 36svh", opacity, y, scale, willChange: "transform, opacity", pointerEvents }}
+      style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center", textAlign: "center", padding: "96px 20px 41svh", opacity, y, scale, willChange: "transform, opacity", pointerEvents }}
     >
       <div>
           <motion.div {...rise(0)} style={{ display: "inline-flex", alignItems: "center", gap: 10 }}>
@@ -318,8 +318,8 @@ function HeroCopy({ intro }: { intro: MotionValue<number> }) {
           <motion.h1
             {...rise(1)}
             style={{
-              margin: "22px 0 0",
-              fontSize: "clamp(38px, 7.2vw, 80px)",
+              margin: "18px 0 0",
+              fontSize: "clamp(34px, min(7.2vw, 10.5svh), 80px)",
               fontWeight: 700,
               lineHeight: 1.08,
               letterSpacing: "-0.025em",
@@ -334,13 +334,13 @@ function HeroCopy({ intro }: { intro: MotionValue<number> }) {
             <br />
             {t("heroTitle2")}
           </motion.h1>
-          <motion.p {...rise(2)} style={{ margin: "22px auto 0", maxWidth: 520, fontSize: "clamp(16px, 2.2vw, 20px)", lineHeight: 1.7, color: SUBTLE }}>
+          <motion.p {...rise(2)} style={{ margin: "18px auto 0", maxWidth: 520, fontSize: "clamp(15px, min(2.2vw, 2.6svh), 20px)", lineHeight: 1.7, color: SUBTLE }}>
             {t("heroBody")}
           </motion.p>
           <motion.p {...rise(2)} style={{ margin: "10px auto 0", fontSize: 14, letterSpacing: "0.02em", color: GREEN }}>
             {t("exclusiveNote")}
           </motion.p>
-          <motion.div {...rise(3)} style={{ marginTop: 28 }}>
+          <motion.div {...rise(3)} style={{ marginTop: 22 }}>
             <MemberCtaButton />
           </motion.div>
       </div>
