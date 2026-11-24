@@ -19,3 +19,9 @@
 - Amateur：註冊送50積分，$1=1積分
 - Century（800積分起）：積分1.5倍
 - Maximum（6000積分起）：積分雙倍
+
+## Space Pilot（Beta）
+- 簡介 / 简介 / About：SPACE8 獨家的智能桌球計分系統，牆上 iPad 即時計分、自動記錄賽果，賽後整理戰績並提供 AI 分析 / SPACE8 独家的智能台球计分系统 / SPACE8's exclusive smart pool scoring system: live scoring on a wall iPad, automatic results, stats and AI match analysis
+- 費用 / 费用 / Cost：SPACE8 會員免費使用 / 会员免费使用 / Free for SPACE8 members
+- 狀態 / 状态 / Status：Beta 測試中，只開放予少量玩家，暫不公開 / Beta 测试中，仅开放给少量玩家 / In beta, open to a small group of players only
+- 網址 / 网址 / URL：https://space8.com.hk/spacepilot

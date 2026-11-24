@@ -103,7 +103,13 @@ export default async function SpacePilotPage({
         isAccessibleForFree: true,
         featureList: [t("f1Title"), t("f2Title"), t("f3Title"), t("cap3Title"), t("cap4Title")],
         provider: { "@type": "SportsActivityLocation", name: "SPACE8", url: BASE },
-        offers: { "@type": "Offer", price: "0", priceCurrency: "HKD", description: "Free for SPACE8 members" },
+        offers: {
+          "@type": "Offer",
+          price: "0",
+          priceCurrency: "HKD",
+          availability: "https://schema.org/LimitedAvailability",
+          description: "Free for SPACE8 members (beta, limited players)",
+        },
       },
       {
         "@type": "FAQPage",
