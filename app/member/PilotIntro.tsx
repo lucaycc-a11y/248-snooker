@@ -169,17 +169,27 @@ function PilotBackdrop({ progress }: { progress: MotionValue<number> }) {
     <div aria-hidden style={{ position: "absolute", inset: 0, overflow: "hidden", background: "#05030c" }}>
       <motion.div
         style={{ position: "absolute", width: "85vmax", height: "85vmax", right: "-38vmax", top: "-42vmax", y: yA, willChange: "transform",
-          background: "radial-gradient(circle, rgba(34,197,94,0.34) 0%, rgba(34,197,94,0.08) 40%, rgba(34,197,94,0) 65%)" }}
+          background: "radial-gradient(circle, rgba(34,197,94,0.5) 0%, rgba(34,197,94,0.12) 40%, rgba(34,197,94,0) 65%)" }}
         animate={drift(-48)}
         transition={loop}
       />
       <motion.div
         style={{ position: "absolute", width: "95vmax", height: "95vmax", left: "-48vmax", bottom: "-52vmax", y: yB, willChange: "transform",
-          background: "radial-gradient(circle, rgba(124,58,237,0.5) 0%, rgba(88,28,180,0.16) 42%, rgba(88,28,180,0) 66%)" }}
+          background: "radial-gradient(circle, rgba(124,58,237,0.62) 0%, rgba(88,28,180,0.2) 42%, rgba(88,28,180,0) 66%)" }}
         animate={drift(52)}
         transition={{ ...loop, duration: 20 }}
       />
-      <div style={{ position: "absolute", inset: 0, background: "linear-gradient(180deg, rgba(0,0,0,0) 60%, #000 100%)" }} />
+      <div
+        style={{
+          position: "absolute",
+          inset: 0,
+          backgroundImage: "radial-gradient(rgba(255,255,255,0.09) 1px, transparent 1px)",
+          backgroundSize: "28px 28px",
+          WebkitMaskImage: "radial-gradient(ellipse 65% 55% at 50% 38%, #000 15%, transparent 78%)",
+          maskImage: "radial-gradient(ellipse 65% 55% at 50% 38%, #000 15%, transparent 78%)",
+        }}
+      />
+      <div style={{ position: "absolute", inset: 0, background: "linear-gradient(180deg, rgba(0,0,0,0) 70%, #000 100%)" }} />
     </div>
   );
 }
@@ -250,6 +260,96 @@ function Hero({ page = false }: { page?: boolean }) {
               <path d="M6 9l6 6 6-6" />
             </svg>
           </motion.div>
+        </motion.div>
+      </motion.div>
+    </div>
+  );
+}
+
+// Page hero: gradient headline, Space Pilot backdrop, and the iPad rising from the bottom edge.
+function HeroPage() {
+  const t = useTranslations("memberPilotIntro");
+  const reduce = useReducedMotion();
+  const ref = useRef<HTMLDivElement>(null);
+  const { scrollYProgress } = useScroll({ target: ref, offset: ["start start", "end start"] });
+  const textOpacity = useTransform(scrollYProgress, [0, 0.55], [1, 0]);
+  const textY = useTransform(scrollYProgress, [0, 1], [0, -90]);
+  const textScale = useTransform(scrollYProgress, [0, 1], [1, 0.95]);
+  const padY = useTransform(scrollYProgress, [0, 1], [0, reduce ? 0 : -160], { ease: ZOOM_EASE });
+  const padTilt = useTransform(scrollYProgress, [0, 0.8], [reduce ? 0 : 16, 0], { ease: ZOOM_EASE });
+  const rise = (n: number) =>
+    reduce
+      ? {}
+      : { initial: { opacity: 0, y: 28 }, animate: { opacity: 1, y: 0 }, transition: { duration: 1.1, ease: EASE, delay: 0.1 + n * 0.14 } };
+  return (
+    <div ref={ref} style={{ position: "relative", minHeight: "100svh", display: "flex", flexDirection: "column", alignItems: "center", textAlign: "center", overflow: "hidden" }}>
+      <PilotBackdrop progress={scrollYProgress} />
+      <motion.div
+        style={{ position: "relative", flex: 1, display: "flex", alignItems: "center", justifyContent: "center", padding: "104px 20px 24px", opacity: textOpacity, y: textY, scale: textScale, willChange: "transform, opacity" }}
+      >
+        <div>
+          <motion.div {...rise(0)} style={{ display: "inline-flex", alignItems: "center", gap: 10 }}>
+            <Kicker>{t("kicker")}</Kicker>
+            <span style={{ fontSize: 10, letterSpacing: "0.14em", padding: "3px 9px", borderRadius: 999, border: `1px solid ${GREEN}`, color: GREEN }}>BETA</span>
+          </motion.div>
+          <motion.h1
+            {...rise(1)}
+            style={{
+              margin: "22px 0 0",
+              fontSize: "clamp(38px, 7.2vw, 80px)",
+              fontWeight: 700,
+              lineHeight: 1.08,
+              letterSpacing: "-0.025em",
+              backgroundImage: "linear-gradient(180deg, #ffffff 35%, rgba(245,245,247,0.55) 100%)",
+              WebkitBackgroundClip: "text",
+              backgroundClip: "text",
+              WebkitTextFillColor: "transparent",
+              color: "transparent",
+            }}
+          >
+            {t("heroTitle1")}
+            <br />
+            {t("heroTitle2")}
+          </motion.h1>
+          <motion.p {...rise(2)} style={{ margin: "22px auto 0", maxWidth: 520, fontSize: "clamp(16px, 2.2vw, 20px)", lineHeight: 1.7, color: SUBTLE }}>
+            {t("heroBody")}
+          </motion.p>
+          <motion.div
+            {...rise(3)}
+            style={{ marginTop: 22, display: "inline-flex", alignItems: "center", gap: 8, padding: "7px 14px", borderRadius: 999, background: "rgba(34,197,94,0.1)", border: "1px solid rgba(34,197,94,0.35)", fontSize: 13, color: GREEN }}
+          >
+            <motion.span
+              aria-hidden
+              animate={reduce ? undefined : { opacity: [1, 0.3, 1] }}
+              transition={{ duration: 1.8, repeat: Infinity }}
+              style={{ width: 6, height: 6, borderRadius: 999, background: GREEN }}
+            />
+            {t("betaNote")}
+          </motion.div>
+        </div>
+      </motion.div>
+      <motion.div
+        initial={reduce ? false : { opacity: 0, y: 90 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 1.5, ease: EASE, delay: 0.55 }}
+        style={{ position: "relative", width: "min(94vw, 1000px)", flexShrink: 0 }}
+      >
+        <div
+          aria-hidden
+          style={{ position: "absolute", left: "-8%", right: "-8%", top: "-30%", height: "90%", background: "radial-gradient(ellipse 50% 50% at 50% 55%, rgba(34,197,94,0.28) 0%, rgba(124,58,237,0.18) 50%, rgba(0,0,0,0) 78%)" }}
+        />
+        <motion.div style={{ position: "relative", y: padY, rotateX: padTilt, transformPerspective: 1400, transformOrigin: "50% 100%", willChange: "transform" }}>
+          <div style={{ height: "30svh", minHeight: 170, overflow: "hidden" }}>
+            <Image
+              src={SCREEN_SRC.dashboard}
+              alt={t("stageLabel")}
+              width={1400}
+              height={992}
+              sizes="(max-width: 1000px) 94vw, 1000px"
+              priority
+              style={{ width: "100%", height: "auto", display: "block" }}
+            />
+          </div>
         </motion.div>
       </motion.div>
     </div>
@@ -620,7 +720,7 @@ export default function PilotIntro({ variant = "member" }: { variant?: "member" 
   if (variant === "page") {
     return (
       <div style={{ fontFamily: FONT_FAMILY, color: INK }}>
-        <Hero page />
+        <HeroPage />
         <WallStage page />
         <div style={{ maxWidth: 1120, margin: "0 auto", padding: `${sectionPad} 20px ${sectionPad}` }}>
           <Rooms />
