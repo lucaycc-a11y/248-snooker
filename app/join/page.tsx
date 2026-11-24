@@ -4,6 +4,7 @@ import { useSearchParams, useRouter } from 'next/navigation'
 import { useEffect, useState, Suspense } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { AuthCard } from '@/components/auth/AuthCard'
+import { Logo } from '@/components/brand'
 
 // /join?room=r1&session=xxx — Guest instant-join flow for Space Pilot.
 // Reuses the existing AuthCard/signup form unchanged.
@@ -96,11 +97,9 @@ function JoinPageInner() {
         }}
       >
         <div style={{ textAlign: 'center', marginBottom: 24 }}>
-          <img
-            src="/logos/logo-white-mark.svg"
-            alt="Space8"
-            style={{ height: 44, width: 'auto', marginBottom: 16 }}
-          />
+          <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 16 }}>
+            <Logo variant="full" theme="dark" size={38} />
+          </div>
           <p
             style={{
               color: 'rgba(255,255,255,0.55)',
