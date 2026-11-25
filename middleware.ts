@@ -127,6 +127,7 @@ async function checkPasswordGate(
     '/auth/login',
     '/login',
     '/auth/callback',
+    '/auth/app-handoff',
     '/auth/change-password',
     '/auth/change-phone',
     '/api/',

@@ -3,14 +3,21 @@
 Endpoints the iOS app uses to check admin status and read admin data. All are
 `GET`, never cached (`Cache-Control: no-store`), and live under `/api/admin/app/`.
 
-## Login (same as the web `/login`)
+## Login — use the web login (recommended)
 
-There is no separate admin login. Sign in with **Supabase Auth using the same account and methods as `https://space8.com.hk/login`** (Apple, Google, email / phone code, password). Then send the session's `access_token` as `Authorization: Bearer <token>`.
+The app does not build its own login screen. It opens the website's real `/login` in `ASWebAuthenticationSession` (callback scheme `space8admin`), so every method on the web works unchanged (Apple, Google, email / phone code, password).
 
-- Admin status is decided by `admin_users` (active row), exactly like the web: matched by `user_id`, or by email for an admin whose `user_id` is not set yet.
-- `GET /api/admin/app/me` right after sign-in: `401` = no valid token, `{ isAdmin: false }` = signed in but not an active admin, `{ isAdmin: true, role }` = continue.
-- Keep the Supabase session (access + refresh token) in the Keychain, let the Supabase SDK refresh it, and read the current token before every request.
-- The older `POST /api/admin/login` + `/api/admin/exchange-session` one-time-code flow still exists but the app does not need it.
+1. Open `https://space8.com.hk/auth/app-handoff` in `ASWebAuthenticationSession`.
+   - Not signed in → the web `/login` is shown, then returns to the handoff automatically.
+   - Signed in as an active admin → redirects to `space8admin://auth?code=<one-time code>`.
+   - Signed in but not an admin → `space8admin://auth?error=not_admin`. Server problem → `?error=server`.
+2. `POST https://space8.com.hk/api/admin/exchange-session` with `{ "code": "<code>" }` → `{ accessToken, refreshToken, role, email, adminUserId }`. Codes are single use and expire after 5 minutes.
+3. Store both tokens in the Keychain. Send `Authorization: Bearer <accessToken>` on every request. Refresh with the Supabase SDK using the refresh token (`supabase.auth.setSession(accessToken, refreshToken)`).
+4. Call `GET /api/admin/app/me` once after sign-in to confirm.
+
+Notes: register the `space8admin` URL scheme in the app; set `prefersEphemeralWebBrowserSession = false` if you want the web login remembered for next time. Admin status comes from `admin_users` exactly as on the web.
+
+If you prefer, the app may sign in with the Supabase SDK directly using the same accounts (`access_token` as Bearer); both ways reach the same API.
 
 ## Auth
 
