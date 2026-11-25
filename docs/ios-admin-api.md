@@ -50,9 +50,40 @@ Admin home. Optional `?includeTest=true` counts test bookings too.
 All dates and times are Hong Kong wall-clock. A non-null `error` with an empty
 `bookings` means the read failed, not that there are no bookings.
 
+## `GET /api/admin/app/bookings`
+
+`?date=YYYY-MM-DD` or `?from=&to=` (default: today, HK). Optional `status`, `includeTest=true`, `limit` (max 300).
+Returns `{ from, to, bookings: [{ id, humanCode, date, startTime, endTime, durationHours, tableNumber, status, totalPrice, paymentMethod, isTest, userName, userPhone, userEmail, createdAt }] }`.
+
+## `GET /api/admin/app/bookings/:id`
+
+`:id` is the uuid or the human code. Same fields as above plus `memberCode`, `adminNote`, `cancellationReason`, `promoCode`, `discounts { promo, credit, points }`, `refundAmount`, `refundedAt`, `confirmationEmailSentAt`. `404` if not found.
+
+## `GET /api/admin/app/revenue`
+
+`?from=&to=` (default: this month), optional `paymentMethod`, `includeTest`, `detailPage`. Same loader as the web 收入 screen. Response includes `range`.
+
+## `GET /api/admin/app/search?q=`
+
+Bookings and members (max 10 each, `q` ≥ 2 chars): `{ bookings: [...], members: [{ id, displayName, email, phone, memberCode, tier }] }`.
+
+## Push notifications (new booking alerts)
+
+Every confirmed booking creates a feed event and an APNs push to every active admin's registered devices (test bookings are skipped; each booking is announced once).
+
+- `POST /api/admin/app/devices` — register or refresh a device. Body: `{ "token": "<hex APNs token>", "environment": "production" | "sandbox", "locale": "zh-HK", "appVersion": "1.0.0", "enabled": true, "prefs": { "booking_new": true } }`. Call on every launch. `environment` is `sandbox` for Xcode debug builds, `production` for TestFlight/App Store.
+- `DELETE /api/admin/app/devices` — body `{ "token": "…" }`; call on sign-out.
+- `GET /api/admin/app/feed?limit=30&before=<ISO>` — `{ items: [{ id, kind, title, body, data, createdAt, unread }], unreadCount, nextBefore }`. Use `unreadCount` for the app badge.
+- `POST /api/admin/app/feed/read` — marks the feed read for this admin.
+
+Push payload: `aps.alert { title, body }` plus custom keys `kind` (`booking_new`), `bookingId`, `humanCode`. Open `GET /api/admin/app/bookings/:bookingId` when the user taps it.
+
+Server env (Vercel): `APNS_KEY_ID`, `APNS_TEAM_ID`, `APNS_KEY_P8` (the .p8 contents), `APNS_BUNDLE_ID`. Without them pushes are skipped but the feed still works. Tokens APNs reports as invalid are deleted automatically.
+
 ## Existing admin endpoints that also accept a Bearer token
 
 - `GET /api/admin/door-status` — door heartbeat, relays, recent access logs, lockouts.
+- `POST /api/door/admin-override` — body `{ "action": "open_door", "device_id": "main_door", "scope": "main_door", "tables": [] }`; opens the door for 5 seconds and writes an access-log row.
 
 ## Adding a new app endpoint
 

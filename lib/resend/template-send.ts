@@ -353,6 +353,10 @@ async function renderBookingConfirmationHtml(bookingId: string): Promise<{
 }
 
 export async function sendBookingConfirmation(bookingId: string): Promise<{ emailId: string | null }> {
+  // Admin iOS push (deduped per booking, never throws) — runs for every confirmation path.
+  const { notifyNewBooking } = await import('@/lib/push/admin-notify')
+  await notifyNewBooking(bookingId)
+
   const rendered = await renderBookingConfirmationHtml(bookingId)
   const { subject, to, userId } = rendered
   let { html, attachments } = rendered
