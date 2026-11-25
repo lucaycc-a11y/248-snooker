@@ -7,6 +7,7 @@ import { getHiddenUserList, hiddenIdFilterValue } from '@/lib/data/getHiddenUser
 
 // GET /api/admin/app/bookings?date=YYYY-MM-DD | ?from=&to= [&status=&includeTest=true&limit=100]
 // Defaults to today (Hong Kong). Dates and times are Hong Kong wall-clock.
+// Paging: `limit` (max 300) + `offset`; the response has `total` and `nextOffset` (null on the last page).
 export const dynamic = 'force-dynamic'
 
 const YMD = /^\d{4}-\d{2}-\d{2}$/
@@ -23,15 +24,18 @@ export async function GET(req: Request) {
   const limitRaw = Number(p.get('limit') ?? '100')
   const limit = Number.isFinite(limitRaw) ? Math.min(Math.max(Math.floor(limitRaw), 1), 300) : 100
 
+  const offsetRaw = Number(p.get('offset') ?? '0')
+  const offset = Number.isFinite(offsetRaw) ? Math.max(Math.floor(offsetRaw), 0) : 0
+
   const db = getLegacyServiceSupabase()
   let q = db
     .from('bookings')
-    .select('*')
+    .select('*', { count: 'exact' })
     .gte('date', from)
     .lte('date', to)
     .order('date', { ascending: true })
     .order('start_time', { ascending: true })
-    .limit(limit)
+    .range(offset, offset + limit - 1)
   // Same rule as the web 今日/預約 screens: test and hidden-account bookings only with includeTest=true.
   if (p.get('includeTest') !== 'true') {
     q = q.eq('is_test', false)
@@ -47,7 +51,7 @@ export async function GET(req: Request) {
   const status = p.get('status')
   if (status) q = q.eq('status', status)
 
-  const { data, error } = await q
+  const { data, error, count } = await q
   if (error) return jsonError('Could not load bookings', 500)
   const rows = (data ?? []) as Row[]
 
@@ -62,6 +66,8 @@ export async function GET(req: Request) {
     {
       from,
       to,
+      total: count ?? rows.length,
+      nextOffset: count !== null && offset + rows.length < count ? offset + rows.length : null,
       bookings: rows.map((r) => mapBooking(r, typeof r.user_id === 'string' ? users.get(r.user_id) : null)),
     },
     { headers: NO_STORE },

@@ -44,12 +44,23 @@ export async function notifyAdmins(input: {
     .filter((v): v is string => typeof v === 'string')
   if (adminIds.length === 0) return { stored: true, sent: 0 }
 
-  const { data: devices } = await db
-    .from('app_push_devices')
-    .select('token, environment, prefs')
-    .in('user_id', adminIds)
-    .eq('enabled', true)
-  const targets = ((devices ?? []) as DeviceRow[]).filter((d) => prefAllows(d.prefs, input.kind))
+  // Tokens come from two places: the new app_push_devices (via /api/admin/app/devices) and
+  // the iOS app's existing admin_device_tokens table. Same token in both = one push.
+  const [{ data: devices }, { data: legacy }] = await Promise.all([
+    db.from('app_push_devices').select('token, environment, prefs').in('user_id', adminIds).eq('enabled', true),
+    db.from('admin_device_tokens').select('device_token, platform, apns_environment').in('admin_user_id', adminIds),
+  ])
+  const byToken = new Map<string, DeviceRow>()
+  for (const d of (devices ?? []) as DeviceRow[]) {
+    if (prefAllows(d.prefs, input.kind)) byToken.set(d.token.toLowerCase(), d)
+  }
+  for (const l of (legacy ?? []) as { device_token: string; platform: string | null; apns_environment: string | null }[]) {
+    if (l.platform && l.platform !== 'ios') continue
+    const key = l.device_token.toLowerCase()
+    if (byToken.has(key)) continue
+    byToken.set(key, { token: l.device_token, environment: l.apns_environment === 'development' || l.apns_environment === 'sandbox' ? 'sandbox' : 'production', prefs: {} })
+  }
+  const targets = [...byToken.values()]
 
   let sent = 0
   await Promise.all(
@@ -64,7 +75,10 @@ export async function notifyAdmins(input: {
         sent += 1
       } else {
         console.error('[push] apns failed', { reason: res.reason, status: res.status })
-        if (res.invalidToken) await db.from('app_push_devices').delete().eq('token', d.token)
+        if (res.invalidToken) {
+          await db.from('app_push_devices').delete().eq('token', d.token)
+          await db.from('admin_device_tokens').delete().eq('device_token', d.token)
+        }
       }
     }),
   )
