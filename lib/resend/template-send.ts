@@ -15,8 +15,8 @@ import {
 } from './templates/booking-confirmation'
 import { SITE_CONTACT } from '@/lib/site/contact'
 import { ADDRESS, MAPS_URL } from '@/lib/site/nap'
-import { isAdminUserId, isV802Visible } from '@/lib/feature/v802'
-import { venueAddressBlockNewHtml, venueAddressBlockOldHtml, arrivalPhotosHtmlNew } from './templates/booking-confirmation'
+import { isAdminUserId } from '@/lib/feature/v802'
+import { venueAddressBlockNewHtml, arrivalPhotosHtmlNew } from './templates/booking-confirmation'
 
 /* ── Constants ────────────────────────────────────────────────────────────── */
 
@@ -309,12 +309,8 @@ async function renderBookingConfirmationHtml(bookingId: string): Promise<{
   // Member access deep-link — open the access guide tab directly.
   const memberEntryUrl = `https://space8.com.hk/member?tab=access`
 
-  // v8.0.2 (admin-only while test): new address block + arrival photos.
-  const showV802 = await isV802Visible(await isAdminUserId(booking.user_id))
-  const venueAddressBlockHtml = showV802
-    ? venueAddressBlockNewHtml(ADDRESS.venuePageZh, ADDRESS.unitZh, VENUE_ADDRESS)
-    : venueAddressBlockOldHtml(VENUE_ADDRESS)
-  const arrivalPhotosHtml = showV802 ? arrivalPhotosHtmlNew : ''
+  const venueAddressBlockHtml = venueAddressBlockNewHtml(ADDRESS.venuePageZh, ADDRESS.unitZh, VENUE_ADDRESS)
+  const arrivalPhotosHtml = arrivalPhotosHtmlNew
 
   // WhatsApp number
   const whatsappNumber = await getWhatsAppNumber()

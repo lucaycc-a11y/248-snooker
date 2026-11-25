@@ -43,8 +43,8 @@ export const ADDRESS = {
   displayEn: 'Room 05, 3/f, Laurels Industrial Centre, Tai Yau Street 32, San Po Kong, Hong Kong',
 } as const
 
-// Venue geo — same coordinates the footer map marker uses
-// (components/layout/FooterMap.tsx SPACE8_COORDS). Not stored in `config`;
+// Venue geo (Google Business Profile pin).
+// Not stored in `config`;
 // re-verify against the Google Business Profile pin before editing.
 export const GEO = { lat: 22.3372097, lng: 114.1973068 } as const
 

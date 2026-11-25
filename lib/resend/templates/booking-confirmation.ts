@@ -79,12 +79,7 @@ export const venueAddressBlockNewHtml = (buildingZh: string, unitZh: string, add
                   ${addressEn}
                 </p>`
 
-/** Pre-8.0.2 address line. */
-export const venueAddressBlockOldHtml = (address: string) => `<p style="color:#ffffff;font-size:14px;margin:0 0 8px;">
-                  ${address}
-                </p>`
-
-/** v8.0.2 (admin-only while test): arrival guide photos. */
+/** Arrival guide photos (three step photos), shown after booking. */
 export const arrivalPhotosHtmlNew = `              <!-- Arrival guide photos (after booking only) -->
               <div style="text-align:center;margin-bottom:20px;">
                 <p style="color:#a3a3a3;font-size:12px;margin:0 0 10px;">到達指引 How to find us</p>

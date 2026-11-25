@@ -1,6 +1,5 @@
 'use client'
 
-import { useV802 } from '@/lib/feature/use-v802'
 import { useIsAdmin } from '@/lib/feature/use-is-admin'
 import { useState, useEffect } from 'react'
 import type { CSSProperties } from 'react'
@@ -62,7 +61,6 @@ export default function Nav() {
   const router = useRouter()
   const locale = useLocale()
   const t = useTranslations('nav')
-  const v802 = useV802() // admin-only while 8.0.2 is a test build
   const isAdmin = useIsAdmin()
   // Space Pilot (beta) shows in the nav for everyone once SPACEPILOT_PUBLIC is on, else admin-only.
   const pilotItem = { href: '/spacepilot', key: 'spacepilot' } as const
@@ -224,7 +222,7 @@ export default function Nav() {
   // no longer stays trapped in the dark mobile treatment.
   const effectiveTheme: NavTheme = menuOpen ? 'dark' : theme
   const linkColor = effectiveTheme === 'dark' ? '#FFFFFF' : '#1A1A1A'
-  const memberLabel = loggedIn ? (v802 ? t('my_account') : t('member')) : t('login')
+  const memberLabel = loggedIn ? t('my_account') : t('login')
 
   function MemberIcon({ size = 20 }: { size?: number }) {
     if (avatarUrl) {
@@ -232,7 +230,7 @@ export default function Nav() {
         // eslint-disable-next-line @next/next/no-img-element
         <img
           src={avatarUrl}
-          alt={v802 ? t('my_account') : t('member')}
+          alt={t('my_account')}
           style={{
             width: size + 16,
             height: size + 16,
@@ -660,7 +658,7 @@ export default function Nav() {
                   }}
                 >
                   <MemberIcon size={12} />
-                  {v802 ? t('my_account') : navText('member', 'Member')}
+                  {t('my_account')}
                 </PlainLink>
               )}
 

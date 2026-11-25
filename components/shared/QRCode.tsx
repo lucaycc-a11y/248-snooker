@@ -4,7 +4,6 @@ import { useEffect, useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import QRCodeLib from 'qrcode'
 import { X } from 'lucide-react'
-import { useV802 } from '@/lib/feature/use-v802'
 
 // Same mesh gradient as app/member/components/MemberCardPremier.tsx.
 const MEMBER_CARD_BG = `
@@ -52,8 +51,7 @@ export function QRCode({
 }) {
   const [generatedUrl, setGeneratedUrl] = useState<string | null>(null)
   const [open, setOpen] = useState(false)
-  // v8.0.2 (admin-only while test): member-card look only when the gate is on.
-  const cardOn = useV802() && card
+  const cardOn = card
 
   useEffect(() => {
     if (!data) return
