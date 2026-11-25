@@ -429,10 +429,14 @@ export function MemberCardPremier({ profile }: Props) {
                     display: 'block',
                     marginTop: '0.5cqw',
                     fontWeight: 500,
-                    fontSize: 'max(11px, 3.1cqw)',
-                    letterSpacing: '0.06em',
+                    fontSize: 'max(9px, 3.1cqw)',
+                    letterSpacing: '0.04em',
                     color: 'rgba(255,255,255,0.92)',
-                    whiteSpace: 'nowrap',
+                    // Never run under the QR button on narrow cards: wrap instead of overflowing.
+                    whiteSpace: 'normal',
+                    overflowWrap: 'anywhere',
+                    lineHeight: 1.25,
+                    maxWidth: '100%',
                   }}
                 >
                   {profile.member_code}

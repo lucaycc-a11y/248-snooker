@@ -261,7 +261,7 @@ export default function PilotTab() {
         ) : (
           <ul style={{ listStyle: "none", margin: 0, padding: 0, display: "flex", flexDirection: "column", gap: 8 }}>
             {data.matches.map((m) => (
-              <li key={m.id} style={{ display: "flex", alignItems: "center", gap: 12, padding: "10px 12px", borderRadius: 14, background: "rgba(255,255,255,0.05)" }}>
+              <li key={m.id} style={{ display: "flex", flexWrap: "wrap", alignItems: "center", gap: "8px 12px", padding: "10px 12px", borderRadius: 14, background: "rgba(255,255,255,0.05)" }}>
                 <span
                   style={{
                     minWidth: 56, textAlign: "center", padding: "4px 8px", borderRadius: 999, fontSize: 12, fontWeight: 700,
@@ -270,15 +270,16 @@ export default function PilotTab() {
                 >
                   {!m.finished ? t("unfinished") : m.won ? t("won") : t("lost")}
                 </span>
-                <div style={{ flex: 1, minWidth: 0 }}>
-                  <div style={{ fontSize: 14, fontWeight: 600 }}>
+                <div style={{ flex: "1 1 120px", minWidth: 0 }}>
+                  <div style={{ fontSize: 14, fontWeight: 600, whiteSpace: "nowrap" }}>
                     {m.game === "nineBall" ? t("game_nine") : t("game_eight")} · {m.myScore} : {m.oppScore}
                   </div>
                   <div style={{ fontSize: 12, color: "rgba(255,255,255,0.6)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
                     {m.opponents.length > 0 ? `vs ${m.opponents.join(", ")}` : ""} {m.roomName ? `· ${m.roomName}` : ""}
                   </div>
                 </div>
-                <time style={{ fontSize: 12, color: "rgba(255,255,255,0.55)" }} dateTime={m.startedAt}>{formatDate(m.startedAt)}</time>
+                <time style={{ fontSize: 12, color: "rgba(255,255,255,0.55)", whiteSpace: "nowrap" }} dateTime={m.startedAt}>{formatDate(m.startedAt)}</time>
+                <div style={{ flex: "1 1 100%", display: "flex", flexWrap: "wrap", alignItems: "center", justifyContent: "flex-end", gap: 8 }}>
                 {m.finished ? (
                   <button type="button" onClick={() => void sharePoster(m)} aria-label={t("poster_share")} style={{ minHeight: 36, padding: "0 12px", borderRadius: 10, fontSize: 12 }}>
                     {t("poster_share")}
@@ -302,6 +303,7 @@ export default function PilotTab() {
                     ) : null}
                   </span>
                 )}
+                </div>
               </li>
             ))}
           </ul>

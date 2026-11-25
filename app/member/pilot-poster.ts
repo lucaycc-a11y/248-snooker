@@ -49,7 +49,7 @@ export async function renderPosterBlob(match: PilotMatch, labels: PosterLabels, 
   const d = new Date(match.startedAt);
   if (!Number.isNaN(d.getTime())) {
     ctx.fillText(
-      d.toLocaleString("zh-HK", { timeZone: "Asia/Hong_Kong", year: "numeric", month: "short", day: "numeric", hour: "2-digit", minute: "2-digit", hour12: false }),
+      d.toLocaleString("zh-HK", { timeZone: "Asia/Hong_Kong", year: "numeric", month: "short", day: "numeric" }),
       W / 2, 1070,
     );
   }
