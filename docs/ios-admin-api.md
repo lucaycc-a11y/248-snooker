@@ -3,6 +3,15 @@
 Endpoints the iOS app uses to check admin status and read admin data. All are
 `GET`, never cached (`Cache-Control: no-store`), and live under `/api/admin/app/`.
 
+## Login (same as the web `/login`)
+
+There is no separate admin login. Sign in with **Supabase Auth using the same account and methods as `https://space8.com.hk/login`** (Apple, Google, email / phone code, password). Then send the session's `access_token` as `Authorization: Bearer <token>`.
+
+- Admin status is decided by `admin_users` (active row), exactly like the web: matched by `user_id`, or by email for an admin whose `user_id` is not set yet.
+- `GET /api/admin/app/me` right after sign-in: `401` = no valid token, `{ isAdmin: false }` = signed in but not an active admin, `{ isAdmin: true, role }` = continue.
+- Keep the Supabase session (access + refresh token) in the Keychain, let the Supabase SDK refresh it, and read the current token before every request.
+- The older `POST /api/admin/login` + `/api/admin/exchange-session` one-time-code flow still exists but the app does not need it.
+
 ## Auth
 
 Sign in with Supabase Auth in the app, then send the access token on every call:

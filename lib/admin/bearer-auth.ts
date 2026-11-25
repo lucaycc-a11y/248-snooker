@@ -3,7 +3,7 @@ import { getAdminData, type AdminRole } from '@/lib/data/getAdmin'
 
 // Admin auth for non-browser clients (the iOS app).
 //
-// The app signs in with Supabase Auth and sends `Authorization: Bearer <access_token>`.
+// The app signs in with Supabase Auth — the same accounts and methods as the web /login — and sends `Authorization: Bearer <access_token>`.
 // We validate the token with the service client (auth.getUser verifies it against
 // GoTrue), then look the user up in admin_users. Requests without a Bearer header
 // fall back to the cookie session so the same routes can be tested from the web.
@@ -47,7 +47,19 @@ export async function authenticateAppRequest(req: Request): Promise<AppAuthResul
     .select('email, role, invite_status')
     .eq('user_id', user.id)
     .maybeSingle()
-  const row = (byUserId as AdminRow | null) ?? null
+  let row = (byUserId as AdminRow | null) ?? null
+
+  // Same fallback as the web login (lib/data/getAdmin.ts): an admin whose admin_users row has no
+  // user_id yet is matched by email. Still requires invite_status = 'active' below.
+  if (!row && user.email) {
+    const { data: byEmail } = await service
+      .from('admin_users')
+      .select('email, role, invite_status')
+      .eq('email', user.email)
+      .is('user_id', null)
+      .maybeSingle()
+    row = (byEmail as AdminRow | null) ?? null
+  }
 
   if (!row || row.invite_status !== 'active') {
     return { status: 'not_admin', userId: user.id, email: user.email ?? null }
