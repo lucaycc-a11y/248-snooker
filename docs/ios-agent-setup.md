@@ -25,7 +25,7 @@ Owner (Apple Developer account):
 1. Enable the Push Notifications capability for the app's bundle ID.
 2. Create an APNs Auth Key (.p8). Note the Key ID and Team ID.
 3. Add to Vercel (Production and Preview): `APNS_KEY_ID`, `APNS_TEAM_ID`, `APNS_BUNDLE_ID`,
-   `APNS_KEY_P8` (paste the whole .p8 file; `\n` escapes are accepted).
+   `APNS_KEY_P8` (the .p8 text, or the same base64 value the Supabase function uses).
 
 App:
 1. Request notification permission, call `registerForRemoteNotifications()`.

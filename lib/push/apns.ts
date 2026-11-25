@@ -3,7 +3,7 @@ import http2 from 'node:http2'
 
 // Minimal APNs HTTP/2 client (token auth, ES256 JWT) — no extra dependencies.
 // Env: APNS_KEY_ID, APNS_TEAM_ID, APNS_KEY_P8 (contents of the .p8; "\n" escapes
-// are accepted), APNS_BUNDLE_ID. When any is missing, sending is a logged no-op.
+// are accepted; base64 of the .p8 also works), APNS_BUNDLE_ID. When any is missing, sending is a logged no-op.
 
 export type ApnsEnvironment = 'production' | 'sandbox'
 
@@ -28,7 +28,13 @@ function config(): Config | null {
   const rawKey = process.env.APNS_KEY_P8
   const bundleId = process.env.APNS_BUNDLE_ID?.trim()
   if (!keyId || !teamId || !rawKey || !bundleId) return null
-  return { keyId, teamId, key: rawKey.replace(/\\n/g, '\n'), bundleId }
+  // Accept the raw .p8 text (with real or "\n"-escaped newlines) or the same base64 form the
+  // Supabase edge function uses, so one value can be copied between the two.
+  const trimmed = rawKey.trim()
+  const key = trimmed.includes('BEGIN')
+    ? trimmed.replace(/\\n/g, '\n')
+    : Buffer.from(trimmed, 'base64').toString('utf8')
+  return { keyId, teamId, key, bundleId }
 }
 
 export function apnsConfigured(): boolean {
