@@ -1,4 +1,5 @@
 import { getLegacyServiceSupabase } from '@/lib/supabase/legacy'
+import { getHiddenUserList } from '@/lib/data/getHiddenUserIds'
 import { sendApns, apnsConfigured, type ApnsEnvironment } from '@/lib/push/apns'
 
 // Admin activity feed + push. Every event is stored in app_admin_feed (so the app
@@ -93,6 +94,8 @@ export async function notifyNewBooking(bookingId: string): Promise<void> {
       .maybeSingle()
     const b = data as BookingRow | null
     if (!b || b.is_test) return
+    // Hidden (admin/test) accounts are excluded from every web list; no alert for them either.
+    if (b.user_id && (await getHiddenUserList()).ids.has(b.user_id)) return
 
     let name = ''
     if (b.user_id) {

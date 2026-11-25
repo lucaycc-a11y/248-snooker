@@ -67,9 +67,18 @@ Returns `{ from, to, bookings: [{ id, humanCode, date, startTime, endTime, durat
 
 Bookings and members (max 10 each, `q` ≥ 2 chars): `{ bookings: [...], members: [{ id, displayName, email, phone, memberCode, tier }] }`.
 
+## Hidden accounts (same data and rules as web 系統 → 隱藏帳戶)
+
+- `GET /api/admin/app/hidden-users` — any admin: `{ success, hidden: [{ userId, email, displayName, memberCode, reason, createdAt }] }`.
+- `POST /api/admin/app/hidden-users` — **super_admin only** (403 otherwise), audited like the web:
+  `{ "action": "add", "userId": "<uuid>", "reason": "內部測試帳戶" }`, `{ "action": "remove", "userId": "<uuid>", "reason": "…" }`, `{ "action": "add_all_admins", "reason": "…" }`. `reason` must be at least 5 characters. Errors: `400` bad input, `404` not found, `409` already hidden.
+- Find the `userId` with `GET /api/admin/app/search?q=` (members carry `hidden: true|false`).
+
+Hidden and test accounts are left out of `bookings`, `search` (bookings), `revenue` and push alerts, exactly as on the web. `bookings?includeTest=true` shows them.
+
 ## Push notifications (new booking alerts)
 
-Every confirmed booking creates a feed event and an APNs push to every active admin's registered devices (test bookings are skipped; each booking is announced once).
+Every confirmed booking creates a feed event and an APNs push to every active admin's registered devices (test and hidden-account bookings are skipped; each booking is announced once).
 
 - `POST /api/admin/app/devices` — register or refresh a device. Body: `{ "token": "<hex APNs token>", "environment": "production" | "sandbox", "locale": "zh-HK", "appVersion": "1.0.0", "enabled": true, "prefs": { "booking_new": true } }`. Call on every launch. `environment` is `sandbox` for Xcode debug builds, `production` for TestFlight/App Store.
 - `DELETE /api/admin/app/devices` — body `{ "token": "…" }`; call on sign-out.

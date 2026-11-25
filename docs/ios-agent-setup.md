@@ -58,3 +58,7 @@ Verify with the Vercel preview build — see `AGENT_SETUP.md` section 5.
 
 Cancelling or refunding bookings, editing prices, and member editing stay in the web admin.
 Do not add them to the app API without the owner's approval.
+
+## 7. Data must match the web admin
+
+The app API reads through the same loaders and rules as the web admin: hidden and test accounts are excluded from bookings, search results, revenue and push alerts. Hidden accounts are managed with `/api/admin/app/hidden-users` (write access is super_admin only). Never filter or re-calculate numbers in the app — display what the API returns.

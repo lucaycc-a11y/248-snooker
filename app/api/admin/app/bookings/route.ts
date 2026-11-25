@@ -3,6 +3,7 @@ import { requireAppAdmin, jsonError, NO_STORE } from '@/lib/admin/app-guard'
 import { getLegacyServiceSupabase } from '@/lib/supabase/legacy'
 import { type Row } from '@/lib/data/adminReadHelpers'
 import { hkToday, mapBooking } from '@/lib/admin/app-bookings'
+import { getHiddenUserList, hiddenIdFilterValue } from '@/lib/data/getHiddenUserIds'
 
 // GET /api/admin/app/bookings?date=YYYY-MM-DD | ?from=&to= [&status=&includeTest=true&limit=100]
 // Defaults to today (Hong Kong). Dates and times are Hong Kong wall-clock.
@@ -31,7 +32,18 @@ export async function GET(req: Request) {
     .order('date', { ascending: true })
     .order('start_time', { ascending: true })
     .limit(limit)
-  if (p.get('includeTest') !== 'true') q = q.eq('is_test', false)
+  // Same rule as the web 今日/預約 screens: test and hidden-account bookings only with includeTest=true.
+  if (p.get('includeTest') !== 'true') {
+    q = q.eq('is_test', false)
+    try {
+      const hidden = hiddenIdFilterValue((await getHiddenUserList()).ids)
+      if (hidden) q = q.not('user_id', 'in', hidden)
+    } catch (err) {
+      // Never fall back to "show everything" when the hidden list cannot be read.
+      console.error('[admin/app/bookings] hidden-user list failed', err)
+      return jsonError('Could not load hidden accounts', 500)
+    }
+  }
   const status = p.get('status')
   if (status) q = q.eq('status', status)
 
