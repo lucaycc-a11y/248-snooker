@@ -85,6 +85,22 @@ On failure the status is `500` with `{ "error": "…" }` — never an empty succ
 
 `?search=&page=1&includeHidden=true` — same loader as the web 會員 screen (500 per page, hidden accounts excluded by default). Returns `{ members: [{ id, memberCode, email, displayName, phone, tier, points, credits, needsManualPhoneReverify, isPhoneVerified, totalSpend, bookingCount, lastActiveAt, isBlacklisted, isHidden, createdAt }], total, page, pageSize, error }`.
 
+## `GET /api/admin/app/members/:id`
+
+Read-only member detail, same data as the web member page: `{ member: { id, memberCode, email, displayName, phone, tier, points, isBlacklisted, isHidden, hiddenReason, createdAt }, bookings: [{ id, humanCode, date, status, totalPrice, tableNumber }] (last 50 real bookings), pointsLedger: [{ id, points, type, note, createdAt }] (last 50), activity: [{ action, before, after, createdAt }] (last 20 audit rows), riskStats: { totalBookings, cancelledBookings, waivedFees } }`. Editing points, credit, tier or blacklist is not in the app API yet.
+
+## `GET /api/admin/app/follow-ups?days=14`
+
+Same loader as the web 跟進名單: `{ unpaid: [{ userId, displayName, phone, email, memberCode, attempts: [{ bookingId, humanCode, status, date, startTime, tableNumber, price, createdAt, paymentMethod, promoCode }], lastAttemptAt, paidLater, confirmedCount }], noBooking: [{ userId, displayName, phone, email, memberCode, createdAt, daysSinceSignup, hasUnpaidAttempt, phoneVerified }], unpaidDays }`. Hidden accounts are excluded.
+
+## 封枱 `/api/admin/app/maintenance`
+
+Same logic and audit trail as the web 封枱 page.
+
+- `GET ?date=YYYY-MM-DD` (optional) → `{ blocks: [{ id, date, start_time, end_time, table_number, reason, created_by }] }`.
+- `POST { date, table_number?, start_time?, end_time?, reason? }` — `table_number: null` blocks all tables; `start_time` and `end_time` must be sent together (omit both for the whole day). Customers cannot book blocked slots, so ask the admin to confirm first.
+- `DELETE /api/admin/app/maintenance/:id` — removes a block.
+
 ## `GET /api/admin/app/search?q=`
 
 Bookings and members (max 10 each, `q` ≥ 2 chars): `{ bookings: [...], members: [{ id, displayName, email, phone, memberCode, tier }] }`.
