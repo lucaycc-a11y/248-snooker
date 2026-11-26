@@ -367,8 +367,8 @@ export default function Nav() {
             ...pillStyle(theme),
             display: 'none',
             alignItems: 'center',
-            gap: 24,
-            padding: '11px 26px',
+            gap: 16,
+            padding: '9px 20px',
           }}
         >
           {links.map((item) => {
@@ -380,7 +380,7 @@ export default function Nav() {
                 data-cms-key={`nav.link.${item.key}`}
                 style={{
                   ...(item.key === 'spacepilot' ? { fontFamily: "'Good Times', sans-serif", letterSpacing: '0.04em' } : {}),
-                  fontSize: 14,
+                  fontSize: item.key === 'spacepilot' ? 12 : 13,
                   fontWeight: 500,
                   color: active ? tokens.colors.brand : linkColor,
                   textDecoration: 'none',

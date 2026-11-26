@@ -6,13 +6,16 @@ import { useEditor, EditorContent } from '@tiptap/react'
 import StarterKit from '@tiptap/starter-kit'
 import TiptapImage from '@tiptap/extension-image'
 import TiptapLink from '@tiptap/extension-link'
-import { Bold, Italic, List, ListOrdered, Quote, Heading2, LinkIcon, ImagePlus, Sparkles, Languages, Check, Code2, Eye, Smartphone, Monitor, CalendarClock, FileUp } from 'lucide-react'
+import { Bold, Italic, List, ListOrdered, Quote, Heading2, LinkIcon, ImagePlus, Sparkles, Languages, Check, Code2, Eye, Smartphone, Monitor, CalendarClock, LayoutList } from 'lucide-react'
 import { renderRichText } from '@/lib/blog/renderRichText'
 import { renderBlogCta, type CtaText } from '@/components/blog/BlogCta'
 import { Card } from '@/components/ui/card'
 import { Button } from '@/components/admin/ui/Button'
 import { Input } from '@/components/ui/input'
 import BlogSparkSeo from '@/components/admin/BlogSparkSeo'
+import BlogImportDropZone from '@/components/admin/BlogImportDropZone'
+import BlogBlocksEditor from '@/components/admin/BlogBlocksEditor'
+import type { ImportResult } from '@/lib/blog/htmlImport'
 import { adminTokens as tokens } from '@/lib/admin/admin-tokens'
 
 type BlogPost = {
@@ -53,12 +56,6 @@ const SNIPPETS: { label: string; html: string }[] = [
   { label: 'FAQ', html: '\n<details><summary>問題？</summary><p>答案。</p></details>\n' },
   { label: '提示框', html: '\n<div class="s8-note"><p>重點提示。</p></div>\n' },
 ]
-
-// Pull the <body> out of a full HTML document and drop the rest.
-function extractBody(raw: string): string {
-  const m = raw.match(/<body[^>]*>([\s\S]*?)<\/body>/i)
-  return (m ? m[1] : raw).trim()
-}
 
 function postStatus(publishedAt: string | null): 'draft' | 'scheduled' | 'published' {
   if (!publishedAt) return 'draft'
@@ -120,6 +117,8 @@ export default function BlogEditorForm({ post, siblings }: { post: BlogPost; sib
   const [scheduleAt, setScheduleAt] = useState(toLocalInput(post.published_at))
   const [scheduleMsg, setScheduleMsg] = useState<string | null>(null)
   const htmlRef = useRef<HTMLTextAreaElement>(null)
+  const [blocksOpen, setBlocksOpen] = useState(false)
+  const [htmlVersion, setHtmlVersion] = useState(0)
   const status = postStatus(post.published_at)
 
   const editor = useEditor({
@@ -147,11 +146,48 @@ export default function BlogEditorForm({ post, siblings }: { post: BlogPost; sib
     const el = htmlRef.current
     const at = el ? el.selectionStart : html.length
     setHtml((h) => h.slice(0, at) + snippet + h.slice(at))
+    setHtmlVersion((v) => v + 1)
   }
 
-  async function onHtmlFile(file: File) {
-    if (file.size > 600_000) { window.alert('檔案太大（上限 600KB）'); return }
-    setHtml(extractBody(await file.text()))
+  // Applies a dropped .html/.md import (also re-applied when a single fix is undone).
+  function applyImport(r: ImportResult) {
+    if (r.title) setTitle(r.title)
+    if (r.slug) setSlug(r.slug)
+    setExcerpt(r.excerpt)
+    setSeoTitle(r.seoTitle)
+    setSeoDescription(r.seoDescription)
+    setHtml(r.content)
+    setVisualHtml(r.content)
+    setMode('html')
+    setHtmlVersion((v) => v + 1)
+  }
+
+  // Dropped images are uploaded to the post's folder and appended as <img> with an alt to refine.
+  async function addImages(files: File[]) {
+    setImageError(null)
+    const tags: string[] = []
+    for (const file of files) {
+      const form = new FormData()
+      form.append('file', file)
+      form.append('post_id', post.id)
+      const res = await fetch('/api/admin/blog/upload-image', { method: 'POST', body: form })
+      const json: unknown = await res.json().catch(() => null)
+      const url = typeof json === 'object' && json !== null && 'url' in json && typeof (json as { url: unknown }).url === 'string' ? (json as { url: string }).url : null
+      if (!res.ok || !url) {
+        setImageError(`「${file.name}」上傳失敗（PNG／JPG／WebP，最大 8MB）`)
+        continue
+      }
+      if (!coverImageUrl && tags.length === 0) setCoverImageUrl(url)
+      const alt = file.name.replace(/\.[a-z0-9]+$/i, '').replace(/[-_]+/g, ' ').replace(/"/g, '')
+      tags.push(`<figure><img src="${url}" alt="${alt || title}"></figure>`)
+    }
+    if (tags.length === 0) return
+    const base = currentHtml
+    const next = `${base}${base.trim() ? '\n' : ''}${tags.join('\n')}`
+    setHtml(next)
+    setVisualHtml(next)
+    setMode('html')
+    setHtmlVersion((v) => v + 1)
   }
 
   async function schedule() {
@@ -392,17 +428,18 @@ export default function BlogEditorForm({ post, siblings }: { post: BlogPost; sib
             <Button variant={mode === 'html' ? 'primary' : 'secondary'} onClick={() => switchMode('html')}><Code2 size={15} style={{ marginRight: 6 }} />HTML</Button>
           </div>
         </div>
+        <BlogImportDropZone hasContent={currentHtml.trim() !== ''} onImport={applyImport} onImages={addImages} />
         {mode === 'html' && (
           <div>
             <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginBottom: 8 }}>
               {SNIPPETS.map((sn) => (
                 <Button key={sn.label} variant="secondary" onClick={() => insertSnippet(sn.html)}>+ {sn.label}</Button>
               ))}
-              <label>
-                <input type="file" accept=".html,.htm,text/html" style={{ display: 'none' }} onChange={(e) => { const f = e.target.files?.[0]; e.target.value = ''; if (f) void onHtmlFile(f) }} />
-                <Button variant="secondary"><FileUp size={15} style={{ marginRight: 6 }} />上載 .html</Button>
-              </label>
+              <Button variant={blocksOpen ? 'primary' : 'secondary'} onClick={() => { setBlocksOpen((o) => !o); setHtmlVersion((v) => v + 1) }}><LayoutList size={15} style={{ marginRight: 6 }} />區塊排序</Button>
             </div>
+            {blocksOpen ? (
+              <BlogBlocksEditor key={htmlVersion} html={html} onChange={(h) => { setHtml(h); setVisualHtml(h) }} />
+            ) : (
             <textarea
               ref={htmlRef}
               value={html}
@@ -411,6 +448,7 @@ export default function BlogEditorForm({ post, siblings }: { post: BlogPost; sib
               aria-label="HTML 原始碼"
               style={{ width: '100%', minHeight: 380, padding: 12, fontFamily: 'ui-monospace, SFMono-Regular, Menlo, monospace', fontSize: 13, lineHeight: 1.55, background: 'rgba(255,255,255,0.06)', border: `1px solid ${tokens.colors.border}`, borderRadius: tokens.radius.input, color: tokens.colors.text, resize: 'vertical' }}
             />
+            )}
             <p style={{ margin: '8px 0 0', fontSize: 12, color: tokens.colors.textMuted }}>
               只保留安全標記：script、style、iframe、form、事件屬性會自動移除；h1 會變 h2（頁面標題已係 h1）。CTA 用 data-s8 組件，文字會跟語言。
             </p>
@@ -512,7 +550,7 @@ export default function BlogEditorForm({ post, siblings }: { post: BlogPost; sib
           if (p.excerpt !== undefined) setExcerpt(p.excerpt)
           if (p.seoTitle !== undefined) setSeoTitle(p.seoTitle)
           if (p.seoDescription !== undefined) setSeoDescription(p.seoDescription)
-          if (p.content !== undefined) { setHtml(p.content); setMode('html') }
+          if (p.content !== undefined) { setHtml(p.content); setMode('html'); setHtmlVersion((v) => v + 1) }
         }}
       />
 
