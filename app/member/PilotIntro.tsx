@@ -11,6 +11,7 @@ import {
   type MotionValue,
 } from "framer-motion";
 import { PILOT_FAQ_IDS } from "@/lib/seo/spacepilot";
+import SpacePilotCountdown, { LaunchContext, useLaunch, type Launch } from "@/components/landing/SpacePilotCountdown";
 import { useTranslations } from "next-intl";
 
 // Space Pilot intro for the member page (admin-only preview tab).
@@ -319,6 +320,7 @@ function MemberCtaSection() {
 
 function HeroCopy({ intro }: { intro: MotionValue<number> }) {
   const t = useTranslations("memberPilotIntro");
+  const launch = useLaunch();
   const reduce = useReducedMotion();
   const opacity = useTransform(intro, [0, 0.5], [1, 0]);
   const y = useTransform(intro, [0, 1], [0, -90]);
@@ -335,7 +337,9 @@ function HeroCopy({ intro }: { intro: MotionValue<number> }) {
       <div>
           <motion.div {...rise(0)} style={{ display: "inline-flex", alignItems: "center", gap: 10 }}>
             <Kicker>{t("kicker")}</Kicker>
-            <span style={{ fontSize: 10, letterSpacing: "0.14em", padding: "3px 9px", borderRadius: 999, border: `1px solid ${GREEN}`, color: GREEN }}>BETA</span>
+            {!(launch?.launched) && (
+              <span style={{ fontSize: 10, letterSpacing: "0.14em", padding: "3px 9px", borderRadius: 999, border: `1px solid ${GREEN}`, color: GREEN }}>BETA</span>
+            )}
           </motion.div>
           <motion.h1
             {...rise(1)}
@@ -362,7 +366,10 @@ function HeroCopy({ intro }: { intro: MotionValue<number> }) {
           <motion.p {...rise(2)} style={{ margin: "10px auto 0", fontSize: 14, letterSpacing: "0.02em", color: GREEN }}>
             {t("exclusiveNote")}
           </motion.p>
-          <motion.div {...rise(3)} style={{ marginTop: 22 }}>
+          <motion.div {...rise(3)}>
+            <SpacePilotCountdown />
+          </motion.div>
+          <motion.div {...rise(4)} style={{ marginTop: 22 }}>
             <MemberCtaButton />
           </motion.div>
       </div>
@@ -723,8 +730,9 @@ function FaqItem({ q, a, open, onToggle }: { q: string; a: string; open: boolean
 
 function Faq() {
   const t = useTranslations("memberPilotIntro");
+  const launch = useLaunch();
   const [openIdx, setOpenIdx] = useState<number | null>(0);
-  const items = PILOT_FAQ_IDS.map((n) => ({ q: t(`faq${n}q` as "faq1q"), a: t(`faq${n}a` as "faq1a") }));
+  const items = PILOT_FAQ_IDS.map((n) => ({ q: t(`faq${n}q` as "faq1q"), a: n === 2 && launch?.launched ? t("faq2aLaunched") : t(`faq${n}a` as "faq1a") }));
   return (
     <div style={{ maxWidth: 760, margin: "0 auto" }}>
       <Reveal>
@@ -745,10 +753,11 @@ function Faq() {
   );
 }
 
-export default function PilotIntro({ variant = "member" }: { variant?: "member" | "page" }) {
+export default function PilotIntro({ variant = "member", launch = null }: { variant?: "member" | "page"; launch?: Launch | null }) {
   const t = useTranslations("memberPilotIntro");
   if (variant === "page") {
     return (
+      <LaunchContext.Provider value={launch}>
       <div style={{ fontFamily: FONT_FAMILY, color: INK }}>
         <WallStage page />
         <div style={{ maxWidth: 1120, margin: "0 auto", padding: `${sectionPad} 20px ${sectionPad}` }}>
@@ -767,6 +776,7 @@ export default function PilotIntro({ variant = "member" }: { variant?: "member" 
           </div>
         </div>
       </div>
+      </LaunchContext.Provider>
     );
   }
   return (
