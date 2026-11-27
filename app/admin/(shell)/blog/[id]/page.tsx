@@ -26,8 +26,11 @@ export default async function AdminBlogEditPage({ params }: { params: Promise<{ 
   const siblings = await getSiblings(null, id)
 
   return (
-    <main style={{ maxWidth: 760, margin: '0 auto', padding: '32px 16px' }}>
-      <h1 style={{ fontSize: 24, fontWeight: 700, color: tokens.colors.text, marginBottom: 24 }}>編輯文章</h1>
+    <main style={{ maxWidth: 1240, margin: '0 auto', padding: '32px 16px' }}>
+      <div style={{ marginBottom: 24 }}>
+        <a href="/admin/blog" style={{ fontFamily: "'Good Times', 'JetBrains Mono', monospace", fontSize: 11, letterSpacing: '0.14em', textTransform: 'uppercase', color: tokens.colors.textMuted, textDecoration: 'none' }}>← Blog</a>
+        <h1 style={{ fontSize: 24, fontWeight: 700, color: tokens.colors.text, margin: '8px 0 0' }}>編輯文章</h1>
+      </div>
       <BlogEditorForm post={post} siblings={siblings} />
     </main>
   )

@@ -1,16 +1,16 @@
 import { getServiceSupabase } from '@/lib/supabase/service'
 import { adminTokens as tokens } from '@/lib/admin/admin-tokens'
 import { Card } from '@/components/ui/card'
-import BlogAdminList from '@/components/admin/BlogAdminList'
+import BlogAdminList, { type BlogListRow } from '@/components/admin/BlogAdminList'
 
 async function getPosts() {
   const service = getServiceSupabase()
   const { data } = await service
     .from('blog_posts')
-    .select('id, slug, locale, title, category, cover_image_url, published_at, ai_generated, created_at')
+    .select('id, slug, locale, title, category, cover_image_url, published_at, ai_generated, created_at, updated_at, views, seo_description')
     .order('sort_order', { ascending: true, nullsFirst: false })
     .order('created_at', { ascending: false })
-  return data ?? []
+  return (data ?? []) as unknown as BlogListRow[]
 }
 
 export default async function AdminBlogListPage() {

@@ -332,7 +332,8 @@ export default function BlogEditorForm({ post, siblings }: { post: BlogPost; sib
   }
 
   return (
-    <div>
+    <div className="blog-editor-grid">
+      <div style={{ minWidth: 0 }}>
       <div style={{ display: 'flex', gap: 4, marginBottom: tokens.spacing.lg, flexWrap: 'wrap' }}>
         {LOCALES.map((l) => {
           const isCurrent = l === post.locale
@@ -387,39 +388,6 @@ export default function BlogEditorForm({ post, siblings }: { post: BlogPost; sib
           <Input value={excerpt} onChange={(e) => setExcerpt(e.target.value)} />
         </div>
       </Card>
-
-      <Card style={{ marginBottom: tokens.spacing.lg }}>
-        <label style={{ display: 'block', marginBottom: 8, fontSize: 14, fontWeight: 500, color: tokens.colors.textMuted }}>
-          Cover image
-        </label>
-        {coverImageUrl && (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img src={coverImageUrl} alt="部落格文章封面圖片" style={{ width: '100%', maxHeight: 220, objectFit: 'cover', borderRadius: tokens.radius.input, marginBottom: tokens.spacing.sm }} />
-        )}
-        <div style={{ display: 'flex', gap: tokens.spacing.sm, flexWrap: 'wrap' }}>
-          <label>
-            <input
-              type="file"
-              accept="image/png,image/jpeg,image/webp"
-              style={{ display: 'none' }}
-              onChange={(e) => {
-                const file = e.target.files?.[0]
-                if (file) uploadCoverImage(file)
-              }}
-            />
-            <Button variant="secondary" disabled={uploading}>
-              <ImagePlus size={16} style={{ marginRight: 6 }} />
-              {uploading ? 'Uploading...' : 'Upload image'}
-            </Button>
-          </label>
-          <Button variant="secondary" disabled={generatingImage} onClick={generateCoverImage}>
-            <Sparkles size={16} style={{ marginRight: 6 }} />
-            {generatingImage ? 'Generating...' : 'Generate with AI'}
-          </Button>
-        </div>
-        {imageError && <div style={{ color: tokens.colors.danger, fontSize: 13, marginTop: 8 }}>{imageError}</div>}
-      </Card>
-
       <Card style={{ marginBottom: tokens.spacing.lg }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8, marginBottom: 8, flexWrap: 'wrap' }}>
           <label style={{ fontSize: 14, fontWeight: 500, color: tokens.colors.textMuted }}>Content</label>
@@ -500,7 +468,6 @@ export default function BlogEditorForm({ post, siblings }: { post: BlogPost; sib
           <EditorContent editor={editor} />
         </div>
       </Card>
-
       <Card style={{ marginBottom: tokens.spacing.lg }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10, flexWrap: 'wrap', gap: 8 }}>
           <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 14, fontWeight: 500, color: tokens.colors.textMuted }}><Eye size={15} />預覽（同前台一致）</span>
@@ -524,7 +491,34 @@ export default function BlogEditorForm({ post, siblings }: { post: BlogPost; sib
           </div>
         </div>
       </Card>
-
+      <BlogSparkSeo
+        fields={{ title, slug, excerpt, seoTitle, seoDescription, content: currentHtml }}
+        cover={coverImageUrl}
+        onApply={(p) => {
+          if (p.title !== undefined) setTitle(p.title)
+          if (p.slug !== undefined) setSlug(p.slug)
+          if (p.excerpt !== undefined) setExcerpt(p.excerpt)
+          if (p.seoTitle !== undefined) setSeoTitle(p.seoTitle)
+          if (p.seoDescription !== undefined) setSeoDescription(p.seoDescription)
+          if (p.content !== undefined) { setHtml(p.content); setMode('html'); setHtmlVersion((v) => v + 1) }
+        }}
+      />
+      </div>
+      <aside className="blog-editor-side">
+        <Card style={{ marginBottom: tokens.spacing.lg }}>
+          <div style={{ fontFamily: "'Good Times', 'JetBrains Mono', monospace", fontSize: 11, letterSpacing: '0.14em', textTransform: 'uppercase', color: tokens.colors.textMuted, marginBottom: 10 }}>Publish</div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: tokens.spacing.sm, flexWrap: 'wrap' }}>
+          <Button variant="secondary" onClick={save} disabled={saving}>
+            {saving ? '儲存中…' : '儲存草稿'}
+          </Button>
+          <Button variant="primary" onClick={togglePublish} disabled={saving}>
+            {post.published_at ? '取消發佈 / 排程' : '立即發佈'}
+          </Button>
+          </div>
+          {post.published_at && new Date(post.published_at).getTime() <= Date.now() && (
+            <a href={`${post.locale === 'zh-HK' ? '' : `/${post.locale}`}/blog/${post.slug}`} target="_blank" rel="noopener noreferrer" style={{ display: 'inline-block', marginTop: 10, fontSize: 13, color: tokens.colors.brand }}>在前台查看 ↗</a>
+          )}
+        </Card>
       <Card style={{ marginBottom: tokens.spacing.lg }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 10, fontSize: 14, fontWeight: 500, color: tokens.colors.textMuted }}>
           <CalendarClock size={15} />發佈狀態：
@@ -540,20 +534,37 @@ export default function BlogEditorForm({ post, siblings }: { post: BlogPost; sib
         </div>
         <p style={{ margin: '8px 0 0', fontSize: 12, color: tokens.colors.textMuted }}>到時間會自動出現喺前台，唔使再撳發佈。</p>
       </Card>
-
-      <BlogSparkSeo
-        fields={{ title, slug, excerpt, seoTitle, seoDescription, content: currentHtml }}
-        cover={coverImageUrl}
-        onApply={(p) => {
-          if (p.title !== undefined) setTitle(p.title)
-          if (p.slug !== undefined) setSlug(p.slug)
-          if (p.excerpt !== undefined) setExcerpt(p.excerpt)
-          if (p.seoTitle !== undefined) setSeoTitle(p.seoTitle)
-          if (p.seoDescription !== undefined) setSeoDescription(p.seoDescription)
-          if (p.content !== undefined) { setHtml(p.content); setMode('html'); setHtmlVersion((v) => v + 1) }
-        }}
-      />
-
+      <Card style={{ marginBottom: tokens.spacing.lg }}>
+        <label style={{ display: 'block', marginBottom: 8, fontSize: 14, fontWeight: 500, color: tokens.colors.textMuted }}>
+          Cover image
+        </label>
+        {coverImageUrl && (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img src={coverImageUrl} alt="部落格文章封面圖片" style={{ width: '100%', maxHeight: 220, objectFit: 'cover', borderRadius: tokens.radius.input, marginBottom: tokens.spacing.sm }} />
+        )}
+        <div style={{ display: 'flex', gap: tokens.spacing.sm, flexWrap: 'wrap' }}>
+          <label>
+            <input
+              type="file"
+              accept="image/png,image/jpeg,image/webp"
+              style={{ display: 'none' }}
+              onChange={(e) => {
+                const file = e.target.files?.[0]
+                if (file) uploadCoverImage(file)
+              }}
+            />
+            <Button variant="secondary" disabled={uploading}>
+              <ImagePlus size={16} style={{ marginRight: 6 }} />
+              {uploading ? 'Uploading...' : 'Upload image'}
+            </Button>
+          </label>
+          <Button variant="secondary" disabled={generatingImage} onClick={generateCoverImage}>
+            <Sparkles size={16} style={{ marginRight: 6 }} />
+            {generatingImage ? 'Generating...' : 'Generate with AI'}
+          </Button>
+        </div>
+        {imageError && <div style={{ color: tokens.colors.danger, fontSize: 13, marginTop: 8 }}>{imageError}</div>}
+      </Card>
       <Card style={{ marginBottom: tokens.spacing.lg }}>
         <div style={{ marginBottom: tokens.spacing.md }}>
           <label style={{ display: 'block', marginBottom: 8, fontSize: 14, fontWeight: 500, color: tokens.colors.textMuted }}>SEO 標題</label>
@@ -564,16 +575,7 @@ export default function BlogEditorForm({ post, siblings }: { post: BlogPost; sib
           <Input value={seoDescription} onChange={(e) => setSeoDescription(e.target.value)} />
         </div>
       </Card>
-
-      <div style={{ display: 'flex', alignItems: 'center', gap: tokens.spacing.sm }}>
-        <Button variant="secondary" onClick={save} disabled={saving}>
-          {saving ? '儲存中…' : '儲存草稿'}
-        </Button>
-        <Button variant="primary" onClick={togglePublish} disabled={saving}>
-          {post.published_at ? '取消發佈 / 排程' : '立即發佈'}
-        </Button>
-        {saved && <span style={{ fontSize: 13, color: tokens.colors.brand }}>已儲存</span>}
-      </div>
+      </aside>
     </div>
   )
 }

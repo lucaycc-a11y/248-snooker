@@ -1440,3 +1440,8 @@ html.no-js .pi-actions {
 .bl-article-grid { display: grid; grid-template-columns: minmax(0, 720px) 220px; gap: 64px; justify-content: center; }
 @media (max-width: 1080px) { .bl-article-grid { grid-template-columns: minmax(0, 720px); } .bl-toc-wrap { display: none; } }
 @media (prefers-reduced-motion: reduce) { .bl-card .bl-cover, .bl-img { transition: none; } .bl-card:hover .bl-cover, .bl-card:hover .bl-img { transform: none; } }
+
+/* Admin blog editor: content column + sticky publishing sidebar */
+.blog-editor-grid { display: grid; grid-template-columns: minmax(0, 1fr) 340px; gap: 24px; align-items: start; }
+.blog-editor-side { position: sticky; top: 16px; max-height: calc(100vh - 32px); overflow-y: auto; }
+@media (max-width: 1100px) { .blog-editor-grid { grid-template-columns: minmax(0, 1fr); } .blog-editor-side { position: static; max-height: none; } }
