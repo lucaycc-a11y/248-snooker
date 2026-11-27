@@ -64,7 +64,7 @@ export async function buildSitemapEntries(): Promise<SitemapEntry[]> {
   const postEntries: SitemapEntry[] = postsByLocale.flatMap((posts, i) =>
     posts.map((post) => ({
       url: absoluteUrl(ENABLED_LOCALES[i], `/blog/${post.slug}`),
-      lastModified: post.published_at ? new Date(post.published_at) : now,
+      lastModified: post.updated_at ? new Date(post.updated_at) : post.published_at ? new Date(post.published_at) : now,
       changeFrequency: 'monthly' as const,
       priority: 0.6,
       // NOTE: no hreflang alternates here — blog posts are per-locale rows with

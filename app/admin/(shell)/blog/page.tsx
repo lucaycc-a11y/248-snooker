@@ -8,6 +8,7 @@ async function getPosts() {
   const { data } = await service
     .from('blog_posts')
     .select('id, slug, locale, title, category, cover_image_url, published_at, ai_generated, created_at')
+    .order('sort_order', { ascending: true, nullsFirst: false })
     .order('created_at', { ascending: false })
   return data ?? []
 }

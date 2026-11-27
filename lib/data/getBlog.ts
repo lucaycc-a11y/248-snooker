@@ -16,10 +16,12 @@ export type BlogPost = {
   published_at: string | null
   reading_time: number | null
   views: number | null
+  updated_at?: string | null
+  sort_order?: number | null
 }
 
 const LIST_COLUMNS =
-  'id, slug, locale, title, excerpt, cover_image_url, og_image_url, category, author, published_at, reading_time, views'
+  'id, slug, locale, title, excerpt, cover_image_url, og_image_url, category, author, published_at, reading_time, views, updated_at, sort_order'
 
 // List published posts for a locale, newest first. Returns [] when Supabase is
 // unavailable or the table is empty — the list page renders a "coming soon"
@@ -34,6 +36,7 @@ export async function getBlogPosts(locale: string): Promise<BlogPost[]> {
       .eq('locale', locale)
       .not('published_at', 'is', null)
       .lte('published_at', new Date().toISOString())
+      .order('sort_order', { ascending: true, nullsFirst: false })
       .order('published_at', { ascending: false })
     if (error || !data) return []
     return data as BlogPost[]

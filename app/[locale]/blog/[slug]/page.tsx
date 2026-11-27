@@ -8,6 +8,7 @@ import Footer from "@/components/layout/Footer";
 import { Link } from "@/i18n/navigation";
 import { getBlogPost, getRelatedPosts } from "@/lib/data/getBlog";
 import { safeJsonLd } from "@/lib/seo/jsonLd";
+import { buildBlogGraph } from "@/lib/blog/structuredData";
 
 // ── Heavy content rendering (lazy load) ──────────────────────────────────────
 const BlogArticleContent = dynamic(
@@ -77,22 +78,9 @@ export default async function BlogPostPage({
   const cover = post.cover_image_url || post.og_image_url;
   const url = `${BASE}${localePath(locale, slug)}`;
 
-  // Article structured data for rich results.
-  const jsonLd = {
-    "@context": "https://schema.org",
-    "@type": "Article",
-    headline: post.title,
-    description: post.seo_description || post.excerpt || undefined,
-    image: cover || undefined,
-    datePublished: post.published_at || undefined,
-    author: { "@type": "Organization", name: post.author || "Space8" },
-    publisher: {
-      "@type": "Organization",
-      name: "Space8",
-      logo: { "@type": "ImageObject", url: `${BASE}/logos/logo-black-horizontal.svg` },
-    },
-    mainEntityOfPage: { "@type": "WebPage", "@id": url },
-  };
+  // BlogPosting + BreadcrumbList (+ FAQPage) structured data for rich results and AI answers.
+  const blogUrl = `${BASE}${locale === "zh-HK" ? "" : `/${locale}`}/blog`;
+  const jsonLd = buildBlogGraph(post, locale, url, blogUrl);
 
   return (
     <main className="relative bg-black">
