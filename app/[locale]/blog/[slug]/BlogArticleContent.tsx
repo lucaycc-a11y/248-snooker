@@ -92,7 +92,7 @@ export default function BlogArticleContent({
     const items: TocItem[] = heads.map((h, i) => {
       if (!h.id) h.id = `section-${i + 1}`;
       h.style.scrollMarginTop = "96px";
-      return { id: h.id, text: (h.textContent ?? "").trim(), level: h.tagName === "H3" ? 3 : 2 };
+      return { id: h.id, text: (h.textContent ?? "").trim(), level: h.tagName === "H3" ? (3 as const) : (2 as const) };
     }).filter((x) => x.text !== "");
     setToc(items);
     if (items.length === 0 || typeof IntersectionObserver === "undefined") return;
