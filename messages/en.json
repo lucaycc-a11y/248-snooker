@@ -403,7 +403,20 @@
     "share_whatsapp": "Share on WhatsApp",
     "copy_link": "Copy link",
     "copied": "Copied",
-    "not_found": "Post not found"
+    "not_found": "Post not found",
+    "eyebrow": "Space8 Journal",
+    "search_placeholder": "Search articles",
+    "results_count": "{count} articles",
+    "no_results": "No articles found",
+    "no_results_hint": "Try another keyword or category.",
+    "clear_filters": "Clear filters",
+    "load_more": "Load more",
+    "rss": "RSS",
+    "featured": "Featured",
+    "sort_curated": "Curated",
+    "sort_newest": "Newest",
+    "toc_title": "On this page",
+    "filter_other": "Other"
   },
   "aboutPage": {
     "hero_title": "About SPACE8",

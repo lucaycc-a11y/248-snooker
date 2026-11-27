@@ -1421,3 +1421,22 @@ html.no-js .pi-actions {
 .s8-cta-title { margin: 0 0 6px !important; font-size: 22px; font-weight: 700; color: #fff; letter-spacing: -0.02em; }
 .s8-cta-text { margin: 0 0 18px !important; font-size: 16px; color: rgba(255,255,255,0.75); }
 .s8-cta-btn { display: inline-block; padding: 12px 28px; border-radius: 999px; background: #22c55e; color: #000 !important; font-weight: 700; font-size: 16px; text-decoration: none !important; }
+
+/* ──────────────────── Blog (list + article) ──────────────────── */
+.bl-card { display: block; color: inherit; text-decoration: none; }
+.bl-card .bl-cover { transition: transform .5s cubic-bezier(.16,1,.3,1), border-color .2s; }
+.bl-card:hover .bl-cover, .bl-card:focus-visible .bl-cover { transform: translateY(-4px); border-color: rgba(34,197,94,.55); }
+.bl-card:hover .bl-img, .bl-card:focus-visible .bl-img { transform: scale(1.04); }
+.bl-img { transition: transform .8s cubic-bezier(.16,1,.3,1); }
+.bl-card:focus-visible { outline: 2px solid #22c55e; outline-offset: 6px; border-radius: 18px; }
+.bl-chip { transition: background .2s, color .2s, border-color .2s; }
+.bl-chip:hover { border-color: rgba(255,255,255,.6); }
+.bl-search:focus-within { border-color: rgba(34,197,94,.7) !important; }
+.bl-feature { display: grid; grid-template-columns: 1.25fr 1fr; gap: 40px; align-items: center; }
+@media (max-width: 860px) { .bl-feature { grid-template-columns: 1fr; gap: 20px; } }
+.bl-toc a { display: block; padding: 6px 0 6px 14px; border-left: 1px solid #2d2d2d; color: rgba(255,255,255,.55); font-size: 13px; line-height: 1.4; text-decoration: none; transition: color .2s, border-color .2s; }
+.bl-toc a:hover { color: #fff; }
+.bl-toc a[aria-current="true"] { color: #22c55e; border-left-color: #22c55e; }
+.bl-article-grid { display: grid; grid-template-columns: minmax(0, 720px) 220px; gap: 64px; justify-content: center; }
+@media (max-width: 1080px) { .bl-article-grid { grid-template-columns: minmax(0, 720px); } .bl-toc-wrap { display: none; } }
+@media (prefers-reduced-motion: reduce) { .bl-card .bl-cover, .bl-img { transition: none; } .bl-card:hover .bl-cover, .bl-card:hover .bl-img { transform: none; } }

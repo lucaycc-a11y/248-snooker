@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { indexingMeta } from "@/lib/env/app-env";
 import { notFound } from "next/navigation";
-import { setRequestLocale, getTranslations } from "next-intl/server";
+import { setRequestLocale } from "next-intl/server";
 import dynamic from "next/dynamic";
 import Nav from "@/components/layout/Nav";
 import Footer from "@/components/layout/Footer";
@@ -73,7 +73,6 @@ export default async function BlogPostPage({
   const post = await getBlogPost(slug, locale);
   if (!post) notFound();
 
-  const t = await getTranslations({ locale, namespace: "blog" });
   const related = await getRelatedPosts(post);
   const cover = post.cover_image_url || post.og_image_url;
   const url = `${BASE}${localePath(locale, slug)}`;
@@ -91,7 +90,6 @@ export default async function BlogPostPage({
         related={related}
         locale={locale}
         url={url}
-        t={t}
       />
       <Footer />
     </main>

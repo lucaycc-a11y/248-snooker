@@ -403,7 +403,20 @@
     "share_whatsapp": "分享至 WhatsApp",
     "copy_link": "復制鏈接",
     "copied": "已復制",
-    "not_found": "找不到文章"
+    "not_found": "找不到文章",
+    "eyebrow": "SPACE8 Journal",
+    "search_placeholder": "搜尋文章",
+    "results_count": "共 {count} 篇",
+    "no_results": "找不到文章",
+    "no_results_hint": "試試其他關鍵字或分類。",
+    "clear_filters": "清除篩選",
+    "load_more": "載入更多",
+    "rss": "RSS",
+    "featured": "精選",
+    "sort_curated": "精選排序",
+    "sort_newest": "最新",
+    "toc_title": "本頁目錄",
+    "filter_other": "其他"
   },
   "aboutPage": {
     "hero_title": "關於 SPACE8",
