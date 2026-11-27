@@ -12,7 +12,7 @@ const GREEN = "#22C55E";
 const BORDER = "#2D2D2D";
 const SUBTLE = "#A1A1A6";
 const FONT =
-  "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', 'Helvetica Neue', Helvetica, Arial, sans-serif";
+  "-apple-system, BlinkMacSystemFont, 'SF Pro Text', 'SF Pro Display', var(--font-noto-hk), 'PingFang HK', 'Noto Sans TC', 'Helvetica Neue', Arial, sans-serif";
 const GT = "'Good Times', 'JetBrains Mono', monospace";
 const EASE = [0.16, 1, 0.3, 1] as const;
 const PAGE_SIZE = 9;
@@ -160,7 +160,7 @@ export default function BlogList({ posts, locale }: { posts: BlogPost[]; locale:
   }) as const;
 
   return (
-    <div style={{ fontFamily: FONT, background: "#000", minHeight: "100vh" }}>
+    <div className="bl-type" style={{ fontFamily: FONT, background: "#000", minHeight: "100vh" }}>
       <section data-nav-theme="dark" style={{ background: "#000", color: "white", padding: "150px 24px 40px", position: "relative", overflow: "hidden" }}>
         <div aria-hidden="true" style={{ position: "absolute", inset: 0, background: "radial-gradient(60% 60% at 80% 0%, rgba(34,197,94,0.14) 0%, rgba(0,0,0,0) 70%)", pointerEvents: "none" }} />
         <div style={{ maxWidth: 1100, margin: "0 auto", position: "relative" }}>

@@ -1445,3 +1445,83 @@ html.no-js .pi-actions {
 .blog-editor-grid { display: grid; grid-template-columns: minmax(0, 1fr) 340px; gap: 24px; align-items: start; }
 .blog-editor-side { position: sticky; top: 16px; max-height: calc(100vh - 32px); overflow-y: auto; }
 @media (max-width: 1100px) { .blog-editor-grid { grid-template-columns: minmax(0, 1fr); } .blog-editor-side { position: static; max-height: none; } }
+
+/* ──────────────────── Blog typography v2 ────────────────────
+   Latin from the system UI face (SF Pro), Chinese from Noto Sans HK, so mixed text sets evenly.
+   Chinese gets looser leading and slight tracking; headings balance their line breaks. */
+.bl-type, .blog-prose {
+  font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'SF Pro Display', var(--font-noto-hk), 'PingFang HK', 'Noto Sans TC', 'Helvetica Neue', Arial, sans-serif;
+  font-feature-settings: 'kern' 1, 'liga' 1;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  line-break: strict;
+  word-break: break-word;
+  overflow-wrap: anywhere;
+}
+.bl-type h1, .bl-type h2, .bl-type h3, .blog-prose h2, .blog-prose h3 { text-wrap: balance; }
+.bl-type p, .blog-prose p, .blog-prose li { text-wrap: pretty; }
+
+.blog-prose {
+  font-size: clamp(17px, 0.35vw + 16px, 19px);
+  line-height: 1.95;
+  letter-spacing: 0.015em;
+  color: rgba(255, 255, 255, 0.84);
+}
+.blog-prose p { margin: 0 0 1.45em; }
+.blog-prose > p:first-of-type { font-size: 1.12em; line-height: 1.85; color: rgba(255, 255, 255, 0.95); }
+.blog-prose h2 {
+  position: relative;
+  font-size: clamp(26px, 3.4vw, 34px);
+  font-weight: 700;
+  letter-spacing: -0.012em;
+  line-height: 1.28;
+  margin: 2.6em 0 0.7em;
+  padding-top: 0.9em;
+}
+.blog-prose h2::before {
+  content: '';
+  position: absolute; left: 0; top: 0;
+  width: 32px; height: 3px; border-radius: 3px; background: #22c55e;
+}
+.blog-prose h3 {
+  font-size: clamp(20px, 2.4vw, 24px);
+  font-weight: 600;
+  letter-spacing: -0.005em;
+  line-height: 1.4;
+  margin: 2em 0 0.5em;
+}
+.blog-prose strong { color: #fff; font-weight: 700; }
+.blog-prose a { text-decoration-thickness: 1px; text-underline-offset: 4px; text-decoration-color: rgba(34, 197, 94, 0.55); transition: text-decoration-color .2s, color .2s; }
+.blog-prose a:hover { color: #4ade80; text-decoration-color: #4ade80; }
+.blog-prose ul, .blog-prose ol { padding-left: 1.3em; }
+.blog-prose li { margin: 0 0 0.6em; padding-left: 0.2em; }
+.blog-prose li::marker { color: #22c55e; font-weight: 600; }
+.blog-prose blockquote {
+  position: relative;
+  margin: 2em 0;
+  padding: 1.1em 1.4em 1.1em 1.6em;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-left: 3px solid #22c55e;
+  border-radius: 0 16px 16px 0;
+  background: rgba(255, 255, 255, 0.04);
+  color: rgba(255, 255, 255, 0.88);
+  font-style: normal;
+  font-size: 1.04em;
+}
+.blog-prose blockquote p:last-child { margin-bottom: 0; }
+.blog-prose figure { margin: 2em 0; }
+.blog-prose figure img { margin: 0; width: 100%; }
+.blog-prose figcaption { margin-top: 0.7em; text-align: center; font-size: 0.82em; color: #a1a1a6; letter-spacing: 0.04em; }
+.blog-prose table { width: 100%; border-collapse: separate; border-spacing: 0; margin: 2em 0; font-size: 0.92em; line-height: 1.6; border: 1px solid rgba(255, 255, 255, 0.12); border-radius: 14px; overflow: hidden; }
+.blog-prose th { text-align: left; font-weight: 600; color: #fff; background: rgba(255, 255, 255, 0.07); }
+.blog-prose th, .blog-prose td { padding: 0.8em 1em; border-bottom: 1px solid rgba(255, 255, 255, 0.08); }
+.blog-prose tr:last-child td { border-bottom: none; }
+.blog-prose tbody tr:nth-child(even) td { background: rgba(255, 255, 255, 0.025); }
+.blog-prose details { margin: 0 0 0.8em; border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 16px; background: rgba(255, 255, 255, 0.04); overflow: hidden; }
+.blog-prose summary { cursor: pointer; list-style: none; padding: 1em 3em 1em 1.2em; font-weight: 600; color: #fff; position: relative; line-height: 1.5; }
+.blog-prose summary::-webkit-details-marker { display: none; }
+.blog-prose summary::after { content: '+'; position: absolute; right: 1.2em; top: 50%; transform: translateY(-50%); font-family: 'Good Times', monospace; color: #22c55e; font-size: 1.1em; }
+.blog-prose details[open] summary::after { content: '–'; }
+.blog-prose details > :not(summary) { margin: 0; padding: 0 1.2em 1.1em; color: rgba(255, 255, 255, 0.78); }
+.blog-prose hr { border: none; height: 1px; background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.22), transparent); margin: 3em 0; }
+@media (max-width: 640px) { .blog-prose { line-height: 1.9; } .blog-prose h2 { margin-top: 2.2em; } }

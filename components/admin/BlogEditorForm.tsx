@@ -6,9 +6,8 @@ import { useEditor, EditorContent } from '@tiptap/react'
 import StarterKit from '@tiptap/starter-kit'
 import TiptapImage from '@tiptap/extension-image'
 import TiptapLink from '@tiptap/extension-link'
-import { Bold, Italic, List, ListOrdered, Quote, Heading2, LinkIcon, ImagePlus, Sparkles, Languages, Check, Code2, Eye, Smartphone, Monitor, CalendarClock, LayoutList } from 'lucide-react'
-import { renderRichText } from '@/lib/blog/renderRichText'
-import { renderBlogCta, type CtaText } from '@/components/blog/BlogCta'
+import { Bold, Italic, List, ListOrdered, Quote, Heading2, LinkIcon, ImagePlus, Sparkles, Languages, Check, Code2, Eye, CalendarClock, LayoutList } from 'lucide-react'
+import BlogPreviewDrawer from '@/components/admin/BlogPreviewDrawer'
 import { Card } from '@/components/ui/card'
 import { Button } from '@/components/admin/ui/Button'
 import { Input } from '@/components/ui/input'
@@ -38,12 +37,6 @@ type BlogPost = {
 type SiblingPost = { id: string; locale: string }
 
 const LOCALES = ['zh-HK', 'zh-CN', 'en']
-
-// Admin preview uses the same renderer + CTA markup as the public page.
-const ADMIN_CTA_TEXT: CtaText = {
-  booking_title: '準備開波？', booking_text: '喺 SPACE8 預訂私人枱，揀好時間直接入場。', booking_label: '立即預約',
-  member_title: '每次消費都儲分', member_text: '成為會員，享用額度、積分同會員優惠。', member_label: '加入會員',
-}
 
 // Markup the visual (Tiptap) editor would silently strip — such posts open in HTML mode.
 const NEEDS_HTML = /<(table|div|section|aside|details|span)\b|data-s8/i
@@ -112,8 +105,8 @@ export default function BlogEditorForm({ post, siblings }: { post: BlogPost; sib
   const [mode, setMode] = useState<'visual' | 'html'>(NEEDS_HTML.test(post.content ?? '') ? 'html' : 'visual')
   const [html, setHtml] = useState(post.content ?? '')
   const [visualHtml, setVisualHtml] = useState(post.content ?? '')
-  const [device, setDevice] = useState<'desktop' | 'mobile'>('desktop')
-  const [previewTheme, setPreviewTheme] = useState<'light' | 'dark'>('light')
+  const [previewOpen, setPreviewOpen] = useState(false)
+  const [previewVersion, setPreviewVersion] = useState(0)
   const [scheduleAt, setScheduleAt] = useState(toLocalInput(post.published_at))
   const [scheduleMsg, setScheduleMsg] = useState<string | null>(null)
   const htmlRef = useRef<HTMLTextAreaElement>(null)
@@ -217,7 +210,7 @@ export default function BlogEditorForm({ post, siblings }: { post: BlogPost; sib
     [post.id]
   )
 
-  async function save() {
+  async function save(): Promise<boolean> {
     setSaving(true)
     try {
       const ok = await patch({
@@ -234,9 +227,22 @@ export default function BlogEditorForm({ post, siblings }: { post: BlogPost; sib
         setSaved(true)
         setTimeout(() => setSaved(false), 2000)
       }
+      return ok
     } finally {
       setSaving(false)
     }
+  }
+
+  const previewPath = `${post.locale === 'zh-HK' ? '' : `/${post.locale}`}/blog/preview/${post.id}`
+
+  // Save the draft first so the iframe (which reads the saved row) shows exactly what is on screen.
+  async function openPreview() {
+    setPreviewOpen(true)
+    if (await save()) setPreviewVersion((v) => v + 1)
+  }
+
+  async function refreshPreview() {
+    if (await save()) setPreviewVersion((v) => v + 1)
   }
 
   async function togglePublish() {
@@ -332,6 +338,22 @@ export default function BlogEditorForm({ post, siblings }: { post: BlogPost; sib
   }
 
   return (
+    <>
+    <div style={{ position: 'sticky', top: 0, zIndex: 40, display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap', margin: '0 0 20px', padding: '10px 14px', borderRadius: 16, border: `1px solid ${tokens.colors.border}`, background: 'var(--admin-bg-elevated)', backdropFilter: 'blur(18px) saturate(180%)', WebkitBackdropFilter: 'blur(18px) saturate(180%)' }}>
+      <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 12, fontWeight: 700, color: status === 'published' ? tokens.colors.brand : status === 'scheduled' ? '#ffb340' : tokens.colors.textMuted }}>
+        <span aria-hidden style={{ width: 7, height: 7, borderRadius: 999, background: 'currentColor' }} />
+        {status === 'published' ? '已發佈' : status === 'scheduled' ? '已排程' : '草稿'}
+      </span>
+      <span style={{ flex: 1, minWidth: 0, fontSize: 14, fontWeight: 600, color: tokens.colors.text, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{title || '未命名文章'}</span>
+      {saved && <span style={{ fontSize: 12, color: tokens.colors.brand }}>已儲存</span>}
+      {status === 'published' && (
+        <a href={`${post.locale === 'zh-HK' ? '' : `/${post.locale}`}/blog/${post.slug}`} target="_blank" rel="noopener noreferrer" style={{ fontSize: 13, color: tokens.colors.brand, textDecoration: 'none' }}>前台 ↗</a>
+      )}
+      <Button variant="secondary" onClick={openPreview} disabled={saving}><Eye size={15} style={{ marginRight: 6 }} />預覽</Button>
+      <Button variant="secondary" onClick={save} disabled={saving}>{saving ? '儲存中…' : '儲存'}</Button>
+      <Button variant="primary" onClick={togglePublish} disabled={saving}>{post.published_at ? '取消發佈' : '立即發佈'}</Button>
+    </div>
+    <BlogPreviewDrawer open={previewOpen} onClose={() => setPreviewOpen(false)} src={previewPath} version={previewVersion} onRefresh={refreshPreview} refreshing={saving} />
     <div className="blog-editor-grid">
       <div style={{ minWidth: 0 }}>
       <div style={{ display: 'flex', gap: 4, marginBottom: tokens.spacing.lg, flexWrap: 'wrap' }}>
@@ -372,25 +394,25 @@ export default function BlogEditorForm({ post, siblings }: { post: BlogPost; sib
 
       <Card style={{ marginBottom: tokens.spacing.lg }}>
         <div style={{ marginBottom: tokens.spacing.md }}>
-          <label style={{ display: 'block', marginBottom: 8, fontSize: 14, fontWeight: 500, color: tokens.colors.textMuted }}>標題</label>
+          <label style={{ display: 'block', marginBottom: 8, fontSize: 13, fontWeight: 600, letterSpacing: '0.02em', color: tokens.colors.textMuted }}>標題</label>
           <Input value={title} onChange={(e) => setTitle(e.target.value)} />
         </div>
         <div style={{ marginBottom: tokens.spacing.md }}>
-          <label style={{ display: 'block', marginBottom: 8, fontSize: 14, fontWeight: 500, color: tokens.colors.textMuted }}>網址代稱</label>
+          <label style={{ display: 'block', marginBottom: 8, fontSize: 13, fontWeight: 600, letterSpacing: '0.02em', color: tokens.colors.textMuted }}>網址代稱</label>
           <Input value={slug} onChange={(e) => setSlug(e.target.value)} />
         </div>
         <div style={{ marginBottom: tokens.spacing.md }}>
-          <label style={{ display: 'block', marginBottom: 8, fontSize: 14, fontWeight: 500, color: tokens.colors.textMuted }}>分類</label>
+          <label style={{ display: 'block', marginBottom: 8, fontSize: 13, fontWeight: 600, letterSpacing: '0.02em', color: tokens.colors.textMuted }}>分類</label>
           <Input value={category} onChange={(e) => setCategory(e.target.value)} placeholder="教學、場地、活動、文化" />
         </div>
         <div>
-          <label style={{ display: 'block', marginBottom: 8, fontSize: 14, fontWeight: 500, color: tokens.colors.textMuted }}>摘要</label>
+          <label style={{ display: 'block', marginBottom: 8, fontSize: 13, fontWeight: 600, letterSpacing: '0.02em', color: tokens.colors.textMuted }}>摘要</label>
           <Input value={excerpt} onChange={(e) => setExcerpt(e.target.value)} />
         </div>
       </Card>
       <Card style={{ marginBottom: tokens.spacing.lg }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8, marginBottom: 8, flexWrap: 'wrap' }}>
-          <label style={{ fontSize: 14, fontWeight: 500, color: tokens.colors.textMuted }}>Content</label>
+          <label style={{ fontSize: 13, fontWeight: 600, letterSpacing: '0.02em', color: tokens.colors.textMuted }}>Content</label>
           <div style={{ display: 'flex', gap: 6 }}>
             <Button variant={mode === 'visual' ? 'primary' : 'secondary'} onClick={() => switchMode('visual')}>視覺編輯</Button>
             <Button variant={mode === 'html' ? 'primary' : 'secondary'} onClick={() => switchMode('html')}><Code2 size={15} style={{ marginRight: 6 }} />HTML</Button>
@@ -468,29 +490,6 @@ export default function BlogEditorForm({ post, siblings }: { post: BlogPost; sib
           <EditorContent editor={editor} />
         </div>
       </Card>
-      <Card style={{ marginBottom: tokens.spacing.lg }}>
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10, flexWrap: 'wrap', gap: 8 }}>
-          <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 14, fontWeight: 500, color: tokens.colors.textMuted }}><Eye size={15} />預覽（同前台一致）</span>
-          <div style={{ display: 'flex', gap: 6 }}>
-            <Button variant={previewTheme === 'light' ? 'primary' : 'secondary'} onClick={() => setPreviewTheme(previewTheme === 'light' ? 'dark' : 'light')}>{previewTheme === 'light' ? '淺色' : '深色'}</Button>
-            <Button variant={device === 'desktop' ? 'primary' : 'secondary'} onClick={() => setDevice('desktop')}><Monitor size={15} /></Button>
-            <Button variant={device === 'mobile' ? 'primary' : 'secondary'} onClick={() => setDevice('mobile')}><Smartphone size={15} /></Button>
-          </div>
-        </div>
-        <div className={previewTheme === 'light' ? 'blog-light' : undefined} style={{ background: previewTheme === 'light' ? '#fff' : '#000', borderRadius: 14, padding: '28px 20px', overflowX: 'auto' }}>
-          <div style={{ maxWidth: device === 'mobile' ? 390 : 720, margin: '0 auto', color: previewTheme === 'light' ? '#111' : '#fff' }}>
-            {category && <span style={{ fontSize: 12, fontWeight: 600, color: '#22C55E' }}>{category}</span>}
-            <h1 style={{ fontSize: device === 'mobile' ? 28 : 40, fontWeight: 700, letterSpacing: '-0.03em', lineHeight: 1.15, margin: '6px 0 18px' }}>{title}</h1>
-            {coverImageUrl && (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img src={coverImageUrl} alt="" style={{ width: '100%', borderRadius: 16, marginBottom: 20 }} />
-            )}
-            <div className="blog-prose">
-              {renderRichText(currentHtml, { component: (kind, attrs, key) => renderBlogCta(kind, attrs, key, ADMIN_CTA_TEXT, post.locale) })}
-            </div>
-          </div>
-        </div>
-      </Card>
       <BlogSparkSeo
         fields={{ title, slug, excerpt, seoTitle, seoDescription, content: currentHtml }}
         cover={coverImageUrl}
@@ -505,22 +504,8 @@ export default function BlogEditorForm({ post, siblings }: { post: BlogPost; sib
       />
       </div>
       <aside className="blog-editor-side">
-        <Card style={{ marginBottom: tokens.spacing.lg }}>
-          <div style={{ fontFamily: "'Good Times', 'JetBrains Mono', monospace", fontSize: 11, letterSpacing: '0.14em', textTransform: 'uppercase', color: tokens.colors.textMuted, marginBottom: 10 }}>Publish</div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: tokens.spacing.sm, flexWrap: 'wrap' }}>
-          <Button variant="secondary" onClick={save} disabled={saving}>
-            {saving ? '儲存中…' : '儲存草稿'}
-          </Button>
-          <Button variant="primary" onClick={togglePublish} disabled={saving}>
-            {post.published_at ? '取消發佈 / 排程' : '立即發佈'}
-          </Button>
-          </div>
-          {post.published_at && new Date(post.published_at).getTime() <= Date.now() && (
-            <a href={`${post.locale === 'zh-HK' ? '' : `/${post.locale}`}/blog/${post.slug}`} target="_blank" rel="noopener noreferrer" style={{ display: 'inline-block', marginTop: 10, fontSize: 13, color: tokens.colors.brand }}>在前台查看 ↗</a>
-          )}
-        </Card>
       <Card style={{ marginBottom: tokens.spacing.lg }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 10, fontSize: 14, fontWeight: 500, color: tokens.colors.textMuted }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 10, fontSize: 13, fontWeight: 600, letterSpacing: '0.02em', color: tokens.colors.textMuted }}>
           <CalendarClock size={15} />發佈狀態：
           <b style={{ color: status === 'published' ? tokens.colors.brand : tokens.colors.text }}>
             {status === 'published' ? '已發佈' : status === 'scheduled' ? `已排程 ${new Date(post.published_at ?? '').toLocaleString('zh-HK')}` : '草稿'}
@@ -535,7 +520,7 @@ export default function BlogEditorForm({ post, siblings }: { post: BlogPost; sib
         <p style={{ margin: '8px 0 0', fontSize: 12, color: tokens.colors.textMuted }}>到時間會自動出現喺前台，唔使再撳發佈。</p>
       </Card>
       <Card style={{ marginBottom: tokens.spacing.lg }}>
-        <label style={{ display: 'block', marginBottom: 8, fontSize: 14, fontWeight: 500, color: tokens.colors.textMuted }}>
+        <label style={{ display: 'block', marginBottom: 8, fontSize: 13, fontWeight: 600, letterSpacing: '0.02em', color: tokens.colors.textMuted }}>
           Cover image
         </label>
         {coverImageUrl && (
@@ -567,15 +552,16 @@ export default function BlogEditorForm({ post, siblings }: { post: BlogPost; sib
       </Card>
       <Card style={{ marginBottom: tokens.spacing.lg }}>
         <div style={{ marginBottom: tokens.spacing.md }}>
-          <label style={{ display: 'block', marginBottom: 8, fontSize: 14, fontWeight: 500, color: tokens.colors.textMuted }}>SEO 標題</label>
+          <label style={{ display: 'block', marginBottom: 8, fontSize: 13, fontWeight: 600, letterSpacing: '0.02em', color: tokens.colors.textMuted }}>SEO 標題</label>
           <Input value={seoTitle} onChange={(e) => setSeoTitle(e.target.value)} />
         </div>
         <div>
-          <label style={{ display: 'block', marginBottom: 8, fontSize: 14, fontWeight: 500, color: tokens.colors.textMuted }}>SEO 描述</label>
+          <label style={{ display: 'block', marginBottom: 8, fontSize: 13, fontWeight: 600, letterSpacing: '0.02em', color: tokens.colors.textMuted }}>SEO 描述</label>
           <Input value={seoDescription} onChange={(e) => setSeoDescription(e.target.value)} />
         </div>
       </Card>
       </aside>
     </div>
+    </>
   )
 }

@@ -15,7 +15,7 @@ const GREEN = "#22C55E";
 const BORDER_DARK = "#2D2D2D";
 const GT = "'Good Times', 'JetBrains Mono', monospace";
 const FONT =
-  "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', 'Helvetica Neue', Helvetica, Arial, sans-serif";
+  "-apple-system, BlinkMacSystemFont, 'SF Pro Text', 'SF Pro Display', var(--font-noto-hk), 'PingFang HK', 'Noto Sans TC', 'Helvetica Neue', Arial, sans-serif";
 
 function dotDate(iso: string | null): string {
   if (!iso) return "";
@@ -108,7 +108,7 @@ export default function BlogArticleContent({
   }, [post.id]);
 
   return (
-    <div style={{ fontFamily: FONT }}>
+    <div className="bl-type" style={{ fontFamily: FONT }}>
       <ReadingProgress target={articleRef} />
 
       <section
