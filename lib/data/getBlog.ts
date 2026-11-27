@@ -39,7 +39,7 @@ export async function getBlogPosts(locale: string): Promise<BlogPost[]> {
       .order('sort_order', { ascending: true, nullsFirst: false })
       .order('published_at', { ascending: false })
     if (error || !data) return []
-    return data as BlogPost[]
+    return data as unknown as BlogPost[]
   } catch {
     return []
   }
@@ -85,7 +85,7 @@ export async function getRelatedPosts(
     if (post.category) query = query.eq('category', post.category)
     const { data, error } = await query
     if (error || !data) return []
-    return data as BlogPost[]
+    return data as unknown as BlogPost[]
   } catch {
     return []
   }
