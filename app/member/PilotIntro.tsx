@@ -11,7 +11,7 @@ import {
   type MotionValue,
 } from "framer-motion";
 import { PILOT_FAQ_IDS } from "@/lib/seo/spacepilot";
-import SpacePilotCountdown, { LaunchContext, useLaunch, type Launch } from "@/components/landing/SpacePilotCountdown";
+import { LaunchContext, useLaunch, type Launch } from "@/components/landing/SpacePilotLaunchContext";
 import { useTranslations } from "next-intl";
 
 // Space Pilot intro for the member page (admin-only preview tab).
@@ -366,10 +366,7 @@ function HeroCopy({ intro }: { intro: MotionValue<number> }) {
           <motion.p {...rise(2)} style={{ margin: "10px auto 0", fontSize: 14, letterSpacing: "0.02em", color: GREEN }}>
             {t("exclusiveNote")}
           </motion.p>
-          <motion.div {...rise(3)}>
-            <SpacePilotCountdown />
-          </motion.div>
-          <motion.div {...rise(4)} style={{ marginTop: 22 }}>
+          <motion.div {...rise(3)} style={{ marginTop: 22 }}>
             <MemberCtaButton />
           </motion.div>
       </div>
