@@ -86,6 +86,9 @@ export async function GET(req: Request) {
       week: today.week,
       revenue,
       trend,
+      // Full 收入 results for "today" and "month to date" (same shape as /revenue), from this very request.
+      revenueToday: dayRev.error ? null : { ...dayRev, range: { from: today.date, to: today.date } },
+      revenueMonth: monthRev.error ? null : { ...monthRev, range: { from: monthStart, to: today.date } },
       todayBookings: todayList.ok ? todayList.bookings : null,
       recentBookings: recentList.ok ? recentList.bookings : null,
       door,
