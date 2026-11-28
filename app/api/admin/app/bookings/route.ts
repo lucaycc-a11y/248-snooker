@@ -1,9 +1,6 @@
 import { NextResponse } from 'next/server'
 import { requireAppAdmin, jsonError, NO_STORE } from '@/lib/admin/app-guard'
-import { getLegacyServiceSupabase } from '@/lib/supabase/legacy'
-import { type Row } from '@/lib/data/adminReadHelpers'
-import { hkToday, mapBooking } from '@/lib/admin/app-bookings'
-import { getHiddenUserList, hiddenIdFilterValue } from '@/lib/data/getHiddenUserIds'
+import { hkToday, loadAppBookings } from '@/lib/admin/app-bookings'
 
 // GET /api/admin/app/bookings?date=YYYY-MM-DD | ?from=&to= [&status=&includeTest=true&limit=100]
 // Defaults to today (Hong Kong). Dates and times are Hong Kong wall-clock.
@@ -23,53 +20,21 @@ export async function GET(req: Request) {
   if (!YMD.test(from) || !YMD.test(to)) return jsonError('Dates must be YYYY-MM-DD')
   const limitRaw = Number(p.get('limit') ?? '100')
   const limit = Number.isFinite(limitRaw) ? Math.min(Math.max(Math.floor(limitRaw), 1), 300) : 100
-
   const offsetRaw = Number(p.get('offset') ?? '0')
   const offset = Number.isFinite(offsetRaw) ? Math.max(Math.floor(offsetRaw), 0) : 0
 
-  const db = getLegacyServiceSupabase()
-  let q = db
-    .from('bookings')
-    .select('*', { count: 'exact' })
-    .gte('date', from)
-    .lte('date', to)
-    .order('date', { ascending: true })
-    .order('start_time', { ascending: true })
-    .range(offset, offset + limit - 1)
-  // Same rule as the web 今日/預約 screens: test and hidden-account bookings only with includeTest=true.
-  if (p.get('includeTest') !== 'true') {
-    q = q.eq('is_test', false)
-    try {
-      const hidden = hiddenIdFilterValue((await getHiddenUserList()).ids)
-      if (hidden) q = q.not('user_id', 'in', hidden)
-    } catch (err) {
-      // Never fall back to "show everything" when the hidden list cannot be read.
-      console.error('[admin/app/bookings] hidden-user list failed', err)
-      return jsonError('Could not load hidden accounts', 500)
-    }
-  }
-  const status = p.get('status')
-  if (status) q = q.eq('status', status)
-
-  const { data, error, count } = await q
-  if (error) return jsonError('Could not load bookings', 500)
-  const rows = (data ?? []) as Row[]
-
-  const ids = Array.from(new Set(rows.map((r) => r.user_id).filter((v): v is string => typeof v === 'string')))
-  const users = new Map<string, { display_name: string | null; phone: string | null }>()
-  if (ids.length > 0) {
-    const { data: us } = await db.from('users').select('id, display_name, phone').in('id', ids)
-    for (const u of (us ?? []) as { id: string; display_name: string | null; phone: string | null }[]) users.set(u.id, u)
-  }
+  const result = await loadAppBookings({
+    from,
+    to,
+    includeTest: p.get('includeTest') === 'true',
+    status: p.get('status'),
+    limit,
+    offset,
+  })
+  if (!result.ok) return jsonError(result.error, 500)
 
   return NextResponse.json(
-    {
-      from,
-      to,
-      total: count ?? rows.length,
-      nextOffset: count !== null && offset + rows.length < count ? offset + rows.length : null,
-      bookings: rows.map((r) => mapBooking(r, typeof r.user_id === 'string' ? users.get(r.user_id) : null)),
-    },
+    { from, to, total: result.total ?? result.bookings.length, nextOffset: result.nextOffset, bookings: result.bookings },
     { headers: NO_STORE },
   )
 }

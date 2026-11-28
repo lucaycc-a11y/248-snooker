@@ -4,6 +4,7 @@ import { getAdminToday } from '@/lib/data/getAdminToday'
 import { getCurrentAppVersion } from '@/lib/data/getAppVersion'
 import { getAdminRevenue } from '@/lib/data/getAdminRevenue'
 import { getLegacyServiceSupabase } from '@/lib/supabase/legacy'
+import { loadAppBookings } from '@/lib/admin/app-bookings'
 
 // iOS admin home: today's bookings + stats, door device heartbeat, app version.
 // Admin only. ?includeTest=true also counts test bookings.
@@ -44,7 +45,18 @@ export async function GET(req: Request) {
   // test accounts excluded unless includeTest) — the app must not add bookings up itself.
   const monthStart = `${today.date.slice(0, 7)}-01`
   const weekStart = shiftDay(today.date, -6)
-  const [dayRev, monthRev, weekRev] = await Promise.all([
+  // Today's list and the newest bookings come from the same loader as /bookings, in this same request,
+  // so the dashboard (counts, tables in use, recent list) is one consistent snapshot.
+  const [todayList, recentList, dayRev, monthRev, weekRev] = await Promise.all([
+    loadAppBookings({ from: today.date, to: today.date, includeTest, limit: 300, offset: 0 }),
+    loadAppBookings({
+      from: shiftDay(today.date, -14),
+      to: shiftDay(today.date, 90),
+      includeTest,
+      limit: 5,
+      offset: 0,
+      newestFirst: true,
+    }),
     getAdminRevenue({ from: today.date, to: today.date, includeTest, detailPage: 1 }),
     getAdminRevenue({ from: monthStart, to: today.date, includeTest, detailPage: 1 }),
     getAdminRevenue({ from: weekStart, to: today.date, includeTest, detailPage: 1 }),
@@ -74,6 +86,8 @@ export async function GET(req: Request) {
       week: today.week,
       revenue,
       trend,
+      todayBookings: todayList.ok ? todayList.bookings : null,
+      recentBookings: recentList.ok ? recentList.bookings : null,
       door,
       version: version ? { version: version.version, label: version.label, isTest: version.isTest } : null,
       error: today.error,
