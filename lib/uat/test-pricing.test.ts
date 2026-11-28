@@ -103,8 +103,8 @@ describe('applyTestPriceOverride — production safety', () => {
     expect(outcome.total).toBe(99)
   })
 
-  it('applies a flat override regardless of duration', async () => {
-    const { client } = makeServiceStub({ data: activeRow, error: null })
+  it('uses the real total even when an override row would exist (uat_test_pricing is archived)', async () => {
+    const { client, touchedTables } = makeServiceStub({ data: activeRow, error: null })
 
     const outcome = await applyTestPriceOverride({
       service: client,
@@ -114,57 +114,11 @@ describe('applyTestPriceOverride — production safety', () => {
       bookingId: 'b4',
     })
 
-    expect(outcome.applied).toBe(true)
-    expect(outcome.total).toBe(1)
-    if (outcome.applied) expect(outcome.originalTotal).toBe(216)
-  })
-
-  it('scales a per_hour override by billed hours', async () => {
-    const { client } = makeServiceStub({
-      data: { ...activeRow, mode: 'per_hour', amount: 2 },
-      error: null,
-    })
-
-    const outcome = await applyTestPriceOverride({
-      service: client,
-      isTest: true,
-      total: 216,
-      durationHours: 2,
-      bookingId: 'b5',
-    })
-
-    expect(outcome.applied).toBe(true)
-    expect(outcome.total).toBe(4)
-  })
-
-  it('normalises a numeric amount returned as a string', async () => {
-    const { client } = makeServiceStub({ data: { ...activeRow, amount: '3' }, error: null })
-
-    const outcome = await applyTestPriceOverride({
-      service: client,
-      isTest: true,
-      total: 216,
-      durationHours: 1,
-      bookingId: 'b6',
-    })
-
-    expect(outcome.applied).toBe(true)
-    expect(outcome.total).toBe(3)
-  })
-
-  it('floors an override of 0 to HK$1 — KPay rejects zero-amount orders', async () => {
-    const { client } = makeServiceStub({ data: { ...activeRow, amount: 0 }, error: null })
-
-    const outcome = await applyTestPriceOverride({
-      service: client,
-      isTest: true,
-      total: 216,
-      durationHours: 1,
-      bookingId: 'b7',
-    })
-
-    expect(outcome.applied).toBe(true)
-    expect(outcome.total).toBe(1)
+    expect(outcome.applied).toBe(false)
+    expect(outcome.total).toBe(216)
+    if (!outcome.applied) expect(outcome.reason).toBe('no_active_row')
+    // The archived table is never queried any more.
+    expect(touchedTables).toEqual([])
   })
 })
 

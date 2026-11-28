@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest'
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 
 // --- mocks ---------------------------------------------------------------
 const gate = { enabled: true }
@@ -46,6 +46,11 @@ function isDisallowAll(r: Awaited<ReturnType<typeof robots>>): boolean {
 beforeEach(() => {
   gate.enabled = true
   host = 'space8.com.hk'
+  // Indexing is decided by NEXT_PUBLIC_APP_ENV (lib/env/app-env.ts), not by the Host header.
+  vi.stubEnv('NEXT_PUBLIC_APP_ENV', 'production')
+})
+afterEach(() => {
+  vi.unstubAllEnvs()
 })
 
 describe('robots.txt', () => {
@@ -73,14 +78,17 @@ describe('robots.txt', () => {
     expect(isDisallowAll(await robots())).toBe(false)
   })
 
-  it.each(['uat.space8.com.hk', '248-snooker-git-uat-team.vercel.app', 'localhost:3000', null])(
-    'gate off on %s → Disallow all',
-    async (h) => {
-      gate.enabled = false
-      host = h
-      expect(isDisallowAll(await robots())).toBe(true)
-    },
-  )
+  it.each(['uat', 'development', 'typo'])('gate off, NEXT_PUBLIC_APP_ENV=%s → Disallow all', async (env) => {
+    gate.enabled = false
+    vi.stubEnv('NEXT_PUBLIC_APP_ENV', env)
+    expect(isDisallowAll(await robots())).toBe(true)
+  })
+
+  it('gate off, NEXT_PUBLIC_APP_ENV unset → Disallow all (fail closed)', async () => {
+    gate.enabled = false
+    vi.stubEnv('NEXT_PUBLIC_APP_ENV', '')
+    expect(isDisallowAll(await robots())).toBe(true)
+  })
 })
 
 describe('sitemap.xml', () => {
